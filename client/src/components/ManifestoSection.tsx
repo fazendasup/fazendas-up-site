@@ -5,6 +5,7 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { appendImageCacheBust, getSiteImage } from "@/content/siteImages";
+import { useMinLg } from "@/hooks/useMinLg";
 import { useNarrowViewport } from "@/hooks/useNarrowViewport";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +42,7 @@ const pillars = [
 
 export function ManifestoSection() {
   const ref = useRef<HTMLElement>(null);
+  const desktopLg = useMinLg();
   const narrow = useNarrowViewport();
   const manifestoChain = Array.from(
     new Set([getSiteImage("manifesto"), ...manifestoImageFallbacks.map(appendImageCacheBust)])
@@ -90,12 +92,11 @@ export function ManifestoSection() {
       className="relative scroll-mt-20 overflow-x-hidden overflow-y-visible bg-forest-dark py-28 text-paper md:scroll-mt-24 md:py-40 lg:overflow-x-visible"
     >
       {/* Vertical chapter mark */}
-      <div
-        data-fu-desktop-only
-        className="hidden lg:block absolute left-6 top-32 vertical-text text-paper/40 text-[0.68rem] tracking-[0.3em] uppercase"
-      >
-        Capítulo 04: Sobre / Manifesto
-      </div>
+      {desktopLg && (
+        <div className="absolute left-6 top-32 vertical-text text-paper/40 text-[0.68rem] tracking-[0.3em] uppercase">
+          Capítulo 04: Sobre / Manifesto
+        </div>
+      )}
 
       <div className="container min-w-0">
         <div className="mb-20 grid min-w-0 grid-cols-12 gap-10 [&>*]:min-w-0">
@@ -104,7 +105,7 @@ export function ManifestoSection() {
               <span className="h-px w-9 shrink-0 bg-paper/55" />
               <span className="min-w-0">Sobre a Fazendas Up</span>
             </p>
-            <h2 className="display-head max-w-full min-w-0 break-words hyphens-none text-paper leading-[1.08] sm:leading-[1.05] md:leading-none text-[clamp(1.75rem,5.5vw+0.35rem,5.4rem)] md:text-[clamp(2.4rem,6.4vw,5.4rem)]">
+            <h2 className="display-head max-w-full min-w-0 break-words hyphens-none text-paper leading-[1.08] sm:leading-[1.05] md:leading-none text-[clamp(1.65rem,min(5.5vw+0.35rem,12vw),5.4rem)] md:text-[clamp(2.4rem,6.4vw,5.4rem)]">
               Cultivar <em className="text-brand-rose">no alto</em> é uma forma de proteger o que está embaixo.
             </h2>
           </div>
@@ -254,7 +255,7 @@ export function ManifestoSection() {
                 </span>
                 <span className="size-1.5 rounded-full bg-clay" />
               </div>
-              <h3 className="display-head hyphens-auto mb-4 max-w-full text-paper text-[clamp(1.85rem,6vw,2.4rem)] leading-tight">
+              <h3 className="display-head hyphens-none mb-4 max-w-full text-paper text-[clamp(1.85rem,6vw,2.4rem)] leading-tight">
                 {p.t}
               </h3>
               <p className="max-w-full min-w-0 text-[0.97rem] font-light leading-[1.75] text-paper/70">

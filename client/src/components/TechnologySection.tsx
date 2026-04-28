@@ -131,7 +131,7 @@ export function TechnologySection() {
                       <current.icon className="size-4 text-on-plum-strong" />
                     </span>
                   </div>
-                  <h3 className="display-head hyphens-auto text-paper mb-4 max-w-full text-[clamp(1.45rem,4.2vw+0.2rem,2.4rem)] leading-[1.08] md:leading-none md:text-[clamp(1.6rem,3vw,2.4rem)] lg:max-w-md">
+                  <h3 className="display-head hyphens-none text-paper mb-4 max-w-full text-[clamp(1.45rem,4.2vw+0.2rem,2.4rem)] leading-[1.08] md:leading-none md:text-[clamp(1.6rem,3vw,2.4rem)] lg:max-w-md">
                     {current.title}
                   </h3>
                   <p className="max-w-full text-[1rem] font-light leading-[1.65] text-on-plum-strong/95 lg:max-w-md lg:text-[0.98rem]">
@@ -169,13 +169,6 @@ export function TechnologySection() {
                           ? "absolute inset-0 h-full w-full max-h-none max-w-none object-cover object-[50%_58%] md:object-center"
                           : "absolute inset-0 h-full w-full max-h-none max-w-none object-cover"
                     }
-                    drag="x"
-                    dragConstraints={{ left: 0, right: 0 }}
-                    dragElastic={0.08}
-                    onDragEnd={(_, info) => {
-                      if (info.offset.x < -70) nextStep();
-                      if (info.offset.x > 70) prevStep();
-                    }}
                     onError={(e) => {
                       const el = e.currentTarget;
                       if (el.getAttribute("data-fallback") === "1") return;

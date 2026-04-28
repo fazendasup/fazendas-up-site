@@ -41,7 +41,7 @@ export function ForChefsSection() {
   return (
     <section
       ref={ref}
-      className="relative overflow-x-hidden overflow-y-visible border-t border-ink/10 bg-secondary py-24 text-ink md:py-30 lg:h-screen lg:overflow-x-visible lg:py-10"
+      className="relative overflow-x-hidden overflow-x-clip overflow-y-visible border-t border-ink/10 bg-secondary py-24 text-ink md:py-30 lg:h-screen lg:overflow-x-visible lg:py-10"
     >
       {/* Decorative big number — inset-x + overflow:hidden evita largura intrínseca gigante em Safari */}
       <div className="pointer-events-none absolute inset-x-0 -top-6 flex justify-end overflow-hidden select-none md:inset-x-auto md:right-10 md:left-auto md:w-auto">
@@ -99,7 +99,7 @@ export function ForChefsSection() {
               <span className="h-px w-9 shrink-0 bg-forest" />
               <span className="min-w-0">Capítulo 05 · Parcerias</span>
             </p>
-            <h2 className="display-head hyphens-none max-w-full break-words text-ink text-[clamp(1.65rem,5vw+0.35rem,4rem)] leading-[1.12] sm:leading-[1.08] md:leading-none md:text-[clamp(2.2rem,5vw,4rem)]">
+            <h2 className="display-head hyphens-none max-w-full break-words text-ink text-[clamp(1.5rem,min(5vw+0.35rem,11vw),4rem)] leading-[1.12] sm:leading-[1.08] md:leading-none md:text-[clamp(2.2rem,5vw,4rem)]">
               Um parceiro <em>discreto</em> para cozinhas e operações exigentes.
             </h2>
             <p className="mt-6 max-w-full text-[1rem] font-light leading-[1.7] text-ink/75 md:max-w-xl">

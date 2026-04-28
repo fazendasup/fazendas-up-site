@@ -111,31 +111,31 @@ export function ImpactSection() {
                   mass: 1.05,
                   delay: i * 0.07,
                 }}
-                className={`relative flex min-w-0 max-w-full flex-col gap-y-5 py-7 sm:grid sm:grid-cols-12 sm:gap-x-6 sm:gap-y-6 md:py-8 [&>*]:min-w-0 ${
+                className={`relative flex min-w-0 max-w-full flex-col gap-y-5 py-7 lg:grid lg:grid-cols-12 lg:gap-x-6 lg:gap-y-6 md:py-8 lg:items-start [&>*]:min-w-0 ${
                   i !== stats.length - 1 ? "border-b border-ink/15" : ""
                 }`}
               >
-                {/* Mobile: índice + valor empilhados (evita % cortado em linha única) */}
-                <div className="col-span-12 space-y-3 sm:col-span-2 sm:space-y-0">
-                  <div className="space-y-3 sm:hidden">
+                {/* &lt;lg: coluna única — grelha sm: empurrava % para 10 col e cortava no Safari */}
+                <div className="col-span-12 space-y-3 lg:col-span-2 lg:space-y-0">
+                  <div className="space-y-3 lg:hidden">
                     <span className="block font-display text-[0.95rem] italic text-muted-foreground tabular-nums">
                       /0{i + 1}
                     </span>
                     <div
-                      className={`display-head w-full max-w-full leading-none ${
+                      className={`display-head w-full min-w-0 max-w-full break-words leading-none ${
                         s.value === "0"
-                          ? "text-[clamp(2rem,3.4vw,2.85rem)]"
-                          : "text-[clamp(2.2rem,4.8vw,3.75rem)]"
+                          ? "text-[clamp(1.65rem,9vw,2.5rem)]"
+                          : "text-[clamp(1.75rem,10vw,2.85rem)]"
                       }`}
                     >
                       {s.value}
                     </div>
                   </div>
-                  <span className="hidden font-display text-[0.95rem] italic text-muted-foreground tabular-nums sm:inline-block">
+                  <span className="hidden font-display text-[0.95rem] italic text-muted-foreground tabular-nums lg:inline-block">
                     /0{i + 1}
                   </span>
                 </div>
-                <div className="hidden min-w-0 sm:col-span-10 md:col-span-5 sm:block">
+                <div className="hidden min-w-0 lg:col-span-5 lg:block">
                   <div
                     className={`display-head max-w-full break-words text-ink leading-none ${
                       s.value === "0"
@@ -146,7 +146,7 @@ export function ImpactSection() {
                     {s.value}
                   </div>
                 </div>
-                <div className="col-span-12 min-w-0 w-full max-w-full md:col-span-5 md:pt-2">
+                <div className="col-span-12 min-w-0 w-full max-w-full lg:col-span-5 lg:pt-2">
                   <h3 className="mb-2 min-w-0 text-[1.05rem] font-medium text-ink">
                     {s.label}
                   </h3>

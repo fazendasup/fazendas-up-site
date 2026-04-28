@@ -153,12 +153,14 @@
     max-width: 100%;
     min-height: 100%;
     overflow-x: hidden;
+    overflow-x: clip;
     overscroll-behavior-x: none;
   }
   html {
     scroll-behavior: smooth;
     scroll-padding-top: 5.5rem;
     overflow-x: hidden;
+    overflow-x: clip;
     overscroll-behavior-x: none;
     width: 100%;
     max-width: 100%;
@@ -173,6 +175,7 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     overflow-x: hidden;
+    overflow-x: clip;
     overscroll-behavior-x: none;
     width: 100%;
     max-width: 100%;
@@ -243,6 +246,7 @@
     min-width: 0;
     max-width: 100%;
     width: 100%;
+    overflow-x: clip;
   }
 
   /** Evita faixa editorial mais larga que o viewport (comum com grid 12 col + gaps em mobile). */

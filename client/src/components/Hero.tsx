@@ -6,11 +6,13 @@ import { ArrowDown } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef, useState } from "react";
 import { getSiteImage } from "@/content/siteImages";
+import { useMinLg } from "@/hooks/useMinLg";
 import { useNarrowViewport } from "@/hooks/useNarrowViewport";
 
 export function Hero() {
   const ref = useRef<HTMLDivElement>(null);
-  /** Parallax só desktop; trilhos usam `data-fu-desktop-only` + CSS para WebKit. */
+  const desktopLg = useMinLg();
+  /** Parallax só viewport estreito (hook); trilhos só montam em lg+ (fora do DOM no telefone). */
   const narrow = useNarrowViewport();
   const [imageFailed, setImageFailed] = useState(false);
   const { scrollYProgress } = useScroll({
@@ -61,15 +63,14 @@ export function Hero() {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-ink/70 via-ink/30 to-transparent pointer-events-none" />
 
-        <div
-          data-fu-desktop-only
-          className="hidden lg:flex absolute right-6 top-0 h-full items-center gap-6"
-        >
-          <div className="vertical-text text-[0.65rem] text-on-plum-soft tracking-[0.3em] uppercase">
-            Volume I, edição 2026
+        {desktopLg && (
+          <div className="absolute right-6 top-0 flex h-full items-center gap-6">
+            <div className="vertical-text text-[0.65rem] text-on-plum-soft tracking-[0.3em] uppercase">
+              Volume I, edição 2026
+            </div>
+            <div className="h-32 w-px bg-paper/30" />
           </div>
-          <div className="h-32 w-px bg-paper/30" />
-        </div>
+        )}
 
         <div className="relative container flex h-full min-w-0 flex-col justify-end pt-24 pb-[max(10.5rem,15svh)] md:pb-[max(12rem,16svh)] lg:pb-52">
           <div className="grid min-w-0 grid-cols-12 items-end gap-8 [&>*]:min-w-0">
@@ -85,15 +86,14 @@ export function Hero() {
               </h1>
             </div>
 
-            <div
-              data-fu-desktop-only
-              className="hidden lg:flex col-span-3 justify-end items-end gap-2 text-on-plum-soft text-[0.78rem] leading-snug max-w-[18rem] pb-1"
-            >
-              <ArrowDown className="size-3.5 mt-0.5 shrink-0 animate-bounce" />
-              <span>
-                Continue rolando: a fazenda se revela à medida que você desce.
-              </span>
-            </div>
+            {desktopLg && (
+              <div className="col-span-3 flex justify-end items-end gap-2 text-on-plum-soft text-[0.78rem] leading-snug max-w-[18rem] pb-1">
+                <ArrowDown className="size-3.5 mt-0.5 shrink-0 animate-bounce" />
+                <span>
+                  Continue rolando: a fazenda se revela à medida que você desce.
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>

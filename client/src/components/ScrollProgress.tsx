@@ -2,6 +2,7 @@
  * ScrollProgress — Discreet right-side vertical progress with chapter labels.
  * Adds a sense of "navigation through chapters" without being heavy UI.
  */
+import { useMinLg } from "@/hooks/useMinLg";
 import { useEffect, useState } from "react";
 
 const chapters = [
@@ -16,10 +17,12 @@ const chapters = [
 const LG = "(min-width: 1024px)";
 
 export function ScrollProgress() {
+  const desktopLg = useMinLg();
   const [progress, setProgress] = useState(0);
   const [active, setActive] = useState("top");
 
   useEffect(() => {
+    if (!desktopLg) return;
     const mq = window.matchMedia(LG);
     const onScroll = () => {
       const h = document.documentElement;
@@ -50,13 +53,12 @@ export function ScrollProgress() {
       mq.removeEventListener("change", onMq);
       window.removeEventListener("scroll", onScroll);
     };
-  }, []);
+  }, [desktopLg]);
+
+  if (!desktopLg) return null;
 
   return (
-    <div
-      data-fu-desktop-only
-      className="hidden lg:flex fixed right-6 top-1/2 -translate-y-1/2 z-40 flex-col items-end gap-3 pointer-events-none"
-    >
+    <div className="fixed right-6 top-1/2 z-40 flex -translate-y-1/2 flex-col items-end gap-3 pointer-events-none">
       <div className="relative w-px h-[40vh] bg-current/15">
         <div
           className="absolute top-0 left-0 w-px bg-current/70 transition-[height] duration-150"
