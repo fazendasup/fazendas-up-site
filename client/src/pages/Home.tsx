@@ -18,7 +18,7 @@ export default function Home() {
   return (
     <div className="relative min-h-screen max-w-full overflow-x-clip bg-paper text-ink">
       <SiteHeader />
-      <div className="copy-flow min-w-0 max-w-full">
+      <div className="copy-flow min-w-0 w-full max-w-full overflow-x-clip">
         <ScrollProgress />
         <main className="min-w-0">
           <Hero />

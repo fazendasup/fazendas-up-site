@@ -184,21 +184,26 @@
 
 @layer components {
   .container {
+    box-sizing: border-box;
     width: 100%;
     max-width: 100%;
     margin-left: auto;
     margin-right: auto;
-    padding-left: 1.25rem;
-    padding-right: 1.25rem;
+    padding-left: max(1.25rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1.25rem, env(safe-area-inset-right, 0px));
   }
   .flex { min-height: 0; min-width: 0; }
   .grid { min-width: 0; }
   @media (min-width: 640px) {
-    .container { padding-left: 2rem; padding-right: 2rem; }
+    .container {
+      padding-left: max(2rem, env(safe-area-inset-left, 0px));
+      padding-right: max(2rem, env(safe-area-inset-right, 0px));
+    }
   }
   @media (min-width: 1024px) {
     .container {
-      padding-left: 2.5rem; padding-right: 2.5rem;
+      padding-left: max(2.5rem, env(safe-area-inset-left, 0px));
+      padding-right: max(2.5rem, env(safe-area-inset-right, 0px));
       max-width: 1360px;
     }
   }
@@ -228,6 +233,22 @@
     min-width: 0;
     max-width: 100%;
     overflow-wrap: anywhere;
+  }
+
+  /**
+   * Filhos de grid/flex: min-width:auto impede encolher — texto empurra e parece cortado.
+   */
+  .copy-flow .grid > * {
+    min-width: 0;
+  }
+
+  .copy-flow .flex.flex-wrap > * {
+    min-width: 0;
+  }
+
+  .copy-flow main article {
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .font-display { font-family: var(--font-display); }
