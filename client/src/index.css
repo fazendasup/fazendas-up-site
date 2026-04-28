@@ -351,14 +351,25 @@
  * por cima de utilities Tailwind geradas.
  */
 @layer utilities {
+  /**
+   * !important: utilities Tailwind (ex.: min-w-* acidentais em builds) não podem
+   * sobrepor isto — filho de grid tem de poder encolher para o texto quebrar.
+   */
   .copy-flow .grid > * {
-    min-width: 0;
+    min-width: 0 !important;
     max-width: 100%;
   }
 
   .copy-flow main .flex > *:not(.shrink-0),
   .copy-flow main .inline-flex > *:not(.shrink-0),
   .copy-flow footer .flex > *:not(.shrink-0) {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  /* Header fica fora de .copy-flow */
+  header .container.flex > *:not(.shrink-0),
+  header nav.flex.flex-col > * {
     min-width: 0;
     max-width: 100%;
   }

@@ -160,7 +160,7 @@ function CultivosSpreadRow({
             </p>
             <div className="border-t border-ink/15 pt-6">
               <p className="eyebrow mb-4 text-muted-foreground">Diretrizes da categoria</p>
-              <ul className="grid grid-cols-1 gap-x-6 gap-y-2.5 sm:grid-cols-2">
+              <ul className="grid grid-cols-1 gap-x-6 gap-y-2.5 sm:grid-cols-2 [&>*]:min-w-0">
                 {c.notes.map((n) => (
                   <li key={n} className="flex min-w-0 items-start gap-2.5 text-[0.92rem] text-ink/75">
                     <span className="size-1.5 shrink-0 rounded-full" style={{ background: c.accent }} />

@@ -92,7 +92,7 @@ export function ImpactSection() {
           </motion.div>
 
           {/* Cards column */}
-          <div className="relative z-0 col-span-12 flex min-w-0 max-w-full flex-col overflow-x-clip [perspective:1400px] lg:col-span-7">
+          <div className="relative z-0 col-span-12 flex min-w-0 max-w-full flex-col overflow-x-clip [perspective:1400px] lg:col-span-7 [&>*]:min-w-0">
             {stats.map((s, i) => (
               <motion.article
                 key={s.label}
@@ -106,7 +106,7 @@ export function ImpactSection() {
                   mass: 1.05,
                   delay: i * 0.07,
                 }}
-                className={`relative grid min-w-0 max-w-full grid-cols-12 gap-x-3 gap-y-4 py-7 sm:gap-x-6 sm:gap-y-6 md:py-8 ${
+                className={`relative grid min-w-0 max-w-full grid-cols-12 gap-x-3 gap-y-4 py-7 sm:gap-x-6 sm:gap-y-6 md:py-8 [&>*]:min-w-0 ${
                   i !== stats.length - 1 ? "border-b border-ink/15" : ""
                 }`}
               >

@@ -184,7 +184,7 @@ export function TechnologySection() {
             </div>
           </div>
 
-          <div className="mt-8 lg:mt-5 flex items-center justify-between gap-4">
+          <div className="mt-8 flex min-w-0 w-full items-center justify-between gap-4 lg:mt-5 [&>*]:min-w-0">
             <button
               type="button"
               onClick={prevStep}
@@ -208,7 +208,7 @@ export function TechnologySection() {
             </button>
           </div>
 
-          <div className="mt-5 lg:mt-4 flex items-center justify-between gap-2">
+          <div className="mt-5 flex min-w-0 w-full items-center justify-between gap-2 lg:mt-4 [&>*]:min-w-0">
             {steps.map((step, index) => (
               <button
                 key={step.n}

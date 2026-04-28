@@ -31,7 +31,7 @@ export function SiteHeader() {
           : "bg-transparent text-paper"
       }`}
     >
-      <div className="container flex h-[72px] min-w-0 items-center justify-between gap-3">
+      <div className="container flex h-[72px] min-w-0 items-center justify-between gap-3 [&>*]:min-w-0">
         <a href="#top" className="flex min-w-0 items-baseline gap-2">
           <span className="display-serif min-w-0 shrink text-[1.25rem] leading-none sm:text-[1.4rem]">Fazendas Up</span>
           <span className={`hidden sm:inline text-[0.7rem] tracking-wide ${scrolled ? "text-muted-foreground" : "text-paper/70"}`}>, Manaus / AM</span>
@@ -68,7 +68,7 @@ export function SiteHeader() {
 
         <button
           onClick={() => setOpen((v) => !v)}
-          className="md:hidden text-[0.825rem]"
+          className="shrink-0 whitespace-nowrap text-[0.825rem] md:hidden"
           aria-label="Abrir menu"
         >
           {open ? "Fechar" : "Menu"}
@@ -77,7 +77,7 @@ export function SiteHeader() {
 
       {open && (
         <div className="md:hidden border-t border-ink/10 bg-paper">
-          <nav className="container py-4 flex flex-col gap-3">
+          <nav className="container flex flex-col gap-3 py-4 [&>*]:min-w-0">
             {navItems.map((item) => (
               <a
                 key={item.id}
