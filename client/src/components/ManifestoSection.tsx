@@ -85,7 +85,7 @@ export function ManifestoSection() {
     <section
       id="sobre"
       ref={ref}
-      className="relative bg-forest-dark text-paper overflow-hidden py-28 md:py-40"
+      className="relative bg-forest-dark text-paper overflow-x-hidden overflow-y-visible py-28 md:py-40"
     >
       {/* Vertical chapter mark */}
       <div className="hidden lg:block absolute left-6 top-32 vertical-text text-paper/40 text-[0.68rem] tracking-[0.3em] uppercase">
@@ -94,14 +94,13 @@ export function ManifestoSection() {
 
       <div className="container">
         <div className="grid grid-cols-12 gap-10 mb-20">
-          <div className="col-span-12 lg:col-span-7 lg:col-start-2">
-            <p className="eyebrow text-paper/65 mb-6 inline-flex items-center gap-3">
-              <span className="h-px w-9 bg-paper/55" />
-              Sobre a Fazendas Up
+          <div className="col-span-12 min-w-0 lg:col-span-7 lg:col-start-2">
+            <p className="eyebrow text-paper/65 mb-6 inline-flex max-w-full flex-wrap items-center gap-3">
+              <span className="h-px w-9 shrink-0 bg-paper/55" />
+              <span className="min-w-0">Sobre a Fazendas Up</span>
             </p>
-            <h2 className="display-head text-paper text-[clamp(2.4rem,6.4vw,5.4rem)]">
-              Cultivar <em className="text-brand-rose">no alto</em> é uma forma de
-              proteger o que está embaixo.
+            <h2 className="display-head max-w-full min-w-0 break-words text-paper text-pretty hyphens-auto leading-[1.08] sm:leading-[1.05] md:leading-none text-[clamp(1.85rem,5.5vw+0.35rem,5.4rem)] md:text-[clamp(2.4rem,6.4vw,5.4rem)]">
+              Cultivar <em className="text-brand-rose">no alto</em> é uma forma de proteger o que está embaixo.
             </h2>
           </div>
         </div>

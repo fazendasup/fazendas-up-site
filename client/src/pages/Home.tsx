@@ -16,7 +16,7 @@ import { ScrollProgress } from "@/components/ScrollProgress";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-paper text-ink relative">
+    <div className="min-h-screen bg-paper text-ink relative overflow-x-hidden">
       <SiteHeader />
       <ScrollProgress />
       <main>
