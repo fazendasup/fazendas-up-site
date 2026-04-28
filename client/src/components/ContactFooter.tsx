@@ -52,7 +52,7 @@ export function ContactFooter() {
       {/* Contact CTA section */}
       <section
         id="contato"
-        className="relative scroll-mt-20 overflow-x-clip overflow-y-visible bg-forest-dark py-24 text-paper md:scroll-mt-24 md:py-28 lg:h-screen lg:py-10"
+        className="relative scroll-mt-20 overflow-x-visible overflow-y-visible bg-forest-dark py-24 text-paper md:scroll-mt-24 md:py-28 lg:h-screen lg:py-10"
       >
         {/* Curved seam from previous section */}
         <svg
@@ -116,7 +116,7 @@ export function ContactFooter() {
 
       {/* Footer */}
 
-      <footer className="overflow-x-clip border-t border-on-plum-soft/25 bg-forest text-paper">
+      <footer className="overflow-x-visible border-t border-on-plum-soft/25 bg-forest text-paper">
         <div className="container min-w-0 py-16">
           <div className="grid grid-cols-12 gap-10 [&>*]:min-w-0">
             <div className="col-span-12 min-w-0 lg:col-span-4">

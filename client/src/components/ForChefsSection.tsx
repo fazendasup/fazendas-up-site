@@ -39,7 +39,7 @@ export function ForChefsSection() {
   return (
     <section
       ref={ref}
-      className="relative overflow-x-clip overflow-y-visible border-t border-ink/10 bg-secondary py-24 text-ink md:py-30 lg:h-screen lg:py-10"
+      className="relative overflow-x-visible overflow-y-visible border-t border-ink/10 bg-secondary py-24 text-ink md:py-30 lg:h-screen lg:py-10"
     >
       {/* Decorative big number — inset-x + overflow:hidden evita largura intrínseca gigante em Safari */}
       <div className="pointer-events-none absolute inset-x-0 -top-6 flex justify-end overflow-hidden select-none md:inset-x-auto md:right-10 md:left-auto md:w-auto">
@@ -117,13 +117,13 @@ export function ForChefsSection() {
                     mass: 0.95,
                     delay: i * 0.09,
                   }}
-                  className="min-w-0 max-w-full overflow-x-clip bg-secondary p-6 sm:p-7 transition-colors group hover:bg-paper"
+                  className="min-w-0 max-w-full overflow-hidden bg-secondary p-6 sm:p-7 transition-colors group hover:bg-paper"
                 >
-                  <div className="mb-6 flex min-w-0 items-center justify-between gap-2 sm:gap-3">
+                  <div className="mb-6 grid min-w-0 grid-cols-[auto_1fr] items-center gap-3">
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-ink/20 transition-colors group-hover:border-forest">
                       <b.icon className="size-4 text-forest" />
                     </span>
-                    <span className="min-w-0 text-right font-display text-[0.85rem] italic text-muted-foreground tabular-nums">
+                    <span className="min-w-0 justify-self-end text-right font-display text-[0.85rem] italic text-muted-foreground tabular-nums">
                       /0{i + 1}
                     </span>
                   </div>
@@ -140,7 +140,7 @@ export function ForChefsSection() {
             <div className="mt-8 flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5">
               <a
                 href="#contato"
-                className="inline-flex w-full min-w-0 shrink-0 items-center justify-center gap-2 rounded-full bg-forest px-5 py-3 text-center text-[0.875rem] font-medium text-paper transition-colors hover:bg-forest-dark sm:w-auto"
+                className="inline-flex w-full max-w-full min-w-0 shrink-0 items-center justify-center gap-2 rounded-full bg-forest px-5 py-3 text-center text-[0.875rem] font-medium text-paper transition-colors hover:bg-forest-dark sm:w-auto"
               >
                 Solicitar proposta comercial
                 <ArrowUpRight className="size-4 shrink-0" />

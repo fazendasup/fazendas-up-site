@@ -85,7 +85,7 @@ export function ManifestoSection() {
     <section
       id="sobre"
       ref={ref}
-      className="relative scroll-mt-20 overflow-x-clip overflow-y-visible bg-forest-dark py-28 text-paper md:scroll-mt-24 md:py-40"
+      className="relative scroll-mt-20 overflow-x-visible overflow-y-visible bg-forest-dark py-28 text-paper md:scroll-mt-24 md:py-40"
     >
       {/* Vertical chapter mark */}
       <div className="hidden lg:block absolute left-6 top-32 vertical-text text-paper/40 text-[0.68rem] tracking-[0.3em] uppercase">
@@ -107,7 +107,7 @@ export function ManifestoSection() {
       </div>
 
       {/* Sem w-screen/100vw: em mobile geram overflow horizontal (scrollbar) e texto parece cortado */}
-      <div className="relative w-full min-w-0 max-w-full overflow-x-hidden">
+      <div className="relative w-full min-w-0 max-w-full overflow-x-visible">
         <div className="relative mb-24 h-[160vh] md:h-[170vh]">
           <div
             className="pointer-events-none absolute inset-0 z-0 overflow-hidden bg-forest-dark"
@@ -136,7 +136,7 @@ export function ManifestoSection() {
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_100%_85%_at_50%_40%,oklch(0.22_0.05_300_/_0.28),transparent_70%)]" />
             <div className="absolute inset-0 bg-gradient-to-b from-forest-dark/40 via-forest/20 to-forest-dark" />
           </div>
-          <div className="sticky top-14 z-[1] h-[78vh] min-h-[560px] overflow-x-clip overflow-y-hidden md:top-24 md:h-[min(88vh,920px)] md:min-h-[72vh]">
+          <div className="sticky top-14 z-[1] h-[78vh] min-h-[560px] overflow-hidden md:top-24 md:h-[min(88vh,920px)] md:min-h-[72vh]">
             <motion.img
               src={manifestoSrc}
               alt={stickyAlt}
@@ -165,13 +165,13 @@ export function ManifestoSection() {
               )}
             />
             <div className="absolute inset-x-0 bottom-12 z-[3] px-5 md:bottom-8 md:px-8">
-              <div className="container flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <p className="max-w-full min-w-0 text-paper/85 text-[1.0625rem] font-light leading-[1.65] md:max-w-2xl">
+              <div className="container flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end sm:gap-8">
+              <p className="max-w-full min-w-0 flex-1 text-paper/85 text-[1.0625rem] font-light leading-[1.65] md:max-w-2xl">
                 Acreditamos que produzir alimento na cidade, com tecnologia,
                 eficiência e transparência, é uma das formas mais concretas de
                 aliviar a pressão sobre biomas como a Amazônia.
               </p>
-              <span className="min-w-0 max-w-full text-paper/55 text-[0.65rem] uppercase tracking-[0.2em] sm:max-w-[min(100%,14rem)] sm:text-right sm:text-[0.7rem] sm:tracking-[0.25em]">
+              <span className="min-w-0 max-w-full shrink-0 text-paper/55 text-[0.65rem] uppercase tracking-[0.2em] sm:max-w-[min(100%,14rem)] sm:text-right sm:text-[0.7rem] sm:tracking-[0.25em]">
                 {locationChip}
               </span>
               </div>

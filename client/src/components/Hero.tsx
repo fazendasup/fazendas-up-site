@@ -23,11 +23,11 @@ export function Hero() {
     <section
       id="top"
       ref={ref}
-      className="relative z-20 overflow-x-clip overflow-y-hidden bg-gradient-to-b from-forest-dark via-ink to-ink text-paper"
+      className="relative z-20 overflow-x-visible overflow-y-hidden bg-gradient-to-b from-forest-dark via-ink to-ink text-paper"
       style={{ height: "100svh" }}
     >
       {/* Sticky stage — same height as section so no ink gradient shows between image and wave */}
-      <div className="sticky top-0 z-0 h-[100svh] overflow-x-clip overflow-y-hidden">
+      <div className="sticky top-0 z-0 h-[100svh] overflow-x-visible overflow-y-hidden">
         {imageFailed && (
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(230,31,147,0.12),transparent_45%),radial-gradient(circle_at_80%_30%,rgba(75,0,79,0.35),transparent_42%),linear-gradient(180deg,#1a0a1c_0%,#110d11_100%)]" />
         )}

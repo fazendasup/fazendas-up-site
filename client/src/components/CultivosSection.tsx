@@ -77,7 +77,7 @@ function CultivosSpreadRow({
   return (
     <div
       ref={rowRef}
-      className={`relative flex flex-col justify-center overflow-x-clip md:min-h-[78vh] ${showBorder ? "border-b border-ink/10" : ""}`}
+      className={`relative flex flex-col justify-center overflow-x-visible md:min-h-[78vh] ${showBorder ? "border-b border-ink/10" : ""}`}
     >
       <div className="container min-w-0 py-14 md:py-24">
         <div
@@ -178,7 +178,7 @@ function CultivosSpreadRow({
 
 export function CultivosSection() {
   return (
-    <section id="cultivos" className="relative overflow-x-clip bg-paper text-ink">
+    <section id="cultivos" className="relative overflow-x-visible bg-paper text-ink">
       <motion.div
         initial={{ opacity: 0, y: 40, filter: "blur(8px)" }}
         whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}

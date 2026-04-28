@@ -87,7 +87,7 @@ export function TechnologySection() {
 
   return (
     <div id="tecnologia">
-      <section className="relative overflow-x-clip bg-forest-dark text-paper lg:h-screen lg:overflow-hidden">
+      <section className="relative overflow-x-visible bg-forest-dark text-paper lg:h-screen lg:overflow-hidden">
         <div className="container min-w-0 py-20 lg:flex lg:h-screen lg:flex-col lg:py-10 [&>*]:min-w-0">
           <p className="eyebrow text-on-plum-soft mb-5 inline-flex max-w-full flex-wrap items-center gap-3">
             <span className="h-px w-9 shrink-0 bg-on-plum-soft/70" />
@@ -188,7 +188,7 @@ export function TechnologySection() {
             <button
               type="button"
               onClick={prevStep}
-              className="rounded-full border border-on-plum-soft/35 px-4 py-2 text-[0.78rem] uppercase tracking-[0.16em] text-on-plum-soft hover:text-paper hover:border-on-plum-soft/60 transition-colors"
+              className="shrink-0 rounded-full border border-on-plum-soft/35 px-4 py-2 text-[0.78rem] uppercase tracking-[0.16em] text-on-plum-soft hover:text-paper hover:border-on-plum-soft/60 transition-colors"
             >
               Anterior
             </button>
@@ -202,7 +202,7 @@ export function TechnologySection() {
             <button
               type="button"
               onClick={nextStep}
-              className="rounded-full border border-on-plum-soft/35 px-4 py-2 text-[0.78rem] uppercase tracking-[0.16em] text-on-plum-soft hover:text-paper hover:border-on-plum-soft/60 transition-colors"
+              className="shrink-0 rounded-full border border-on-plum-soft/35 px-4 py-2 text-[0.78rem] uppercase tracking-[0.16em] text-on-plum-soft hover:text-paper hover:border-on-plum-soft/60 transition-colors"
             >
               Proximo
             </button>

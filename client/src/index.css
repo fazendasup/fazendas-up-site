@@ -149,7 +149,8 @@
   html {
     scroll-behavior: smooth;
     scroll-padding-top: 5.5rem;
-    overflow-x: clip;
+    overflow-x: hidden;
+    width: 100%;
     max-width: 100%;
   }
   body {
@@ -158,7 +159,8 @@
     font-feature-settings: "ss01", "cv11";
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    overflow-x: clip;
+    overflow-x: hidden;
+    width: 100%;
     max-width: 100%;
     /* Preferir quebrar linha a qualquer custo a texto cortado na horizontal */
     overflow-wrap: anywhere;
@@ -215,7 +217,23 @@
   .copy-flow {
     min-width: 0;
     max-width: 100%;
+    width: 100%;
   }
+
+  /** Evita faixa editorial mais larga que o viewport (comum com grid 12 col + gaps em mobile). */
+  .copy-flow main {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .copy-flow main > section {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
   .copy-flow :where(p, h1, h2, h3, h4, li, dd, dt, blockquote) {
     min-width: 0;
     max-width: 100%;
