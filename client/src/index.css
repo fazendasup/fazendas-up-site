@@ -423,8 +423,9 @@
 }
 
 /**
- * Framer Motion aplica transform inline — em mobile Safari continua a ganhar ao hook JS em alguns builds.
- * Força reset só onde marcamos will-change-transform (camadas de foto/parallax).
+ * Framer Motion injeta transform inline — pode ganhar ao CSS de overflow.
+ * Fotos/parallax: reset onde há `will-change-transform`.
+ * Entradas whileInView (translateY): ver `@/lib/motionEntrance` — em viewport estreito só opacity.
  */
 @media (max-width: 1023px) {
   main .will-change-transform {

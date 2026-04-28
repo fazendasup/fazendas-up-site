@@ -6,6 +6,7 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { useNarrowViewport } from "@/hooks/useNarrowViewport";
+import { motionEnterFromBelow } from "@/lib/motionEntrance";
 
 const stats = [
   {
@@ -101,8 +102,7 @@ export function ImpactSection() {
             {stats.map((s, i) => (
               <motion.article
                 key={s.label}
-                initial={{ opacity: 0, y: 28 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                {...motionEnterFromBelow(28, narrow)}
                 viewport={{ once: true, margin: "-14% 0px" }}
                 transition={{
                   type: "spring",

@@ -7,6 +7,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { getSiteImage } from "@/content/siteImages";
 import { useNarrowViewport } from "@/hooks/useNarrowViewport";
+import { motionEnterFromBelow } from "@/lib/motionEntrance";
 
 /**
  * Se /uploads/... não existir, tenta-se a lista (manus-storage; último = sempre o mesmo ficheiro base).
@@ -89,8 +90,7 @@ function CultivosSpreadRow({
           }`}
         >
           <motion.div
-            initial={{ opacity: 0, y: 32 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            {...motionEnterFromBelow(32, narrow)}
             viewport={{ once: true, margin: "-12% 0px" }}
             transition={{
               type: "spring",
@@ -141,8 +141,7 @@ function CultivosSpreadRow({
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 36 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            {...motionEnterFromBelow(36, narrow)}
             viewport={{ once: true, margin: "-12% 0px" }}
             transition={{
               type: "spring",
@@ -158,7 +157,7 @@ function CultivosSpreadRow({
               </span>
               <span className="h-px flex-1 bg-ink/15" />
             </div>
-            <h3 className="display-head hyphens-auto mb-3 max-w-full text-ink text-[clamp(1.75rem,5vw+0.35rem,3.6rem)] leading-[1.08] md:leading-none md:text-[clamp(2.2rem,4.4vw,3.6rem)]">
+            <h3 className="display-head hyphens-none mb-3 max-w-full text-ink text-[clamp(1.75rem,5vw+0.35rem,3.6rem)] leading-[1.08] md:leading-none md:text-[clamp(2.2rem,4.4vw,3.6rem)]">
               {c.name}
             </h3>
             <p className="mb-8 max-w-full text-[1.05rem] font-light leading-[1.75] text-ink/75">
@@ -188,8 +187,7 @@ export function CultivosSection() {
   return (
     <section id="cultivos" className="relative isolate w-full max-w-full min-w-0 overflow-x-hidden overflow-x-clip bg-paper text-ink lg:overflow-x-visible">
       <motion.div
-        initial={{ opacity: 0, y: 28 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        {...motionEnterFromBelow(28, narrow)}
         viewport={{ once: true, margin: "-8% 0px" }}
         transition={{ type: "spring", stiffness: 52, damping: 22 }}
         className="container min-w-0 pt-16 pb-12 md:pt-20 md:pb-16"

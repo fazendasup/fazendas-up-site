@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { appendImageCacheBust, getSiteImage } from "@/content/siteImages";
 import { useMinLg } from "@/hooks/useMinLg";
 import { useNarrowViewport } from "@/hooks/useNarrowViewport";
+import { motionEnterFromBelow } from "@/lib/motionEntrance";
 import { cn } from "@/lib/utils";
 
 function manifestoStickyKind(src: string): "aerial" | "farm" {
@@ -192,8 +193,7 @@ export function ManifestoSection() {
             <div className="container min-w-0">
               <div className="grid min-w-0 grid-cols-12 gap-8 rounded-sm bg-forest-dark/45 px-4 py-4 [&>*]:min-w-0 md:bg-transparent md:px-0 md:py-0">
               <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                {...motionEnterFromBelow(30, narrow)}
                 viewport={{ once: true, margin: "-10% 0px" }}
                 transition={{ duration: 0.9 }}
                 className="col-span-12 min-w-0 pointer-events-auto lg:col-span-5 lg:col-start-2"
@@ -210,8 +210,7 @@ export function ManifestoSection() {
                 </p>
               </motion.div>
               <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                {...motionEnterFromBelow(30, narrow)}
                 viewport={{ once: true, margin: "-10% 0px" }}
                 transition={{ duration: 0.9, delay: 0.15 }}
                 className="col-span-12 min-w-0 pointer-events-auto lg:col-span-4 lg:col-start-8"
@@ -243,8 +242,7 @@ export function ManifestoSection() {
           {pillars.map((p, i) => (
             <motion.div
               key={p.t}
-              initial={{ opacity: 0, y: 60 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              {...motionEnterFromBelow(60, narrow)}
               viewport={{ once: true, margin: "-15% 0px" }}
               transition={{ duration: 0.9, ease: [0.2, 0.7, 0.2, 1], delay: i * 0.12 }}
               className="col-span-12 min-w-0 border-t border-paper/20 pt-7 md:col-span-4"

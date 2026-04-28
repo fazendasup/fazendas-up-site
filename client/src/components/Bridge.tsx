@@ -5,6 +5,7 @@
  */
 import { motion, MotionValue, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
+import { useNarrowViewport } from "@/hooks/useNarrowViewport";
 
 const phrase = [
   "Uma",
@@ -47,6 +48,7 @@ function BridgeWord({
 
 export function Bridge() {
   const ref = useRef<HTMLElement>(null);
+  const narrow = useNarrowViewport();
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start 0.95", "end 0.35"],
@@ -81,7 +83,9 @@ export function Bridge() {
         </div>
 
         <motion.div
-          style={{ opacity: deckOpacity, y: deckLift }}
+          style={
+            narrow ? { opacity: deckOpacity } : { opacity: deckOpacity, y: deckLift }
+          }
           className="mt-10 grid min-w-0 grid-cols-12 items-end gap-8 md:mt-14 [&>*]:min-w-0"
         >
           <div className="col-span-12 min-w-0 md:col-span-7 lg:col-span-5 lg:col-start-2">

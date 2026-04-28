@@ -7,6 +7,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { getSiteImage } from "@/content/siteImages";
 import { useNarrowViewport } from "@/hooks/useNarrowViewport";
+import { motionEnterFromBelow } from "@/lib/motionEntrance";
 
 const benefits = [
   {
@@ -112,8 +113,7 @@ export function ForChefsSection() {
               {benefits.map((b, i) => (
                 <motion.div
                   key={b.title}
-                  initial={{ opacity: 0, y: 32 }}
-                  whileInView={{ opacity: 1, y: 0 }}
+                  {...motionEnterFromBelow(32, narrow)}
                   viewport={{ once: true, margin: "-12% 0px" }}
                   transition={{
                     type: "spring",
