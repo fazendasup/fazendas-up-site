@@ -1,0 +1,36 @@
+/**
+ * Design: "Editorial Sofisticado — Cinematic Scroll"
+ * Home — narrative as a magazine: chapters integrate with each other
+ * through pin/parallax/clip transitions and editorial bridges.
+ */
+import { SiteHeader } from "@/components/SiteHeader";
+import { Hero } from "@/components/Hero";
+import { Bridge } from "@/components/Bridge";
+import { TechnologySection } from "@/components/TechnologySection";
+import { ImpactSection } from "@/components/ImpactSection";
+import { CultivosSection } from "@/components/CultivosSection";
+import { ForChefsSection } from "@/components/ForChefsSection";
+import { ManifestoSection } from "@/components/ManifestoSection";
+import { ContactFooter } from "@/components/ContactFooter";
+import { ScrollProgress } from "@/components/ScrollProgress";
+
+export default function Home() {
+  return (
+    <div className="min-h-screen bg-paper text-ink relative">
+      <SiteHeader />
+      <ScrollProgress />
+      <main>
+        <Hero />
+        <div className="relative">
+          <Bridge />
+        </div>
+        <TechnologySection />
+        <ImpactSection />
+        <CultivosSection />
+        <ForChefsSection />
+        <ManifestoSection />
+      </main>
+      <ContactFooter />
+    </div>
+  );
+}
