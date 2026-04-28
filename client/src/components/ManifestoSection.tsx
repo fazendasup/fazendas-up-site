@@ -193,7 +193,7 @@ export function ManifestoSection() {
                   <span className="h-px w-9 shrink-0 bg-paper/70" />
                   <span className="min-w-0">Por que cultivar verticalmente</span>
                 </p>
-                <p className="text-paper text-[1.06rem] font-normal leading-[1.8]">
+                <p className="max-w-full min-w-0 text-paper text-[1.06rem] font-normal leading-[1.8]">
                   Cada quilo produzido em ambiente urbano e controlado
                   representa uma pequena área de floresta que não precisou ser
                   derrubada. Esse é o nosso cálculo ético antes de qualquer
@@ -249,7 +249,7 @@ export function ManifestoSection() {
               <h3 className="display-head hyphens-auto mb-4 max-w-full text-paper text-[clamp(1.85rem,6vw,2.4rem)] leading-tight">
                 {p.t}
               </h3>
-              <p className="text-[0.97rem] font-light leading-[1.75] text-paper/70">
+              <p className="max-w-full min-w-0 text-[0.97rem] font-light leading-[1.75] text-paper/70">
                 {p.b}
               </p>
             </motion.div>

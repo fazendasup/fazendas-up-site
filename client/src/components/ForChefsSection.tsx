@@ -32,7 +32,8 @@ export function ForChefsSection() {
     offset: ["start end", "end start"],
   });
   const imgY = useTransform(scrollYProgress, [0, 1], ["2%", "-18%"]);
-  const imgScale = useTransform(scrollYProgress, [0, 0.5, 1], [1.16, 1.06, 1]);
+  /** Parallax suave — escala alta em mobile corta a foto nas bordas (object-cover + overflow). */
+  const imgScale = useTransform(scrollYProgress, [0, 0.5, 1], [1.07, 1.04, 1]);
   const vignette = useTransform(scrollYProgress, [0, 0.45, 1], [0.18, 0.28, 0.38]);
 
   return (
@@ -40,9 +41,9 @@ export function ForChefsSection() {
       ref={ref}
       className="relative overflow-x-clip overflow-y-visible border-t border-ink/10 bg-secondary py-24 text-ink md:py-30 lg:h-screen lg:py-10"
     >
-      {/* Decorative big number, behind content */}
-      <div className="pointer-events-none absolute -top-6 right-0 max-w-full select-none overflow-hidden md:right-10">
-        <span className="font-display italic text-ink/[0.05] text-[12rem] leading-none sm:text-[15rem] md:text-[22rem] lg:text-[26rem]">
+      {/* Decorative big number — inset-x + overflow:hidden evita largura intrínseca gigante em Safari */}
+      <div className="pointer-events-none absolute inset-x-0 -top-6 flex justify-end overflow-hidden select-none md:inset-x-auto md:right-10 md:left-auto md:w-auto">
+        <span className="font-display italic text-ink/[0.05] text-[12rem] leading-none whitespace-nowrap sm:text-[15rem] md:text-[22rem] lg:text-[26rem]">
           B2B
         </span>
       </div>
@@ -118,11 +119,11 @@ export function ForChefsSection() {
                   }}
                   className="min-w-0 max-w-full overflow-x-clip bg-secondary p-6 sm:p-7 transition-colors group hover:bg-paper"
                 >
-                  <div className="mb-6 flex min-w-0 items-center justify-between gap-3">
+                  <div className="mb-6 flex min-w-0 items-center justify-between gap-2 sm:gap-3">
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-ink/20 transition-colors group-hover:border-forest">
                       <b.icon className="size-4 text-forest" />
                     </span>
-                    <span className="shrink-0 font-display text-[0.85rem] italic text-muted-foreground tabular-nums">
+                    <span className="min-w-0 text-right font-display text-[0.85rem] italic text-muted-foreground tabular-nums">
                       /0{i + 1}
                     </span>
                   </div>

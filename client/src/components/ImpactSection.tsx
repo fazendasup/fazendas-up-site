@@ -110,19 +110,25 @@ export function ImpactSection() {
                   i !== stats.length - 1 ? "border-b border-ink/15" : ""
                 }`}
               >
-                <div className="col-span-12 flex min-w-0 items-baseline justify-between gap-3 sm:col-span-2 sm:block">
-                  <span className="shrink-0 font-display text-[0.95rem] italic text-muted-foreground tabular-nums">
+                {/* Mobile: empilhar índice + valor (evita % cortado por flex justify-between + overflow-x-clip) */}
+                <div className="col-span-12 space-y-3 sm:col-span-2 sm:space-y-0">
+                  <div className="space-y-3 sm:hidden">
+                    <span className="block font-display text-[0.95rem] italic text-muted-foreground tabular-nums">
+                      /0{i + 1}
+                    </span>
+                    <div
+                      className={`display-head w-full max-w-full leading-none ${
+                        s.value === "0"
+                          ? "text-[clamp(2rem,3.4vw,2.85rem)]"
+                          : "text-[clamp(2.2rem,4.8vw,3.75rem)]"
+                      }`}
+                    >
+                      {s.value}
+                    </div>
+                  </div>
+                  <span className="hidden font-display text-[0.95rem] italic text-muted-foreground tabular-nums sm:inline-block">
                     /0{i + 1}
                   </span>
-                  <div
-                    className={`display-head min-w-0 text-right sm:hidden ${
-                      s.value === "0"
-                        ? "text-[clamp(2rem,3.4vw,2.85rem)]"
-                        : "text-[clamp(2.2rem,4.8vw,3.75rem)]"
-                    }`}
-                  >
-                    {s.value}
-                  </div>
                 </div>
                 <div className="hidden min-w-0 sm:col-span-10 md:col-span-5 sm:block">
                   <div
