@@ -93,7 +93,7 @@ export function ManifestoSection() {
       </div>
 
       <div className="container min-w-0">
-        <div className="mb-20 grid min-w-0 grid-cols-12 gap-10">
+        <div className="mb-20 grid min-w-0 grid-cols-12 gap-10 [&>*]:min-w-0">
           <div className="col-span-12 min-w-0 lg:col-span-7 lg:col-start-2">
             <p className="eyebrow text-paper/65 mb-6 inline-flex max-w-full flex-wrap items-center gap-3">
               <span className="h-px w-9 shrink-0 bg-paper/55" />
@@ -106,7 +106,8 @@ export function ManifestoSection() {
         </div>
       </div>
 
-      <div className="relative w-full min-w-0 overflow-x-clip md:left-1/2 md:w-screen md:max-w-[100vw] md:-translate-x-1/2">
+      {/* Sem w-screen/100vw: em mobile geram overflow horizontal (scrollbar) e texto parece cortado */}
+      <div className="relative w-full min-w-0 max-w-full overflow-x-hidden">
         <div className="relative mb-24 h-[160vh] md:h-[170vh]">
           <div
             className="pointer-events-none absolute inset-0 z-0 overflow-hidden bg-forest-dark"
@@ -180,7 +181,7 @@ export function ManifestoSection() {
           {/* Foreground copy above sticky stack */}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[4] pb-2 pt-[94svh] md:pt-[82vh]">
             <div className="container min-w-0">
-              <div className="grid min-w-0 grid-cols-12 gap-8 rounded-sm bg-forest-dark/38 px-4 py-4 backdrop-blur-[1.5px] md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-0">
+              <div className="grid min-w-0 grid-cols-12 gap-8 rounded-sm bg-forest-dark/38 px-4 py-4 backdrop-blur-[1.5px] [&>*]:min-w-0 md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-0">
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -229,7 +230,7 @@ export function ManifestoSection() {
 
       <div className="container min-w-0">
         {/* Pillars */}
-        <div className="grid grid-cols-12 gap-x-10 gap-y-14 lg:px-[5%]">
+        <div className="grid grid-cols-12 gap-x-10 gap-y-14 lg:px-[5%] [&>*]:min-w-0">
           {pillars.map((p, i) => (
             <motion.div
               key={p.t}

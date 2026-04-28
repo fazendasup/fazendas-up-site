@@ -64,7 +64,7 @@ export function Hero() {
         </div>
 
         <div className="relative container flex h-full min-w-0 flex-col justify-end pt-24 pb-[max(10.5rem,15svh)] md:pb-[max(12rem,16svh)] lg:pb-52">
-          <div className="grid min-w-0 grid-cols-12 items-end gap-8">
+          <div className="grid min-w-0 grid-cols-12 items-end gap-8 [&>*]:min-w-0">
             <div className="col-span-12 min-w-0 lg:col-span-9 reveal">
               <p className="eyebrow text-on-plum-strong mb-7 inline-flex max-w-full flex-wrap items-center gap-3">
                 <span className="h-px w-10 shrink-0 bg-on-plum-strong/55" />

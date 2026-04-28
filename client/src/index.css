@@ -345,3 +345,22 @@
   /* Custom cursor lens */
   .cursor-none { cursor: none; }
 }
+
+/**
+ * Por último na cascata: garante que filhos de grid/flex não ficam com min-width:auto
+ * por cima de utilities Tailwind geradas.
+ */
+@layer utilities {
+  .copy-flow .grid > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .copy-flow main .flex > *:not(.shrink-0),
+  .copy-flow main .inline-flex > *:not(.shrink-0),
+  .copy-flow footer .flex > *:not(.shrink-0) {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+

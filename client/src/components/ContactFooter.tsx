@@ -64,8 +64,8 @@ export function ContactFooter() {
           <path d="M0,0 L1440,0 L1440,80 Q1080,0 720,80 T0,80 Z" fill="currentColor" />
         </svg>
 
-        <div className="container relative z-10 min-w-0 lg:flex lg:h-full lg:flex-col lg:justify-center">
-          <div className="grid grid-cols-12 gap-8 lg:gap-12">
+        <div className="container relative z-10 min-w-0 lg:flex lg:h-full lg:flex-col lg:justify-center [&>*]:min-w-0">
+          <div className="grid grid-cols-12 gap-8 lg:gap-12 [&>*]:min-w-0">
             <div className="col-span-12 min-w-0 lg:col-span-7 lg:flex lg:flex-col lg:justify-center">
               <p className="eyebrow text-on-plum-soft mb-6 inline-flex max-w-full flex-wrap items-center gap-3">
                 <span className="h-px w-9 shrink-0 bg-on-plum-soft/70" />
@@ -118,7 +118,7 @@ export function ContactFooter() {
 
       <footer className="overflow-x-clip border-t border-on-plum-soft/25 bg-forest text-paper">
         <div className="container min-w-0 py-16">
-          <div className="grid grid-cols-12 gap-10">
+          <div className="grid grid-cols-12 gap-10 [&>*]:min-w-0">
             <div className="col-span-12 min-w-0 lg:col-span-4">
               <div className="display-serif text-paper text-[1.9rem] leading-none">Fazendas Up</div>
               <p className="text-paper/65 text-[0.95rem] leading-[1.7] font-light max-w-sm mt-5">

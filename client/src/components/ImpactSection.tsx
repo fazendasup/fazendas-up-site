@@ -68,7 +68,7 @@ export function ImpactSection() {
       </svg>
 
       <div className="container relative min-w-0">
-        <div className="grid grid-cols-12 gap-10 lg:gap-14">
+        <div className="grid grid-cols-12 gap-10 lg:gap-14 [&>*]:min-w-0">
           {/* Sticky title column */}
           <motion.div
             style={{ y: titleY, scale: titleScale }}

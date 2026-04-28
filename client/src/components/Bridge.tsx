@@ -82,7 +82,7 @@ export function Bridge() {
 
         <motion.div
           style={{ opacity: deckOpacity, y: deckLift }}
-          className="mt-10 grid min-w-0 grid-cols-12 items-end gap-8 md:mt-14"
+          className="mt-10 grid min-w-0 grid-cols-12 items-end gap-8 md:mt-14 [&>*]:min-w-0"
         >
           <div className="col-span-12 min-w-0 md:col-span-7 lg:col-span-5 lg:col-start-2">
             <p className="text-[1.0625rem] font-light leading-[1.75] text-ink/70">

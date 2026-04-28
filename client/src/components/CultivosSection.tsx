@@ -81,7 +81,7 @@ function CultivosSpreadRow({
     >
       <div className="container min-w-0 py-14 md:py-24">
         <div
-          className={`grid min-w-0 grid-cols-12 items-center gap-10 lg:gap-16 ${
+          className={`grid min-w-0 grid-cols-12 items-center gap-10 lg:gap-16 [&>*]:min-w-0 ${
             reverse ? "lg:[direction:rtl]" : ""
           }`}
         >
@@ -186,7 +186,7 @@ export function CultivosSection() {
         transition={{ type: "spring", stiffness: 52, damping: 22 }}
         className="container min-w-0 pt-16 pb-12 md:pt-20 md:pb-16"
       >
-        <div className="grid grid-cols-12 items-end gap-8">
+        <div className="grid grid-cols-12 items-end gap-8 [&>*]:min-w-0">
           <div className="col-span-12 min-w-0 pb-1 lg:col-span-7">
             <p className="eyebrow mb-6 inline-flex max-w-full flex-wrap items-center gap-3">
               <span className="h-px w-9 shrink-0 bg-forest" />

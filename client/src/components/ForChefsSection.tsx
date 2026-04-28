@@ -41,14 +41,14 @@ export function ForChefsSection() {
       className="relative overflow-x-clip overflow-y-visible border-t border-ink/10 bg-secondary py-24 text-ink md:py-30 lg:h-screen lg:py-10"
     >
       {/* Decorative big number, behind content */}
-      <div className="pointer-events-none absolute -top-6 right-0 max-w-[100vw] select-none overflow-hidden md:right-10">
+      <div className="pointer-events-none absolute -top-6 right-0 max-w-full select-none overflow-hidden md:right-10">
         <span className="font-display italic text-ink/[0.05] text-[12rem] leading-none sm:text-[15rem] md:text-[22rem] lg:text-[26rem]">
           B2B
         </span>
       </div>
 
-      <div className="container relative min-w-0 lg:flex lg:h-full lg:flex-col lg:justify-center">
-        <div className="grid grid-cols-12 items-stretch gap-10 lg:gap-14">
+      <div className="container relative min-w-0 lg:flex lg:h-full lg:flex-col lg:justify-center [&>*]:min-w-0">
+        <div className="grid grid-cols-12 items-stretch gap-10 lg:gap-14 [&>*]:min-w-0">
           {/* Image with parallax */}
           <div className="relative col-span-12 min-w-0 lg:col-span-5 lg:min-h-0">
             <div className="relative aspect-[4/5] w-full max-w-full overflow-hidden rounded-sm lg:aspect-auto lg:h-full">
@@ -102,7 +102,7 @@ export function ForChefsSection() {
               estratégica.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-ink/10 mt-9 border border-ink/10">
+            <div className="mt-9 grid grid-cols-1 gap-px border border-ink/10 bg-ink/10 md:grid-cols-3 [&>*]:min-w-0">
               {benefits.map((b, i) => (
                 <motion.div
                   key={b.title}

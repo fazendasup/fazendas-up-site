@@ -88,7 +88,7 @@ export function TechnologySection() {
   return (
     <div id="tecnologia">
       <section className="relative overflow-x-clip bg-forest-dark text-paper lg:h-screen lg:overflow-hidden">
-        <div className="container min-w-0 py-20 lg:flex lg:h-screen lg:flex-col lg:py-10">
+        <div className="container min-w-0 py-20 lg:flex lg:h-screen lg:flex-col lg:py-10 [&>*]:min-w-0">
           <p className="eyebrow text-on-plum-soft mb-5 inline-flex max-w-full flex-wrap items-center gap-3">
             <span className="h-px w-9 shrink-0 bg-on-plum-soft/70" />
             <span className="min-w-0">Capitulo 01 · Tecnologia</span>
@@ -99,7 +99,7 @@ export function TechnologySection() {
           <p className="mt-5 max-w-full text-[0.95rem] leading-[1.65] text-on-plum-soft md:max-w-xl">
             Quatro principios sustentam cada bandeja produzida pela Fazendas Up.
           </p>
-          <div className="mt-10 grid min-h-0 grid-cols-12 items-center gap-8 lg:mt-6 lg:flex-1 lg:items-stretch lg:gap-10">
+          <div className="mt-10 grid min-h-0 grid-cols-12 items-center gap-8 lg:mt-6 lg:flex-1 lg:items-stretch lg:gap-10 [&>*]:min-w-0">
             <div className="col-span-12 min-w-0 lg:col-span-5 lg:flex lg:flex-col lg:justify-center">
               <AnimatePresence mode="wait" custom={direction} initial={false}>
                 <motion.div
