@@ -87,21 +87,20 @@ export function TechnologySection() {
 
   return (
     <div id="tecnologia">
-      <section className="relative bg-forest-dark text-paper lg:h-screen lg:overflow-hidden">
-        <div className="container py-20 lg:h-screen lg:py-10 lg:flex lg:flex-col">
-          <p className="eyebrow text-on-plum-soft mb-5 inline-flex items-center gap-3">
-            <span className="h-px w-9 bg-on-plum-soft/70" />
-            Capitulo 01 · Tecnologia
+      <section className="relative overflow-x-hidden bg-forest-dark text-paper lg:h-screen lg:overflow-hidden">
+        <div className="container min-w-0 py-20 lg:flex lg:h-screen lg:flex-col lg:py-10">
+          <p className="eyebrow text-on-plum-soft mb-5 inline-flex max-w-full flex-wrap items-center gap-3">
+            <span className="h-px w-9 shrink-0 bg-on-plum-soft/70" />
+            <span className="min-w-0">Capitulo 01 · Tecnologia</span>
           </p>
-          <h2 className="display-head text-paper text-[clamp(1.8rem,7.4vw,2.5rem)] lg:text-[clamp(2rem,3.6vw,3.25rem)] max-w-3xl">
-            Um <em className="text-on-plum-strong not-italic">sistema agricola</em> que une biologia,
-            engenharia e dados.
+          <h2 className="display-head hyphens-auto text-paper max-w-full text-[clamp(1.65rem,5.8vw+0.35rem,2.5rem)] leading-[1.08] sm:leading-[1.05] md:leading-none lg:max-w-3xl lg:text-[clamp(2rem,3.6vw,3.25rem)]">
+            Um <em className="text-on-plum-strong not-italic">sistema agricola</em> que une biologia, engenharia e dados.
           </h2>
-          <p className="mt-5 text-on-plum-soft text-[0.95rem] leading-[1.65] max-w-xl">
+          <p className="mt-5 max-w-full text-on-plum-soft text-[0.95rem] leading-[1.65] text-pretty md:max-w-xl">
             Quatro principios sustentam cada bandeja produzida pela Fazendas Up.
           </p>
-          <div className="mt-10 lg:mt-6 grid grid-cols-12 gap-8 lg:gap-10 items-center lg:items-stretch lg:flex-1 min-h-0">
-            <div className="col-span-12 lg:col-span-5 lg:flex lg:flex-col lg:justify-center">
+          <div className="mt-10 grid min-h-0 grid-cols-12 items-center gap-8 lg:mt-6 lg:flex-1 lg:items-stretch lg:gap-10">
+            <div className="col-span-12 min-w-0 lg:col-span-5 lg:flex lg:flex-col lg:justify-center">
               <AnimatePresence mode="wait" custom={direction} initial={false}>
                 <motion.div
                   key={`content-${activeStep}`}
@@ -121,10 +120,10 @@ export function TechnologySection() {
                       <current.icon className="size-4 text-on-plum-strong" />
                     </span>
                   </div>
-                  <h3 className="display-head text-paper text-[clamp(1.6rem,3vw,2.4rem)] mb-4 max-w-md">
+                  <h3 className="display-head hyphens-auto text-paper mb-4 max-w-full text-[clamp(1.45rem,4.2vw+0.2rem,2.4rem)] leading-[1.08] md:leading-none md:text-[clamp(1.6rem,3vw,2.4rem)] lg:max-w-md">
                     {current.title}
                   </h3>
-                  <p className="text-on-plum-strong/95 text-[1rem] lg:text-[0.98rem] leading-[1.65] font-light max-w-md">
+                  <p className="max-w-full text-on-plum-strong/95 text-[1rem] font-light leading-[1.65] text-pretty lg:max-w-md lg:text-[0.98rem]">
                     {current.body}
                   </p>
                   <div className="mt-7 lg:mt-6 pt-5 border-t border-on-plum-soft/30 max-w-md">
@@ -139,8 +138,8 @@ export function TechnologySection() {
               </AnimatePresence>
             </div>
 
-            <div className="col-span-12 lg:col-span-7 lg:min-h-0">
-              <div className="relative aspect-[4/3] lg:h-full lg:aspect-auto overflow-hidden rounded-sm border border-on-plum-soft/25 bg-forest-dark">
+            <div className="col-span-12 min-w-0 lg:col-span-7 lg:min-h-0">
+              <div className="relative aspect-[4/3] w-full max-w-full overflow-hidden rounded-sm border border-on-plum-soft/25 bg-forest-dark lg:aspect-auto lg:h-full">
                 <AnimatePresence mode="wait" custom={direction} initial={false}>
                   <motion.img
                     key={`image-${activeStep}`}

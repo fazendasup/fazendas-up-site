@@ -52,7 +52,7 @@ export function ContactFooter() {
       {/* Contact CTA section */}
       <section
         id="contato"
-        className="relative bg-forest-dark text-paper py-24 md:py-28 lg:h-screen lg:py-10 overflow-hidden"
+        className="relative overflow-x-hidden overflow-y-visible bg-forest-dark py-24 text-paper md:py-28 lg:h-screen lg:py-10"
       >
         {/* Curved seam from previous section */}
         <svg
@@ -64,24 +64,24 @@ export function ContactFooter() {
           <path d="M0,0 L1440,0 L1440,80 Q1080,0 720,80 T0,80 Z" fill="currentColor" />
         </svg>
 
-        <div className="container relative z-10 lg:h-full lg:flex lg:flex-col lg:justify-center">
+        <div className="container relative z-10 min-w-0 lg:flex lg:h-full lg:flex-col lg:justify-center">
           <div className="grid grid-cols-12 gap-8 lg:gap-12">
-            <div className="col-span-12 lg:col-span-7 lg:flex lg:flex-col lg:justify-center">
-              <p className="eyebrow text-on-plum-soft mb-6 inline-flex items-center gap-3">
-                <span className="h-px w-9 bg-on-plum-soft/70" />
-                Contato
+            <div className="col-span-12 min-w-0 lg:col-span-7 lg:flex lg:flex-col lg:justify-center">
+              <p className="eyebrow text-on-plum-soft mb-6 inline-flex max-w-full flex-wrap items-center gap-3">
+                <span className="h-px w-9 shrink-0 bg-on-plum-soft/70" />
+                <span className="min-w-0">Contato</span>
               </p>
-              <h2 className="display-head text-paper text-[clamp(2.2rem,5.2vw,4.5rem)]">
+              <h2 className="display-head hyphens-auto text-paper text-[clamp(1.85rem,5.2vw+0.35rem,4.5rem)] leading-[1.08] sm:leading-[1.05] md:leading-none md:text-[clamp(2.2rem,5.2vw,4.5rem)]">
                 Vamos conversar sobre<br className="hidden md:block" />
                 o seu próximo <em className="text-brand-rose">projeto</em>.
               </h2>
-              <p className="text-on-plum-strong/95 text-[1rem] leading-[1.68] font-light max-w-xl mt-5">
+              <p className="mt-5 max-w-full text-on-plum-strong/95 text-[1rem] font-light leading-[1.68] text-pretty md:max-w-xl">
                 Atendemos chefs, restaurantes, mercados e parceiros institucionais.
                 Conte para nós o seu projeto.
               </p>
             </div>
 
-            <div className="col-span-12 lg:col-span-5 lg:pt-2 lg:flex lg:flex-col lg:justify-center">
+            <div className="col-span-12 min-w-0 lg:col-span-5 lg:flex lg:flex-col lg:justify-center lg:pt-2">
               <ul className="divide-y divide-on-plum-soft/30 border-y border-on-plum-soft/30">
                 {channels.map((c) => (
                   <li key={c.label}>
@@ -89,17 +89,17 @@ export function ContactFooter() {
                       href={c.href}
                       target="_blank"
                       rel="noreferrer"
-                      className="group flex items-center justify-between py-5 hover:px-2 transition-all"
+                      className="group flex min-w-0 items-start justify-between gap-3 py-5 transition-all hover:px-1 sm:hover:px-2"
                     >
-                      <div>
-                        <div className="text-[0.7rem] tracking-[0.12em] uppercase text-on-plum-muted mb-1.5">
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-1.5 text-[0.7rem] tracking-[0.12em] text-on-plum-muted uppercase">
                           {c.label}
                         </div>
-                        <div className="text-paper text-[1.3rem] leading-tight font-medium">
+                        <div className="break-words text-paper text-[clamp(1.05rem,4.2vw,1.3rem)] font-medium leading-tight">
                           {c.value}
                         </div>
                       </div>
-                      <ArrowUpRight className="size-5 text-on-plum-muted group-hover:text-brand-rose group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                      <ArrowUpRight className="mt-1 size-5 shrink-0 text-on-plum-muted transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-brand-rose" />
                     </a>
                   </li>
                 ))}
@@ -115,10 +115,10 @@ export function ContactFooter() {
 
       {/* Footer */}
 
-      <footer className="bg-forest text-paper border-t border-on-plum-soft/25">
-        <div className="container py-16">
+      <footer className="border-t border-on-plum-soft/25 bg-forest text-paper">
+        <div className="container min-w-0 py-16">
           <div className="grid grid-cols-12 gap-10">
-            <div className="col-span-12 lg:col-span-4">
+            <div className="col-span-12 min-w-0 lg:col-span-4">
               <div className="display-serif text-paper text-[1.9rem] leading-none">Fazendas Up</div>
               <p className="text-paper/65 text-[0.95rem] leading-[1.7] font-light max-w-sm mt-5">
                 Agroindústria sustentável de cultivo vertical. Produzindo alimento limpo
@@ -127,7 +127,7 @@ export function ContactFooter() {
             </div>
 
             {footerCols.map((col) => (
-              <div key={col.title} className="col-span-6 lg:col-span-2">
+              <div key={col.title} className="col-span-6 min-w-0 lg:col-span-2">
                 <h4 className="text-paper text-[0.78rem] tracking-[0.12em] uppercase mb-4">
                   {col.title}
                 </h4>

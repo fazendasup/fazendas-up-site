@@ -59,7 +59,7 @@ export function Bridge() {
   return (
     <section
       ref={ref}
-      className="relative z-10 -mt-[42px] md:-mt-[62px] bg-paper text-ink overflow-hidden pt-14 pb-16 md:pt-20 md:pb-24"
+      className="relative z-10 -mt-[42px] md:-mt-[62px] bg-paper text-ink overflow-x-hidden overflow-y-visible pt-14 pb-16 md:pt-20 md:pb-24"
     >
       <div className="container">
         <div className="flex items-baseline gap-4 mb-8 md:mb-10">
@@ -72,8 +72,8 @@ export function Bridge() {
           />
         </div>
 
-        <div className="max-w-5xl">
-          <p className="display-head text-[clamp(2rem,5.4vw,4.4rem)] leading-[1.1] flex flex-wrap gap-x-3 gap-y-1">
+        <div className="max-w-full min-w-0 md:max-w-5xl">
+          <p className="display-head hyphens-auto text-[clamp(1.75rem,5.2vw+0.25rem,4.4rem)] leading-[1.12] md:leading-[1.1] flex flex-wrap gap-x-3 gap-y-1">
             {phrase.map((w, i) => (
               <BridgeWord key={i} word={w} index={i} total={phrase.length} revealProgress={revealProgress} />
             ))}
@@ -82,16 +82,16 @@ export function Bridge() {
 
         <motion.div
           style={{ opacity: deckOpacity, y: deckLift }}
-          className="mt-10 md:mt-14 grid grid-cols-12 gap-8 items-end"
+          className="mt-10 grid min-w-0 grid-cols-12 items-end gap-8 md:mt-14"
         >
-          <div className="col-span-12 md:col-span-7 lg:col-span-5 lg:col-start-2">
-            <p className="text-ink/70 text-[1.0625rem] leading-[1.75] font-light">
+          <div className="col-span-12 min-w-0 md:col-span-7 lg:col-span-5 lg:col-start-2">
+            <p className="text-ink/70 text-[1.0625rem] leading-[1.75] font-light text-pretty">
               Da semente ao prato, em metros, não em milhares de quilômetros.
               Conheça os princípios que sustentam nossa operação em Manaus.
             </p>
           </div>
-          <div className="col-span-12 md:col-span-5 lg:col-span-3 lg:col-start-9 flex md:justify-end">
-            <span className="font-display italic text-muted-foreground text-[0.9rem]">
+          <div className="col-span-12 flex min-w-0 md:col-span-5 md:justify-end lg:col-span-3 lg:col-start-9">
+            <span className="font-display text-pretty text-[0.9rem] italic text-muted-foreground">
               ↓ Capítulo I: Tecnologia
             </span>
           </div>

@@ -19,7 +19,7 @@ export default function Home() {
     <div className="min-h-screen bg-paper text-ink relative overflow-x-hidden">
       <SiteHeader />
       <ScrollProgress />
-      <main>
+      <main className="min-w-0">
         <Hero />
         <div className="relative">
           <Bridge />

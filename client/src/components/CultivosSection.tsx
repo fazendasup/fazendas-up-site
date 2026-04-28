@@ -79,9 +79,9 @@ function CultivosSpreadRow({
       ref={rowRef}
       className={`relative md:min-h-[78vh] flex flex-col justify-center ${showBorder ? "border-b border-ink/10" : ""}`}
     >
-      <div className="container py-14 md:py-24">
+      <div className="container min-w-0 py-14 md:py-24">
         <div
-          className={`grid grid-cols-12 gap-10 lg:gap-16 items-center ${
+          className={`grid min-w-0 grid-cols-12 items-center gap-10 lg:gap-16 ${
             reverse ? "lg:[direction:rtl]" : ""
           }`}
         >
@@ -95,12 +95,12 @@ function CultivosSpreadRow({
               damping: 20,
               mass: 1.1,
             }}
-            className="col-span-12 lg:col-span-7 [direction:ltr] [perspective:1200px]"
+            className="col-span-12 min-w-0 [direction:ltr] [perspective:1200px] lg:col-span-7"
           >
-            <div className="relative aspect-[5/6] lg:aspect-[7/8] overflow-hidden rounded-sm">
+            <div className="relative aspect-[5/6] w-full max-w-full overflow-hidden rounded-sm lg:aspect-[7/8]">
               <motion.div
                 style={{ scale: imgScale, y: imgY }}
-                className="absolute inset-0 will-change-transform"
+                className="absolute inset-0 min-h-0 min-w-0 will-change-transform"
               >
                 <img
                   key={c.image}
@@ -144,25 +144,25 @@ function CultivosSpreadRow({
               damping: 22,
               delay: 0.08,
             }}
-            className="col-span-12 lg:col-span-5 [direction:ltr]"
+            className="col-span-12 min-w-0 [direction:ltr] lg:col-span-5"
           >
-            <div className="flex items-center gap-4 mb-5">
+            <div className="mb-5 flex min-w-0 items-center gap-4">
               <span className="font-display italic text-muted-foreground text-[0.9rem]">
                 Edição /0{i + 1}
               </span>
               <span className="h-px flex-1 bg-ink/15" />
             </div>
-            <h3 className="display-head text-ink text-[clamp(2.2rem,4.4vw,3.6rem)] mb-3">
+            <h3 className="display-head hyphens-auto mb-3 max-w-full text-ink text-[clamp(1.75rem,5vw+0.35rem,3.6rem)] leading-[1.08] md:leading-none md:text-[clamp(2.2rem,4.4vw,3.6rem)]">
               {c.name}
             </h3>
-            <p className="text-ink/75 text-[1.05rem] leading-[1.75] font-light mb-8">
+            <p className="mb-8 max-w-full text-ink/75 text-[1.05rem] font-light leading-[1.75] text-pretty">
               {c.body}
             </p>
             <div className="border-t border-ink/15 pt-6">
               <p className="eyebrow mb-4 text-muted-foreground">Diretrizes da categoria</p>
-              <ul className="grid grid-cols-2 gap-x-6 gap-y-2.5">
+              <ul className="grid grid-cols-1 gap-x-6 gap-y-2.5 sm:grid-cols-2">
                 {c.notes.map((n) => (
-                  <li key={n} className="text-[0.92rem] text-ink/75 flex items-center gap-2.5">
+                  <li key={n} className="flex min-w-0 items-start gap-2.5 text-[0.92rem] text-ink/75">
                     <span className="size-1.5 rounded-full" style={{ background: c.accent }} />
                     {n}
                   </li>
@@ -184,21 +184,21 @@ export function CultivosSection() {
         whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
         viewport={{ once: true, margin: "-8% 0px" }}
         transition={{ type: "spring", stiffness: 52, damping: 22 }}
-        className="container pt-16 pb-12 md:pt-20 md:pb-16"
+        className="container min-w-0 pt-16 pb-12 md:pt-20 md:pb-16"
       >
-        <div className="grid grid-cols-12 gap-8 items-end">
-          <div className="col-span-12 lg:col-span-7 pb-1">
-            <p className="eyebrow mb-6 inline-flex items-center gap-3">
-              <span className="h-px w-9 bg-forest" />
-              Capítulo 03 · Produtos
+        <div className="grid grid-cols-12 items-end gap-8">
+          <div className="col-span-12 min-w-0 pb-1 lg:col-span-7">
+            <p className="eyebrow mb-6 inline-flex max-w-full flex-wrap items-center gap-3">
+              <span className="h-px w-9 shrink-0 bg-forest" />
+              <span className="min-w-0">Capítulo 03 · Produtos</span>
             </p>
-            <h2 className="display-head text-ink text-[clamp(2.2rem,5.2vw,4.25rem)] leading-[1.14] tracking-tight">
+            <h2 className="display-head hyphens-auto max-w-full text-ink text-[clamp(1.85rem,5.2vw+0.35rem,4.25rem)] leading-[1.12] tracking-tight sm:leading-[1.1] md:text-[clamp(2.2rem,5.2vw,4.25rem)] md:leading-[1.14]">
               Categorias em produção, <em>um padrão</em>
               <br className="hidden md:block" /> de excelência.
             </h2>
           </div>
-          <div className="col-span-12 lg:col-span-4 lg:col-start-9 pb-2">
-            <p className="text-ink/70 text-[1.0625rem] leading-[1.75] font-light">
+          <div className="col-span-12 min-w-0 pb-2 lg:col-span-4 lg:col-start-9">
+            <p className="text-pretty text-ink/70 text-[1.0625rem] font-light leading-[1.75]">
               Atendemos restaurantes, mercados e clientes do nosso clube de assinatura. Toda colheita é feita em no
               máximo 24h antes da entrega.
             </p>

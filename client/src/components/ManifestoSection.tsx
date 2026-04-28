@@ -106,8 +106,8 @@ export function ManifestoSection() {
         </div>
       </div>
 
-      <div className="relative w-screen max-w-[100vw] md:left-1/2 md:-translate-x-1/2">
-        <div className="relative h-[160vh] md:h-[170vh] mb-24">
+      <div className="relative w-full max-w-[100vw] md:left-1/2 md:w-screen md:-translate-x-1/2">
+        <div className="relative mb-24 h-[160vh] md:h-[170vh]">
           <div
             className="pointer-events-none absolute inset-0 z-0 overflow-hidden bg-forest-dark"
             aria-hidden
@@ -135,7 +135,7 @@ export function ManifestoSection() {
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_100%_85%_at_50%_40%,oklch(0.22_0.05_300_/_0.28),transparent_70%)]" />
             <div className="absolute inset-0 bg-gradient-to-b from-forest-dark/40 via-forest/20 to-forest-dark" />
           </div>
-          <div className="relative z-[1] sticky top-14 h-[78vh] min-h-[560px] overflow-hidden md:top-24 md:h-[min(88vh,920px)] md:min-h-[72vh]">
+          <div className="sticky top-14 z-[1] h-[78vh] min-h-[560px] overflow-x-hidden overflow-y-hidden md:top-24 md:h-[min(88vh,920px)] md:min-h-[72vh]">
             <motion.img
               src={manifestoSrc}
               alt={stickyAlt}
@@ -164,13 +164,13 @@ export function ManifestoSection() {
               )}
             />
             <div className="absolute inset-x-0 bottom-8 z-[3] px-5 md:px-8">
-              <div className="container flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-              <p className="text-paper/85 text-[1.0625rem] leading-[1.65] font-light max-w-2xl">
+              <div className="container flex min-w-0 flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <p className="max-w-full text-pretty text-paper/85 text-[1.0625rem] font-light leading-[1.65] md:max-w-2xl">
                 Acreditamos que produzir alimento na cidade, com tecnologia,
                 eficiência e transparência, é uma das formas mais concretas de
                 aliviar a pressão sobre biomas como a Amazônia.
               </p>
-              <span className="text-paper/55 text-[0.7rem] uppercase tracking-[0.25em] shrink-0">
+              <span className="shrink-0 text-pretty text-paper/55 text-[0.65rem] uppercase tracking-[0.2em] sm:text-[0.7rem] sm:tracking-[0.25em]">
                 {locationChip}
               </span>
               </div>
@@ -179,20 +179,20 @@ export function ManifestoSection() {
 
           {/* Foreground copy above sticky stack */}
           <div className="absolute inset-x-0 bottom-0 z-[4] pt-[75vh] md:pt-[82vh] pb-2 pointer-events-none">
-            <div className="container">
-              <div className="grid grid-cols-12 gap-8 rounded-sm bg-forest-dark/38 backdrop-blur-[1.5px] px-4 py-4 md:bg-transparent md:backdrop-blur-0 md:px-0 md:py-0">
+            <div className="container min-w-0">
+              <div className="grid min-w-0 grid-cols-12 gap-8 rounded-sm bg-forest-dark/38 px-4 py-4 backdrop-blur-[1.5px] md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-0">
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-10% 0px" }}
                 transition={{ duration: 0.9 }}
-                className="col-span-12 lg:col-span-5 lg:col-start-2 pointer-events-auto"
+                className="col-span-12 min-w-0 pointer-events-auto lg:col-span-5 lg:col-start-2"
               >
-                <p className="eyebrow text-paper/80 mb-4 inline-flex items-center gap-3">
-                  <span className="h-px w-9 bg-paper/70" />
-                  Por que cultivar verticalmente
+                <p className="eyebrow text-paper/80 mb-4 inline-flex max-w-full flex-wrap items-center gap-3">
+                  <span className="h-px w-9 shrink-0 bg-paper/70" />
+                  <span className="min-w-0">Por que cultivar verticalmente</span>
                 </p>
-                <p className="text-paper text-[1.06rem] leading-[1.8] font-normal">
+                <p className="text-pretty text-paper text-[1.06rem] font-normal leading-[1.8]">
                   Cada quilo produzido em ambiente urbano e controlado
                   representa uma pequena área de floresta que não precisou ser
                   derrubada. Esse é o nosso cálculo ético antes de qualquer
@@ -204,20 +204,20 @@ export function ManifestoSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-10% 0px" }}
                 transition={{ duration: 0.9, delay: 0.15 }}
-                className="col-span-12 lg:col-span-4 lg:col-start-8 pointer-events-auto"
+                className="col-span-12 min-w-0 pointer-events-auto lg:col-span-4 lg:col-start-8"
               >
                 <ul className="space-y-3 text-paper/92 text-[0.98rem] font-normal">
-                  <li className="flex gap-3 border-t border-paper/30 pt-3">
-                    <span className="font-display italic text-clay text-[0.95rem] pt-0.5">01</span>
-                    <span>Operamos em Manaus, no centro do bioma que protegemos.</span>
+                  <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3">
+                    <span className="font-display pt-0.5 text-[0.95rem] italic text-clay">01</span>
+                    <span className="min-w-0 text-pretty">Operamos em Manaus, no centro do bioma que protegemos.</span>
                   </li>
-                  <li className="flex gap-3 border-t border-paper/30 pt-3">
-                    <span className="font-display italic text-clay text-[0.95rem] pt-0.5">02</span>
-                    <span>Cada lote tem rastreabilidade da semente à colheita.</span>
+                  <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3">
+                    <span className="font-display pt-0.5 text-[0.95rem] italic text-clay">02</span>
+                    <span className="min-w-0 text-pretty">Cada lote tem rastreabilidade da semente à colheita.</span>
                   </li>
-                  <li className="flex gap-3 border-t border-paper/30 pt-3">
-                    <span className="font-display italic text-clay text-[0.95rem] pt-0.5">03</span>
-                    <span>Aliamos técnica agrônoma a engenharia de dados.</span>
+                  <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3">
+                    <span className="font-display pt-0.5 text-[0.95rem] italic text-clay">03</span>
+                    <span className="min-w-0 text-pretty">Aliamos técnica agrônoma a engenharia de dados.</span>
                   </li>
                 </ul>
               </motion.div>
@@ -227,7 +227,7 @@ export function ManifestoSection() {
         </div>
       </div>
 
-      <div className="container">
+      <div className="container min-w-0">
         {/* Pillars */}
         <div className="grid grid-cols-12 gap-x-10 gap-y-14 lg:px-[5%]">
           {pillars.map((p, i) => (
@@ -237,7 +237,7 @@ export function ManifestoSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-15% 0px" }}
               transition={{ duration: 0.9, ease: [0.2, 0.7, 0.2, 1], delay: i * 0.12 }}
-              className="col-span-12 md:col-span-4 border-t border-paper/20 pt-7"
+              className="col-span-12 min-w-0 border-t border-paper/20 pt-7 md:col-span-4"
             >
               <div className="flex items-center justify-between mb-5">
                 <span className="font-display italic text-paper/45 text-[0.95rem]">
@@ -245,10 +245,10 @@ export function ManifestoSection() {
                 </span>
                 <span className="size-1.5 rounded-full bg-clay" />
               </div>
-              <h3 className="display-head text-paper text-[2.4rem] leading-tight mb-4">
+              <h3 className="display-head hyphens-auto mb-4 max-w-full text-paper text-[clamp(1.85rem,6vw,2.4rem)] leading-tight">
                 {p.t}
               </h3>
-              <p className="text-paper/70 text-[0.97rem] leading-[1.75] font-light">
+              <p className="text-pretty text-paper/70 text-[0.97rem] font-light leading-[1.75]">
                 {p.b}
               </p>
             </motion.div>

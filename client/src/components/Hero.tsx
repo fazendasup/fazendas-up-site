@@ -23,11 +23,11 @@ export function Hero() {
     <section
       id="top"
       ref={ref}
-      className="relative z-20 bg-gradient-to-b from-forest-dark via-ink to-ink text-paper overflow-hidden"
+      className="relative z-20 bg-gradient-to-b from-forest-dark via-ink to-ink text-paper overflow-x-hidden overflow-y-hidden"
       style={{ height: "100svh" }}
     >
       {/* Sticky stage — same height as section so no ink gradient shows between image and wave */}
-      <div className="sticky top-0 z-0 h-[100svh] overflow-hidden">
+      <div className="sticky top-0 z-0 h-[100svh] overflow-x-hidden overflow-y-hidden">
         {imageFailed && (
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(230,31,147,0.12),transparent_45%),radial-gradient(circle_at_80%_30%,rgba(75,0,79,0.35),transparent_42%),linear-gradient(180deg,#1a0a1c_0%,#110d11_100%)]" />
         )}
@@ -35,12 +35,12 @@ export function Hero() {
         {!imageFailed && (
           <motion.div
             style={{ scale, y: yImg }}
-            className="absolute inset-0 will-change-transform"
+            className="absolute inset-0 min-h-0 min-w-0 will-change-transform"
           >
             <img
               src={getSiteImage("hero")}
               alt="Operação e cultivo vertical da Fazendas Up em Manaus, Amazonas"
-              className="w-full h-full object-cover"
+              className="h-full w-full object-cover object-center"
               decoding="async"
               fetchPriority="high"
               onError={() => setImageFailed(true)}
@@ -65,13 +65,13 @@ export function Hero() {
 
         <div className="relative container h-full flex flex-col justify-end pt-24 pb-[max(10.5rem,15svh)] md:pb-[max(12rem,16svh)] lg:pb-52">
           <div className="grid grid-cols-12 gap-8 items-end">
-            <div className="col-span-12 lg:col-span-9 reveal">
-              <p className="eyebrow text-on-plum-strong mb-7 inline-flex items-center gap-3">
-                <span className="h-px w-10 bg-on-plum-strong/55" />
-                Fazendas Up · Manaus, Amazonas
+            <div className="col-span-12 min-w-0 lg:col-span-9 reveal">
+              <p className="eyebrow text-on-plum-strong mb-7 inline-flex max-w-full flex-wrap items-center gap-3">
+                <span className="h-px w-10 shrink-0 bg-on-plum-strong/55" />
+                <span className="min-w-0">Fazendas Up · Manaus, Amazonas</span>
               </p>
 
-              <h1 className="display-head text-paper text-[clamp(2.6rem,7.2vw,6rem)] max-w-5xl">
+              <h1 className="display-head hyphens-auto text-paper max-w-full text-[clamp(2rem,6.2vw+0.4rem,6rem)] leading-[1.06] sm:leading-[1.04] md:leading-none md:text-[clamp(2.6rem,7.2vw,6rem)] lg:max-w-5xl">
                 Cultivar alimento na cidade <br className="hidden md:block" />
                 para que a <em className="text-brand-rose">floresta</em> siga sendo floresta.
               </h1>

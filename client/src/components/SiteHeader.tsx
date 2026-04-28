@@ -31,9 +31,9 @@ export function SiteHeader() {
           : "bg-transparent text-paper"
       }`}
     >
-      <div className="container flex items-center justify-between h-[72px]">
-        <a href="#top" className="flex items-baseline gap-2">
-          <span className="display-serif text-[1.4rem] leading-none">Fazendas Up</span>
+      <div className="container flex h-[72px] min-w-0 items-center justify-between gap-3">
+        <a href="#top" className="flex min-w-0 items-baseline gap-2">
+          <span className="display-serif min-w-0 shrink text-[1.25rem] leading-none sm:text-[1.4rem]">Fazendas Up</span>
           <span className={`hidden sm:inline text-[0.7rem] tracking-wide ${scrolled ? "text-muted-foreground" : "text-paper/70"}`}>, Manaus / AM</span>
         </a>
 

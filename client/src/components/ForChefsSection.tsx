@@ -38,23 +38,23 @@ export function ForChefsSection() {
   return (
     <section
       ref={ref}
-      className="relative bg-secondary text-ink py-24 md:py-30 lg:h-screen lg:py-10 overflow-hidden border-t border-ink/10"
+      className="relative overflow-x-hidden overflow-y-visible border-t border-ink/10 bg-secondary py-24 text-ink md:py-30 lg:h-screen lg:py-10"
     >
       {/* Decorative big number, behind content */}
-      <div className="absolute -top-6 right-4 md:right-10 select-none pointer-events-none">
-        <span className="font-display italic text-ink/[0.05] text-[18rem] md:text-[26rem] leading-none">
+      <div className="pointer-events-none absolute -top-6 right-0 max-w-[100vw] select-none overflow-hidden md:right-10">
+        <span className="font-display italic text-ink/[0.05] text-[12rem] leading-none sm:text-[15rem] md:text-[22rem] lg:text-[26rem]">
           B2B
         </span>
       </div>
 
-      <div className="container relative lg:h-full lg:flex lg:flex-col lg:justify-center">
-        <div className="grid grid-cols-12 gap-10 lg:gap-14 items-stretch">
+      <div className="container relative min-w-0 lg:flex lg:h-full lg:flex-col lg:justify-center">
+        <div className="grid grid-cols-12 items-stretch gap-10 lg:gap-14">
           {/* Image with parallax */}
-          <div className="col-span-12 lg:col-span-5 relative lg:min-h-0">
-            <div className="relative aspect-[4/5] lg:h-full lg:aspect-auto overflow-hidden rounded-sm">
+          <div className="relative col-span-12 min-w-0 lg:col-span-5 lg:min-h-0">
+            <div className="relative aspect-[4/5] w-full max-w-full overflow-hidden rounded-sm lg:aspect-auto lg:h-full">
               <motion.div
                 style={{ y: imgY, scale: imgScale }}
-                className="absolute inset-0 will-change-transform"
+                className="absolute inset-0 min-h-0 min-w-0 will-change-transform"
               >
                 <img
                   src={getSiteImage("forChefs")}
@@ -88,15 +88,15 @@ export function ForChefsSection() {
             </div>
           </div>
 
-          <div className="col-span-12 lg:col-span-7 lg:flex lg:flex-col lg:justify-center">
-            <p className="eyebrow mb-6 inline-flex items-center gap-3">
-              <span className="h-px w-9 bg-forest" />
-              Capítulo 05 · Parcerias
+          <div className="col-span-12 min-w-0 lg:col-span-7 lg:flex lg:flex-col lg:justify-center">
+            <p className="eyebrow mb-6 inline-flex max-w-full flex-wrap items-center gap-3">
+              <span className="h-px w-9 shrink-0 bg-forest" />
+              <span className="min-w-0">Capítulo 05 · Parcerias</span>
             </p>
-            <h2 className="display-head text-ink text-[clamp(2.2rem,5vw,4rem)]">
+            <h2 className="display-head hyphens-auto max-w-full text-ink text-[clamp(1.85rem,5.2vw+0.35rem,4rem)] leading-[1.08] sm:leading-[1.05] md:leading-none md:text-[clamp(2.2rem,5vw,4rem)]">
               Um parceiro <em>discreto</em> para cozinhas e operações exigentes.
             </h2>
-            <p className="text-ink/75 text-[1rem] leading-[1.7] font-light max-w-xl mt-6">
+            <p className="mt-6 max-w-full text-ink/75 text-[1rem] font-light leading-[1.7] text-pretty md:max-w-xl">
               Trabalhamos lado a lado com restaurantes, hotéis, mercados premium
               e redes de food service que enxergam ingrediente como matéria-prima
               estratégica.
@@ -116,7 +116,7 @@ export function ForChefsSection() {
                     mass: 0.95,
                     delay: i * 0.09,
                   }}
-                  className="bg-secondary p-7 group hover:bg-paper transition-colors"
+                  className="min-w-0 bg-secondary p-6 sm:p-7 transition-colors group hover:bg-paper"
                 >
                   <div className="flex items-center justify-between mb-6">
                     <span className="size-10 rounded-full border border-ink/20 flex items-center justify-center group-hover:border-forest transition-colors">
@@ -129,7 +129,7 @@ export function ForChefsSection() {
                   <h3 className="text-ink text-[1.05rem] font-medium mb-2">
                     {b.title}
                   </h3>
-                  <p className="text-ink/65 text-[0.9rem] leading-[1.65] font-light">
+                  <p className="text-pretty text-ink/65 text-[0.9rem] font-light leading-[1.65]">
                     {b.body}
                   </p>
                 </motion.div>
