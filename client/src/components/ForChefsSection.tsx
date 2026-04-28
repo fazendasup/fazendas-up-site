@@ -82,7 +82,7 @@ export function ForChefsSection() {
                 Para chefs e negócios
               </div>
             </div>
-            <div className="mt-4 max-w-full text-pretty text-[0.78rem] italic text-muted-foreground md:max-w-xs">
+            <div className="mt-4 max-w-full text-[0.78rem] italic text-muted-foreground md:max-w-xs">
               Colheita em no máximo 24h antes da entrega, com padrão visual e
               frescor consistentes.
             </div>
@@ -96,7 +96,7 @@ export function ForChefsSection() {
             <h2 className="display-head hyphens-auto max-w-full break-words text-ink text-[clamp(1.75rem,5vw+0.35rem,4rem)] leading-[1.12] sm:leading-[1.08] md:leading-none md:text-[clamp(2.2rem,5vw,4rem)]">
               Um parceiro <em>discreto</em> para cozinhas e operações exigentes.
             </h2>
-            <p className="mt-6 max-w-full text-ink/75 text-[1rem] font-light leading-[1.7] text-pretty md:max-w-xl">
+            <p className="mt-6 max-w-full text-[1rem] font-light leading-[1.7] text-ink/75 md:max-w-xl">
               Trabalhamos lado a lado com restaurantes, hotéis, mercados premium
               e redes de food service que enxergam ingrediente como matéria-prima
               estratégica.
@@ -126,10 +126,10 @@ export function ForChefsSection() {
                       /0{i + 1}
                     </span>
                   </div>
-                  <h3 className="mb-2 min-w-0 text-pretty text-[1.05rem] font-medium text-ink">
+                  <h3 className="mb-2 min-w-0 text-[1.05rem] font-medium text-ink">
                     {b.title}
                   </h3>
-                  <p className="min-w-0 text-pretty text-[0.9rem] font-light leading-[1.65] text-ink/65 break-words [overflow-wrap:anywhere]">
+                  <p className="min-w-0 text-[0.9rem] font-light leading-[1.65] text-ink/65">
                     {b.body}
                   </p>
                 </motion.div>
@@ -144,7 +144,7 @@ export function ForChefsSection() {
                 Solicitar proposta comercial
                 <ArrowUpRight className="size-4 shrink-0" />
               </a>
-              <span className="min-w-0 text-pretty text-[0.85rem] text-muted-foreground break-words [overflow-wrap:anywhere]">
+              <span className="min-w-0 text-[0.85rem] text-muted-foreground">
                 Entrega em até 48h úteis
               </span>
             </div>

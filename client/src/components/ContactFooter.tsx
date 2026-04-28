@@ -76,7 +76,7 @@ export function ContactFooter() {
                 <br className="hidden md:block" />
                 o seu próximo <em className="text-brand-rose">projeto</em>.
               </h2>
-              <p className="mt-5 max-w-full text-on-plum-strong/95 text-[1rem] font-light leading-[1.68] text-pretty md:max-w-xl">
+              <p className="mt-5 max-w-full text-on-plum-strong/95 text-[1rem] font-light leading-[1.68] md:max-w-xl">
                 Atendemos chefs, restaurantes, mercados e parceiros institucionais.
                 Conte para nós o seu projeto.
               </p>
@@ -139,7 +139,7 @@ export function ContactFooter() {
                         href={l.href}
                         target={l.href.startsWith("http") ? "_blank" : undefined}
                         rel={l.href.startsWith("http") ? "noreferrer" : undefined}
-                        className="break-words text-pretty text-paper/65 text-[0.875rem] transition-colors hover:text-paper"
+                        className="break-words text-paper/65 text-[0.875rem] transition-colors hover:text-paper"
                       >
                         {l.label}
                       </a>

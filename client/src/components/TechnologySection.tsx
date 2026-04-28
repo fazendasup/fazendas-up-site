@@ -96,7 +96,7 @@ export function TechnologySection() {
           <h2 className="display-head hyphens-auto text-paper max-w-full text-[clamp(1.65rem,5.8vw+0.35rem,2.5rem)] leading-[1.08] sm:leading-[1.05] md:leading-none lg:max-w-3xl lg:text-[clamp(2rem,3.6vw,3.25rem)]">
             Um <em className="text-on-plum-strong not-italic">sistema agricola</em> que une biologia, engenharia e dados.
           </h2>
-          <p className="mt-5 max-w-full text-on-plum-soft text-[0.95rem] leading-[1.65] text-pretty md:max-w-xl">
+          <p className="mt-5 max-w-full text-[0.95rem] leading-[1.65] text-on-plum-soft md:max-w-xl">
             Quatro principios sustentam cada bandeja produzida pela Fazendas Up.
           </p>
           <div className="mt-10 grid min-h-0 grid-cols-12 items-center gap-8 lg:mt-6 lg:flex-1 lg:items-stretch lg:gap-10">
@@ -123,14 +123,14 @@ export function TechnologySection() {
                   <h3 className="display-head hyphens-auto text-paper mb-4 max-w-full text-[clamp(1.45rem,4.2vw+0.2rem,2.4rem)] leading-[1.08] md:leading-none md:text-[clamp(1.6rem,3vw,2.4rem)] lg:max-w-md">
                     {current.title}
                   </h3>
-                  <p className="max-w-full text-on-plum-strong/95 text-[1rem] font-light leading-[1.65] text-pretty lg:max-w-md lg:text-[0.98rem]">
+                  <p className="max-w-full text-[1rem] font-light leading-[1.65] text-on-plum-strong/95 lg:max-w-md lg:text-[0.98rem]">
                     {current.body}
                   </p>
                   <div className="mt-7 lg:mt-6 pt-5 border-t border-on-plum-soft/30 max-w-md">
                     <div className="font-display italic text-on-plum-strong text-[clamp(2.1rem,5vw,2.7rem)] leading-none mb-1">
                       {current.metric}
                     </div>
-                    <div className="text-on-plum-muted text-[0.78rem] uppercase tracking-[0.2em]">
+                    <div className="max-w-full min-w-0 text-[0.78rem] uppercase tracking-[0.2em] text-on-plum-muted">
                       {current.metricLabel}
                     </div>
                   </div>

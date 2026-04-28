@@ -18,19 +18,21 @@ export default function Home() {
   return (
     <div className="relative min-h-screen max-w-full overflow-x-clip bg-paper text-ink">
       <SiteHeader />
-      <ScrollProgress />
-      <main className="min-w-0">
-        <Hero />
-        <div className="relative">
-          <Bridge />
-        </div>
-        <TechnologySection />
-        <ImpactSection />
-        <CultivosSection />
-        <ForChefsSection />
-        <ManifestoSection />
-      </main>
-      <ContactFooter />
+      <div className="copy-flow min-w-0 max-w-full">
+        <ScrollProgress />
+        <main className="min-w-0">
+          <Hero />
+          <div className="relative">
+            <Bridge />
+          </div>
+          <TechnologySection />
+          <ImpactSection />
+          <CultivosSection />
+          <ForChefsSection />
+          <ManifestoSection />
+        </main>
+        <ContactFooter />
+      </div>
     </div>
   );
 }

@@ -155,7 +155,7 @@ function CultivosSpreadRow({
             <h3 className="display-head hyphens-auto mb-3 max-w-full text-ink text-[clamp(1.75rem,5vw+0.35rem,3.6rem)] leading-[1.08] md:leading-none md:text-[clamp(2.2rem,4.4vw,3.6rem)]">
               {c.name}
             </h3>
-            <p className="mb-8 max-w-full text-ink/75 text-[1.05rem] font-light leading-[1.75] text-pretty">
+            <p className="mb-8 max-w-full text-[1.05rem] font-light leading-[1.75] text-ink/75">
               {c.body}
             </p>
             <div className="border-t border-ink/15 pt-6">
@@ -198,7 +198,7 @@ export function CultivosSection() {
             </h2>
           </div>
           <div className="col-span-12 min-w-0 pb-2 lg:col-span-4 lg:col-start-9">
-            <p className="text-pretty text-ink/70 text-[1.0625rem] font-light leading-[1.75]">
+            <p className="text-[1.0625rem] font-light leading-[1.75] text-ink/70">
               Atendemos restaurantes, mercados e clientes do nosso clube de assinatura. Toda colheita é feita em no
               máximo 24h antes da entrega.
             </p>

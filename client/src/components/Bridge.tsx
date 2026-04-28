@@ -38,7 +38,7 @@ function BridgeWord({
   return (
     <motion.span
       style={{ opacity }}
-      className={isAccent ? "italic font-display text-forest" : ""}
+      className={`min-w-0 max-w-full ${isAccent ? "font-display italic text-forest" : ""}`}
     >
       {word}
     </motion.span>
@@ -85,13 +85,13 @@ export function Bridge() {
           className="mt-10 grid min-w-0 grid-cols-12 items-end gap-8 md:mt-14"
         >
           <div className="col-span-12 min-w-0 md:col-span-7 lg:col-span-5 lg:col-start-2">
-            <p className="text-ink/70 text-[1.0625rem] leading-[1.75] font-light text-pretty">
+            <p className="text-[1.0625rem] font-light leading-[1.75] text-ink/70">
               Da semente ao prato, em metros, não em milhares de quilômetros.
               Conheça os princípios que sustentam nossa operação em Manaus.
             </p>
           </div>
           <div className="col-span-12 flex min-w-0 md:col-span-5 md:justify-end lg:col-span-3 lg:col-start-9">
-            <span className="font-display text-pretty text-[0.9rem] italic text-muted-foreground">
+            <span className="font-display text-[0.9rem] italic text-muted-foreground">
               ↓ Capítulo I: Tecnologia
             </span>
           </div>

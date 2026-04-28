@@ -99,7 +99,7 @@ export function ManifestoSection() {
               <span className="h-px w-9 shrink-0 bg-paper/55" />
               <span className="min-w-0">Sobre a Fazendas Up</span>
             </p>
-            <h2 className="display-head max-w-full min-w-0 break-words text-paper text-pretty hyphens-auto leading-[1.08] sm:leading-[1.05] md:leading-none text-[clamp(1.85rem,5.5vw+0.35rem,5.4rem)] md:text-[clamp(2.4rem,6.4vw,5.4rem)]">
+            <h2 className="display-head max-w-full min-w-0 break-words hyphens-auto text-paper leading-[1.08] sm:leading-[1.05] md:leading-none text-[clamp(1.85rem,5.5vw+0.35rem,5.4rem)] md:text-[clamp(2.4rem,6.4vw,5.4rem)]">
               Cultivar <em className="text-brand-rose">no alto</em> é uma forma de proteger o que está embaixo.
             </h2>
           </div>
@@ -165,12 +165,12 @@ export function ManifestoSection() {
             />
             <div className="absolute inset-x-0 bottom-12 z-[3] px-5 md:bottom-8 md:px-8">
               <div className="container flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <p className="max-w-full min-w-0 text-pretty text-paper/85 text-[1.0625rem] font-light leading-[1.65] md:max-w-2xl">
+              <p className="max-w-full min-w-0 text-paper/85 text-[1.0625rem] font-light leading-[1.65] md:max-w-2xl">
                 Acreditamos que produzir alimento na cidade, com tecnologia,
                 eficiência e transparência, é uma das formas mais concretas de
                 aliviar a pressão sobre biomas como a Amazônia.
               </p>
-              <span className="min-w-0 max-w-full text-pretty text-paper/55 text-[0.65rem] uppercase tracking-[0.2em] sm:max-w-[min(100%,14rem)] sm:text-right sm:text-[0.7rem] sm:tracking-[0.25em]">
+              <span className="min-w-0 max-w-full text-paper/55 text-[0.65rem] uppercase tracking-[0.2em] sm:max-w-[min(100%,14rem)] sm:text-right sm:text-[0.7rem] sm:tracking-[0.25em]">
                 {locationChip}
               </span>
               </div>
@@ -192,7 +192,7 @@ export function ManifestoSection() {
                   <span className="h-px w-9 shrink-0 bg-paper/70" />
                   <span className="min-w-0">Por que cultivar verticalmente</span>
                 </p>
-                <p className="text-pretty text-paper text-[1.06rem] font-normal leading-[1.8]">
+                <p className="text-paper text-[1.06rem] font-normal leading-[1.8]">
                   Cada quilo produzido em ambiente urbano e controlado
                   representa uma pequena área de floresta que não precisou ser
                   derrubada. Esse é o nosso cálculo ético antes de qualquer
@@ -209,15 +209,15 @@ export function ManifestoSection() {
                 <ul className="space-y-3 text-paper/92 text-[0.98rem] font-normal">
                   <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3">
                     <span className="font-display pt-0.5 text-[0.95rem] italic text-clay">01</span>
-                    <span className="min-w-0 text-pretty">Operamos em Manaus, no centro do bioma que protegemos.</span>
+                    <span className="min-w-0">Operamos em Manaus, no centro do bioma que protegemos.</span>
                   </li>
                   <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3">
                     <span className="font-display pt-0.5 text-[0.95rem] italic text-clay">02</span>
-                    <span className="min-w-0 text-pretty">Cada lote tem rastreabilidade da semente à colheita.</span>
+                    <span className="min-w-0">Cada lote tem rastreabilidade da semente à colheita.</span>
                   </li>
                   <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3">
                     <span className="font-display pt-0.5 text-[0.95rem] italic text-clay">03</span>
-                    <span className="min-w-0 text-pretty">Aliamos técnica agrônoma a engenharia de dados.</span>
+                    <span className="min-w-0">Aliamos técnica agrônoma a engenharia de dados.</span>
                   </li>
                 </ul>
               </motion.div>
@@ -248,7 +248,7 @@ export function ManifestoSection() {
               <h3 className="display-head hyphens-auto mb-4 max-w-full text-paper text-[clamp(1.85rem,6vw,2.4rem)] leading-tight">
                 {p.t}
               </h3>
-              <p className="text-pretty text-[0.97rem] font-light leading-[1.75] text-paper/70 break-words [overflow-wrap:anywhere]">
+              <p className="text-[0.97rem] font-light leading-[1.75] text-paper/70">
                 {p.b}
               </p>
             </motion.div>

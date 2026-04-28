@@ -160,7 +160,9 @@
     text-rendering: optimizeLegibility;
     overflow-x: clip;
     max-width: 100%;
-    overflow-wrap: break-word;
+    /* Preferir quebrar linha a qualquer custo a texto cortado na horizontal */
+    overflow-wrap: anywhere;
+    word-break: normal;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -201,6 +203,33 @@
     }
   }
 
+  /**
+   * Conteúdo editorial: garante que parágrafos e títulos nunca excedem a largura útil.
+   * `overflow-wrap: anywhere` força oportunidade de quebra antes de estourar o viewport (Safari/iOS).
+   */
+  .copy-flow {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .copy-flow :where(p, h1, h2, h3, h4, li, dd, dt, blockquote) {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+  .copy-flow :where(.display-head, .display-serif, .eyebrow) {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: normal;
+    text-wrap: wrap;
+  }
+  .copy-flow footer :where(a, p, h4) {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
   .font-display { font-family: var(--font-display); }
   .font-sans { font-family: var(--font-sans); }
 
@@ -209,10 +238,10 @@
     font-family: var(--font-sans);
     font-weight: 500;
     letter-spacing: -0.035em;
-    line-height: 1.0;
-    overflow-wrap: break-word;
+    line-height: 1.08;
+    overflow-wrap: anywhere;
     word-break: normal;
-    text-wrap: pretty;
+    text-wrap: wrap;
   }
   .display-head em {
     font-family: var(--font-display);
@@ -226,9 +255,10 @@
     font-family: var(--font-sans);
     font-weight: 500;
     letter-spacing: -0.035em;
-    line-height: 1.0;
-    overflow-wrap: break-word;
+    line-height: 1.08;
+    overflow-wrap: anywhere;
     word-break: normal;
+    text-wrap: wrap;
   }
   .display-serif em {
     font-family: var(--font-display);
@@ -245,8 +275,9 @@
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--forest);
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
     word-break: normal;
+    text-wrap: wrap;
   }
 
   /* Subtle reveal (kept minimal) */

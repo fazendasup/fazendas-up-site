@@ -72,7 +72,7 @@ export function ImpactSection() {
           {/* Sticky title column */}
           <motion.div
             style={{ y: titleY, scale: titleScale }}
-            className="col-span-12 min-w-0 origin-top-left self-start will-change-transform lg:sticky lg:top-28 lg:col-span-5 z-[1]"
+            className="col-span-12 z-[1] min-w-0 max-w-full origin-top-left self-start overflow-x-clip will-change-transform lg:sticky lg:top-28 lg:col-span-5"
           >
             <p className="eyebrow mb-7 inline-flex max-w-full flex-wrap items-center gap-3">
               <span className="h-px w-9 shrink-0 bg-forest" />
@@ -81,7 +81,7 @@ export function ImpactSection() {
             <h2 className="display-head hyphens-auto mb-8 max-w-full text-ink text-[clamp(1.85rem,5.5vw+0.35rem,5rem)] leading-[1.08] sm:leading-[1.05] md:leading-none md:text-[clamp(2.4rem,6vw,5rem)]">
               Sustentabilidade <em>medida</em>, não declarada.
             </h2>
-            <p className="mb-10 max-w-full text-ink/70 text-[1.0625rem] font-light leading-[1.75] text-pretty md:max-w-md">
+            <p className="mb-10 max-w-full text-[1.0625rem] font-light leading-[1.75] text-ink/70 md:max-w-md">
               Cada indicador foi acompanhado durante a operação da nossa
               unidade em Manaus. Acreditamos que sustentabilidade só faz sentido
               se puder ser auditada.
@@ -136,10 +136,10 @@ export function ImpactSection() {
                   </div>
                 </div>
                 <div className="col-span-12 min-w-0 w-full max-w-full md:col-span-5 md:pt-2">
-                  <h3 className="mb-2 min-w-0 text-pretty text-[1.05rem] font-medium text-ink">
+                  <h3 className="mb-2 min-w-0 text-[1.05rem] font-medium text-ink">
                     {s.label}
                   </h3>
-                  <p className="min-w-0 max-w-full text-pretty text-[0.95rem] font-light leading-[1.65] text-ink/65 break-words [overflow-wrap:anywhere]">
+                  <p className="min-w-0 max-w-full text-[0.95rem] font-light leading-[1.65] text-ink/65">
                     {s.body}
                   </p>
                 </div>
