@@ -80,7 +80,7 @@ function CultivosSpreadRow({
   return (
     <div
       ref={rowRef}
-      className={`relative flex flex-col justify-center overflow-x-hidden md:min-h-[78vh] lg:overflow-x-visible ${showBorder ? "border-b border-ink/10" : ""}`}
+      className={`relative flex min-w-0 max-w-full flex-col justify-center overflow-x-hidden overflow-x-clip md:min-h-[78vh] lg:overflow-x-visible ${showBorder ? "border-b border-ink/10" : ""}`}
     >
       <div className="container min-w-0 py-14 md:py-24">
         <div
@@ -186,7 +186,7 @@ export function CultivosSection() {
   const narrow = useNarrowViewport();
 
   return (
-    <section id="cultivos" className="relative overflow-x-hidden bg-paper text-ink lg:overflow-x-visible">
+    <section id="cultivos" className="relative isolate w-full max-w-full min-w-0 overflow-x-hidden overflow-x-clip bg-paper text-ink lg:overflow-x-visible">
       <motion.div
         initial={{ opacity: 0, y: 28 }}
         whileInView={{ opacity: 1, y: 0 }}

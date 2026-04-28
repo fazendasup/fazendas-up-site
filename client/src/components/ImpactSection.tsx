@@ -54,7 +54,7 @@ export function ImpactSection() {
     <section
       id="impacto"
       ref={ref}
-      className="relative overflow-x-hidden bg-paper pt-24 pb-16 text-ink scroll-mt-20 lg:overflow-x-visible md:scroll-mt-24 md:pt-28 md:pb-20"
+      className="relative isolate w-full max-w-full min-w-0 overflow-x-hidden overflow-x-clip bg-paper pt-24 pb-16 text-ink scroll-mt-20 lg:overflow-x-visible md:scroll-mt-24 md:pt-28 md:pb-20"
     >
       {/* Top curved seam from forest section above */}
       <svg
@@ -122,10 +122,10 @@ export function ImpactSection() {
                       /0{i + 1}
                     </span>
                     <div
-                      className={`display-head w-full min-w-0 max-w-full break-words leading-none ${
+                      className={`display-head w-full min-w-0 max-w-full text-left break-words leading-none tracking-tight ${
                         s.value === "0"
-                          ? "text-[clamp(1.65rem,9vw,2.5rem)]"
-                          : "text-[clamp(1.75rem,10vw,2.85rem)]"
+                          ? "text-[clamp(1.5rem,7.5vw,2.35rem)]"
+                          : "text-[clamp(1.55rem,8vw,2.5rem)]"
                       }`}
                     >
                       {s.value}

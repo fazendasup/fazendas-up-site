@@ -89,7 +89,7 @@ export function ManifestoSection() {
     <section
       id="sobre"
       ref={ref}
-      className="relative scroll-mt-20 overflow-x-hidden overflow-y-visible bg-forest-dark py-28 text-paper md:scroll-mt-24 md:py-40 lg:overflow-x-visible"
+      className="relative isolate scroll-mt-20 w-full max-w-full min-w-0 overflow-x-hidden overflow-x-clip overflow-y-visible bg-forest-dark py-28 text-paper md:scroll-mt-24 md:py-40 lg:overflow-x-visible"
     >
       {/* Vertical chapter mark */}
       {desktopLg && (
@@ -105,7 +105,7 @@ export function ManifestoSection() {
               <span className="h-px w-9 shrink-0 bg-paper/55" />
               <span className="min-w-0">Sobre a Fazendas Up</span>
             </p>
-            <h2 className="display-head max-w-full min-w-0 break-words hyphens-none text-paper leading-[1.08] sm:leading-[1.05] md:leading-none text-[clamp(1.65rem,min(5.5vw+0.35rem,12vw),5.4rem)] md:text-[clamp(2.4rem,6.4vw,5.4rem)]">
+            <h2 className="display-head max-w-full min-w-0 break-words hyphens-none text-paper leading-[1.08] sm:leading-[1.05] md:leading-none text-[clamp(1.45rem,4.15vw+0.65rem,3.6rem)] md:text-[clamp(2.4rem,6.4vw,5.4rem)]">
               Cultivar <em className="text-brand-rose">no alto</em> é uma forma de proteger o que está embaixo.
             </h2>
           </div>
@@ -113,8 +113,8 @@ export function ManifestoSection() {
       </div>
 
       {/* Sem w-screen/100vw: em mobile geram overflow horizontal (scrollbar) e texto parece cortado */}
-      <div className="relative w-full min-w-0 max-w-full overflow-x-hidden lg:overflow-x-visible">
-        <div className="relative mb-24 h-[160vh] md:h-[170vh]">
+      <div className="relative w-full min-w-0 max-w-full overflow-x-hidden overflow-x-clip lg:overflow-x-visible">
+        <div className="relative mx-auto mb-24 max-w-full min-w-0 h-[160vh] md:h-[170vh]">
           <div
             className="pointer-events-none absolute inset-0 z-0 overflow-hidden bg-forest-dark"
             aria-hidden
@@ -258,7 +258,7 @@ export function ManifestoSection() {
               <h3 className="display-head hyphens-none mb-4 max-w-full text-paper text-[clamp(1.85rem,6vw,2.4rem)] leading-tight">
                 {p.t}
               </h3>
-              <p className="max-w-full min-w-0 text-[0.97rem] font-light leading-[1.75] text-paper/70">
+              <p className="max-w-full min-w-0 break-words text-[0.97rem] font-light leading-[1.75] text-paper/70">
                 {p.b}
               </p>
             </motion.div>

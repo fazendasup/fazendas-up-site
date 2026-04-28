@@ -98,7 +98,7 @@ export function TechnologySection() {
 
   return (
     <div id="tecnologia">
-      <section className="relative overflow-x-hidden bg-forest-dark text-paper lg:h-screen lg:overflow-hidden">
+      <section className="relative isolate w-full max-w-full min-w-0 overflow-x-hidden overflow-x-clip bg-forest-dark text-paper lg:h-screen lg:overflow-hidden">
         <div className="container min-w-0 py-20 lg:flex lg:h-screen lg:flex-col lg:py-10 [&>*]:min-w-0">
           <p className="eyebrow text-on-plum-soft mb-5 inline-flex max-w-full flex-wrap items-center gap-3">
             <span className="h-px w-9 shrink-0 bg-on-plum-soft/70" />

@@ -39,7 +39,7 @@ export function SiteHeader() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 max-w-full overflow-x-hidden pt-[env(safe-area-inset-top,0px)] transition-all duration-500 ${
+      className={`fixed inset-x-0 top-0 z-50 w-full max-w-full min-w-0 overflow-x-hidden overflow-x-clip pt-[env(safe-area-inset-top,0px)] transition-all duration-500 ${
         scrolled
           ? "bg-paper/90 backdrop-blur-md border-b border-ink/10 text-ink"
           : "bg-transparent text-paper"

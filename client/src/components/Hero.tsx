@@ -28,7 +28,7 @@ export function Hero() {
     <section
       id="top"
       ref={ref}
-      className="relative z-20 overflow-x-hidden overflow-y-hidden bg-gradient-to-b from-forest-dark via-ink to-ink text-paper"
+      className="relative z-20 isolate w-full max-w-full min-w-0 overflow-x-hidden overflow-x-clip overflow-y-hidden bg-gradient-to-b from-forest-dark via-ink to-ink text-paper"
       style={{ height: "100svh" }}
     >
       {/* Sticky stage — same height as section so no ink gradient shows between image and wave */}
@@ -80,7 +80,7 @@ export function Hero() {
                 <span className="min-w-0">Fazendas Up · Manaus, Amazonas</span>
               </p>
 
-              <h1 className="display-head hyphens-none text-paper max-w-full text-[clamp(1.875rem,6.2vw+0.4rem,6rem)] leading-[1.06] sm:leading-[1.04] md:leading-none md:text-[clamp(2.6rem,7.2vw,6rem)] lg:max-w-5xl">
+              <h1 className="display-head hyphens-none text-paper max-w-full text-[clamp(1.65rem,5.5vw+0.35rem,6rem)] leading-[1.06] sm:leading-[1.04] md:leading-none md:text-[clamp(2.6rem,7.2vw,6rem)] lg:max-w-5xl">
                 Cultivar alimento na cidade <br className="hidden md:block" />
                 para que a <em className="text-brand-rose">floresta</em> siga sendo floresta.
               </h1>

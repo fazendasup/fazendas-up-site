@@ -52,7 +52,7 @@ export function ContactFooter() {
       {/* Contact CTA section */}
       <section
         id="contato"
-        className="relative scroll-mt-20 overflow-x-hidden overflow-y-visible bg-forest-dark py-24 text-paper md:scroll-mt-24 md:py-28 lg:h-screen lg:overflow-x-visible lg:py-10"
+        className="relative isolate w-full max-w-full min-w-0 scroll-mt-20 overflow-x-hidden overflow-x-clip overflow-y-visible bg-forest-dark py-24 text-paper md:scroll-mt-24 md:py-28 lg:h-screen lg:overflow-x-visible lg:py-10"
       >
         {/* Curved seam from previous section */}
         <svg
@@ -71,7 +71,7 @@ export function ContactFooter() {
                 <span className="h-px w-9 shrink-0 bg-on-plum-soft/70" />
                 <span className="min-w-0">Contato</span>
               </p>
-              <h2 className="display-head hyphens-auto text-paper text-[clamp(1.85rem,5.2vw+0.35rem,4.5rem)] leading-[1.08] sm:leading-[1.05] md:leading-none md:text-[clamp(2.2rem,5.2vw,4.5rem)]">
+              <h2 className="display-head hyphens-none text-paper text-[clamp(1.6rem,4.8vw+0.35rem,4.5rem)] leading-[1.08] sm:leading-[1.05] md:leading-none md:text-[clamp(2.2rem,5.2vw,4.5rem)]">
                 Vamos conversar sobre{" "}
                 <br className="hidden md:block" />
                 o seu próximo <em className="text-brand-rose">projeto</em>.
@@ -116,7 +116,7 @@ export function ContactFooter() {
 
       {/* Footer */}
 
-      <footer className="overflow-x-hidden border-t border-on-plum-soft/25 bg-forest text-paper lg:overflow-x-visible">
+      <footer className="isolate w-full max-w-full min-w-0 overflow-x-hidden overflow-x-clip border-t border-on-plum-soft/25 bg-forest text-paper lg:overflow-x-visible">
         <div className="container min-w-0 py-16">
           <div className="grid grid-cols-12 gap-10 [&>*]:min-w-0">
             <div className="col-span-12 min-w-0 lg:col-span-4">

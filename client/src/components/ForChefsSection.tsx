@@ -41,11 +41,11 @@ export function ForChefsSection() {
   return (
     <section
       ref={ref}
-      className="relative overflow-x-hidden overflow-x-clip overflow-y-visible border-t border-ink/10 bg-secondary py-24 text-ink md:py-30 lg:h-screen lg:overflow-x-visible lg:py-10"
+      className="relative isolate w-full max-w-full min-w-0 overflow-x-hidden overflow-x-clip overflow-y-visible border-t border-ink/10 bg-secondary py-24 text-ink md:py-30 lg:h-screen lg:overflow-x-visible lg:py-10"
     >
       {/* Decorative big number — inset-x + overflow:hidden evita largura intrínseca gigante em Safari */}
-      <div className="pointer-events-none absolute inset-x-0 -top-6 flex justify-end overflow-hidden select-none md:inset-x-auto md:right-10 md:left-auto md:w-auto">
-        <span className="font-display italic text-ink/[0.05] text-[12rem] leading-none whitespace-nowrap sm:text-[15rem] md:text-[22rem] lg:text-[26rem]">
+      <div className="pointer-events-none absolute inset-x-0 left-0 right-0 -top-6 flex max-w-full justify-end overflow-x-clip overflow-hidden select-none md:inset-x-auto md:right-10 md:left-auto md:w-auto">
+        <span className="font-display italic text-ink/[0.05] text-[clamp(6rem,42vw,12rem)] leading-none whitespace-nowrap sm:text-[15rem] md:text-[22rem] lg:text-[26rem]">
           B2B
         </span>
       </div>
@@ -99,7 +99,7 @@ export function ForChefsSection() {
               <span className="h-px w-9 shrink-0 bg-forest" />
               <span className="min-w-0">Capítulo 05 · Parcerias</span>
             </p>
-            <h2 className="display-head hyphens-none max-w-full break-words text-ink text-[clamp(1.5rem,min(5vw+0.35rem,11vw),4rem)] leading-[1.12] sm:leading-[1.08] md:leading-none md:text-[clamp(2.2rem,5vw,4rem)]">
+            <h2 className="display-head hyphens-none max-w-full break-words text-ink text-[clamp(1.45rem,4.5vw+0.35rem,4rem)] leading-[1.12] sm:leading-[1.08] md:leading-none md:text-[clamp(2.2rem,5vw,4rem)]">
               Um parceiro <em>discreto</em> para cozinhas e operações exigentes.
             </h2>
             <p className="mt-6 max-w-full text-[1rem] font-light leading-[1.7] text-ink/75 md:max-w-xl">
@@ -122,13 +122,13 @@ export function ForChefsSection() {
                     mass: 0.95,
                     delay: i * 0.09,
                   }}
-                  className="min-w-0 max-w-full overflow-hidden bg-secondary p-6 sm:p-7 transition-colors group hover:bg-paper"
+                  className="min-w-0 max-w-full overflow-hidden bg-secondary p-5 sm:p-7 transition-colors group hover:bg-paper"
                 >
-                  <div className="mb-6 grid min-w-0 grid-cols-[auto_1fr] items-center gap-3">
+                  <div className="mb-6 flex min-w-0 items-start justify-between gap-3">
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-ink/20 transition-colors group-hover:border-forest">
                       <b.icon className="size-4 text-forest" />
                     </span>
-                    <span className="min-w-0 justify-self-end text-right font-display text-[0.85rem] italic text-muted-foreground tabular-nums">
+                    <span className="shrink-0 text-right font-display text-[0.85rem] italic text-muted-foreground tabular-nums">
                       /0{i + 1}
                     </span>
                   </div>
