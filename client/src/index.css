@@ -146,10 +146,20 @@
 
 @layer base {
   * { @apply border-border outline-ring/50; }
+  #root {
+    position: relative;
+    isolation: isolate;
+    width: 100%;
+    max-width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
+  }
   html {
     scroll-behavior: smooth;
     scroll-padding-top: 5.5rem;
     overflow-x: hidden;
+    overscroll-behavior-x: none;
     width: 100%;
     max-width: 100%;
     /* Evita zoom/reflow de texto no Safari que desalinha cabeçalhos ao viewport */
@@ -163,6 +173,7 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     overflow-x: hidden;
+    overscroll-behavior-x: none;
     width: 100%;
     max-width: 100%;
     /* Preferir quebrar linha a qualquer custo a texto cortado na horizontal */

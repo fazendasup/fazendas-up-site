@@ -25,11 +25,11 @@ export function Hero() {
     <section
       id="top"
       ref={ref}
-      className="relative z-20 overflow-x-visible overflow-y-hidden bg-gradient-to-b from-forest-dark via-ink to-ink text-paper"
+      className="relative z-20 overflow-x-hidden overflow-y-hidden bg-gradient-to-b from-forest-dark via-ink to-ink text-paper"
       style={{ height: "100svh" }}
     >
       {/* Sticky stage — same height as section so no ink gradient shows between image and wave */}
-      <div className="sticky top-0 z-0 h-[100svh] overflow-x-visible overflow-y-hidden">
+      <div className="sticky top-0 z-0 h-[100svh] overflow-x-hidden overflow-y-hidden">
         {imageFailed && (
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(230,31,147,0.12),transparent_45%),radial-gradient(circle_at_80%_30%,rgba(75,0,79,0.35),transparent_42%),linear-gradient(180deg,#1a0a1c_0%,#110d11_100%)]" />
         )}
@@ -60,13 +60,15 @@ export function Hero() {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-ink/70 via-ink/30 to-transparent pointer-events-none" />
 
-        {/* Side rail */}
-        <div className="hidden lg:flex absolute right-6 top-0 h-full items-center gap-6">
-          <div className="vertical-text text-[0.65rem] text-on-plum-soft tracking-[0.3em] uppercase">
-            Volume I, edição 2026
+        {/* Side rail — só desktop; não montar em viewport estreito (overflow horizontal WebKit) */}
+        {!narrow && (
+          <div className="hidden lg:flex absolute right-6 top-0 h-full items-center gap-6">
+            <div className="vertical-text text-[0.65rem] text-on-plum-soft tracking-[0.3em] uppercase">
+              Volume I, edição 2026
+            </div>
+            <div className="h-32 w-px bg-paper/30" />
           </div>
-          <div className="h-32 w-px bg-paper/30" />
-        </div>
+        )}
 
         <div className="relative container flex h-full min-w-0 flex-col justify-end pt-24 pb-[max(10.5rem,15svh)] md:pb-[max(12rem,16svh)] lg:pb-52">
           <div className="grid min-w-0 grid-cols-12 items-end gap-8 [&>*]:min-w-0">

@@ -2,6 +2,7 @@
  * ScrollProgress — Discreet right-side vertical progress with chapter labels.
  * Adds a sense of "navigation through chapters" without being heavy UI.
  */
+import { useNarrowViewport } from "@/hooks/useNarrowViewport";
 import { useEffect, useState } from "react";
 
 const chapters = [
@@ -14,10 +15,12 @@ const chapters = [
 ];
 
 export function ScrollProgress() {
+  const narrow = useNarrowViewport();
   const [progress, setProgress] = useState(0);
   const [active, setActive] = useState("top");
 
   useEffect(() => {
+    if (narrow) return;
     const onScroll = () => {
       const h = document.documentElement;
       const total = h.scrollHeight - h.clientHeight;
@@ -36,7 +39,10 @@ export function ScrollProgress() {
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [narrow]);
+
+  /** Em mobile/tablet não montar — hidden lg:flex ainda pode largar scrollWidth em WebKit */
+  if (narrow) return null;
 
   return (
     <div className="hidden lg:flex fixed right-6 top-1/2 -translate-y-1/2 z-40 flex-col items-end gap-3 pointer-events-none">

@@ -186,7 +186,7 @@ export function ManifestoSection() {
           {/* Foreground copy above sticky stack */}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[4] pb-2 pt-[94svh] md:pt-[82vh]">
             <div className="container min-w-0">
-              <div className="grid min-w-0 grid-cols-12 gap-8 rounded-sm bg-forest-dark/38 px-4 py-4 backdrop-blur-[1.5px] [&>*]:min-w-0 md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-0">
+              <div className="grid min-w-0 grid-cols-12 gap-8 rounded-sm bg-forest-dark/45 px-4 py-4 [&>*]:min-w-0 md:bg-transparent md:px-0 md:py-0">
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}

@@ -112,8 +112,8 @@ export function ForChefsSection() {
               {benefits.map((b, i) => (
                 <motion.div
                   key={b.title}
-                  initial={{ opacity: 0, y: 48, filter: "blur(10px)" }}
-                  whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  initial={{ opacity: 0, y: 32 }}
+                  whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-12% 0px" }}
                   transition={{
                     type: "spring",

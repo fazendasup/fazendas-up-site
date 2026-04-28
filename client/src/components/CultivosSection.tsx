@@ -89,8 +89,8 @@ function CultivosSpreadRow({
           }`}
         >
           <motion.div
-            initial={{ opacity: 0, y: 48, filter: "blur(12px)" }}
-            whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            initial={{ opacity: 0, y: 32 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-12% 0px" }}
             transition={{
               type: "spring",
@@ -141,8 +141,8 @@ function CultivosSpreadRow({
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 56, filter: "blur(10px)" }}
-            whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            initial={{ opacity: 0, y: 36 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-12% 0px" }}
             transition={{
               type: "spring",
@@ -188,8 +188,8 @@ export function CultivosSection() {
   return (
     <section id="cultivos" className="relative overflow-x-visible bg-paper text-ink">
       <motion.div
-        initial={{ opacity: 0, y: 40, filter: "blur(8px)" }}
-        whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        initial={{ opacity: 0, y: 28 }}
+        whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-8% 0px" }}
         transition={{ type: "spring", stiffness: 52, damping: 22 }}
         className="container min-w-0 pt-16 pb-12 md:pt-20 md:pb-16"

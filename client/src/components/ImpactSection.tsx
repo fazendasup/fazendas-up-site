@@ -101,8 +101,8 @@ export function ImpactSection() {
             {stats.map((s, i) => (
               <motion.article
                 key={s.label}
-                initial={{ opacity: 0, y: 48, filter: "blur(10px)" }}
-                whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                initial={{ opacity: 0, y: 28 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-14% 0px" }}
                 transition={{
                   type: "spring",
@@ -111,7 +111,7 @@ export function ImpactSection() {
                   mass: 1.05,
                   delay: i * 0.07,
                 }}
-                className={`relative grid min-w-0 max-w-full grid-cols-12 gap-x-3 gap-y-4 py-7 sm:gap-x-6 sm:gap-y-6 md:py-8 [&>*]:min-w-0 ${
+                className={`relative flex min-w-0 max-w-full flex-col gap-y-5 py-7 sm:grid sm:grid-cols-12 sm:gap-x-6 sm:gap-y-6 md:py-8 [&>*]:min-w-0 ${
                   i !== stats.length - 1 ? "border-b border-ink/15" : ""
                 }`}
               >
