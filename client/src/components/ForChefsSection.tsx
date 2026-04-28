@@ -38,7 +38,7 @@ export function ForChefsSection() {
   return (
     <section
       ref={ref}
-      className="relative overflow-x-hidden overflow-y-visible border-t border-ink/10 bg-secondary py-24 text-ink md:py-30 lg:h-screen lg:py-10"
+      className="relative overflow-x-clip overflow-y-visible border-t border-ink/10 bg-secondary py-24 text-ink md:py-30 lg:h-screen lg:py-10"
     >
       {/* Decorative big number, behind content */}
       <div className="pointer-events-none absolute -top-6 right-0 max-w-[100vw] select-none overflow-hidden md:right-10">
@@ -54,12 +54,12 @@ export function ForChefsSection() {
             <div className="relative aspect-[4/5] w-full max-w-full overflow-hidden rounded-sm lg:aspect-auto lg:h-full">
               <motion.div
                 style={{ y: imgY, scale: imgScale }}
-                className="absolute inset-0 min-h-0 min-w-0 will-change-transform"
+                className="absolute inset-0 min-h-0 min-w-0 overflow-hidden will-change-transform"
               >
                 <img
                   src={getSiteImage("forChefs")}
                   alt="Prato com ingredientes frescos da Fazendas Up"
-                  className="absolute inset-0 w-full h-[125%] object-cover object-center"
+                  className="absolute inset-0 h-full w-full max-w-none object-cover object-center md:h-[125%]"
                   onError={(e) => {
                     const el = e.currentTarget;
                     const step = el.getAttribute("data-for-chefs-fb");
@@ -82,7 +82,7 @@ export function ForChefsSection() {
                 Para chefs e negócios
               </div>
             </div>
-            <div className="mt-4 text-[0.78rem] text-muted-foreground italic max-w-xs">
+            <div className="mt-4 max-w-full text-pretty text-[0.78rem] italic text-muted-foreground md:max-w-xs">
               Colheita em no máximo 24h antes da entrega, com padrão visual e
               frescor consistentes.
             </div>

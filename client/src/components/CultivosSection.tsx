@@ -100,13 +100,13 @@ function CultivosSpreadRow({
             <div className="relative aspect-[5/6] w-full max-w-full overflow-hidden rounded-sm lg:aspect-[7/8]">
               <motion.div
                 style={{ scale: imgScale, y: imgY }}
-                className="absolute inset-0 min-h-0 min-w-0 will-change-transform"
+                className="absolute inset-0 min-h-0 min-w-0 overflow-hidden will-change-transform"
               >
                 <img
                   key={c.image}
                   src={c.image}
                   alt={c.name}
-                  className="w-full h-full object-cover"
+                  className="h-full w-full max-w-none object-cover"
                   onError={(e) => {
                     const el = e.currentTarget;
                     const chain = cultivosImageFallbackChain[i] ?? [];
@@ -163,8 +163,8 @@ function CultivosSpreadRow({
               <ul className="grid grid-cols-1 gap-x-6 gap-y-2.5 sm:grid-cols-2">
                 {c.notes.map((n) => (
                   <li key={n} className="flex min-w-0 items-start gap-2.5 text-[0.92rem] text-ink/75">
-                    <span className="size-1.5 rounded-full" style={{ background: c.accent }} />
-                    {n}
+                    <span className="size-1.5 shrink-0 rounded-full" style={{ background: c.accent }} />
+                    <span className="min-w-0 break-words">{n}</span>
                   </li>
                 ))}
               </ul>
@@ -178,7 +178,7 @@ function CultivosSpreadRow({
 
 export function CultivosSection() {
   return (
-    <section id="cultivos" className="relative bg-paper text-ink overflow-x-hidden">
+    <section id="cultivos" className="relative overflow-x-clip bg-paper text-ink">
       <motion.div
         initial={{ opacity: 0, y: 40, filter: "blur(8px)" }}
         whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}

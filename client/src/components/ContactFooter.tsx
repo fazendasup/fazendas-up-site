@@ -52,7 +52,7 @@ export function ContactFooter() {
       {/* Contact CTA section */}
       <section
         id="contato"
-        className="relative overflow-x-hidden overflow-y-visible bg-forest-dark py-24 text-paper md:py-28 lg:h-screen lg:py-10"
+        className="relative overflow-x-clip overflow-y-visible bg-forest-dark py-24 text-paper md:py-28 lg:h-screen lg:py-10"
       >
         {/* Curved seam from previous section */}
         <svg
@@ -115,7 +115,7 @@ export function ContactFooter() {
 
       {/* Footer */}
 
-      <footer className="border-t border-on-plum-soft/25 bg-forest text-paper">
+      <footer className="overflow-x-clip border-t border-on-plum-soft/25 bg-forest text-paper">
         <div className="container min-w-0 py-16">
           <div className="grid grid-cols-12 gap-10">
             <div className="col-span-12 min-w-0 lg:col-span-4">
@@ -138,7 +138,7 @@ export function ContactFooter() {
                         href={l.href}
                         target={l.href.startsWith("http") ? "_blank" : undefined}
                         rel={l.href.startsWith("http") ? "noreferrer" : undefined}
-                        className="text-paper/65 text-[0.875rem] hover:text-paper transition-colors"
+                        className="break-words text-pretty text-paper/65 text-[0.875rem] transition-colors hover:text-paper"
                       >
                         {l.label}
                       </a>

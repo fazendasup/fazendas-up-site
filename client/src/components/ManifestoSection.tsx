@@ -85,15 +85,15 @@ export function ManifestoSection() {
     <section
       id="sobre"
       ref={ref}
-      className="relative bg-forest-dark text-paper overflow-x-hidden overflow-y-visible py-28 md:py-40"
+      className="relative overflow-x-clip overflow-y-visible bg-forest-dark py-28 text-paper md:py-40"
     >
       {/* Vertical chapter mark */}
       <div className="hidden lg:block absolute left-6 top-32 vertical-text text-paper/40 text-[0.68rem] tracking-[0.3em] uppercase">
         Capítulo 04: Sobre / Manifesto
       </div>
 
-      <div className="container">
-        <div className="grid grid-cols-12 gap-10 mb-20">
+      <div className="container min-w-0">
+        <div className="mb-20 grid min-w-0 grid-cols-12 gap-10">
           <div className="col-span-12 min-w-0 lg:col-span-7 lg:col-start-2">
             <p className="eyebrow text-paper/65 mb-6 inline-flex max-w-full flex-wrap items-center gap-3">
               <span className="h-px w-9 shrink-0 bg-paper/55" />
@@ -106,7 +106,7 @@ export function ManifestoSection() {
         </div>
       </div>
 
-      <div className="relative w-full max-w-[100vw] md:left-1/2 md:w-screen md:-translate-x-1/2">
+      <div className="relative w-full min-w-0 overflow-x-clip md:left-1/2 md:w-screen md:max-w-[100vw] md:-translate-x-1/2">
         <div className="relative mb-24 h-[160vh] md:h-[170vh]">
           <div
             className="pointer-events-none absolute inset-0 z-0 overflow-hidden bg-forest-dark"
@@ -135,13 +135,13 @@ export function ManifestoSection() {
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_100%_85%_at_50%_40%,oklch(0.22_0.05_300_/_0.28),transparent_70%)]" />
             <div className="absolute inset-0 bg-gradient-to-b from-forest-dark/40 via-forest/20 to-forest-dark" />
           </div>
-          <div className="sticky top-14 z-[1] h-[78vh] min-h-[560px] overflow-x-hidden overflow-y-hidden md:top-24 md:h-[min(88vh,920px)] md:min-h-[72vh]">
+          <div className="sticky top-14 z-[1] h-[78vh] min-h-[560px] overflow-x-clip overflow-y-hidden md:top-24 md:h-[min(88vh,920px)] md:min-h-[72vh]">
             <motion.img
               src={manifestoSrc}
               alt={stickyAlt}
               style={{ scale: imgScale, y: imgY }}
               className={cn(
-                "absolute inset-0 z-[1] h-[125%] min-h-full w-full object-cover will-change-transform",
+                "absolute inset-0 z-[1] h-full min-h-full w-full max-w-none object-cover will-change-transform md:h-[125%]",
                 stickyKind === "aerial"
                   ? "object-[48%_36%] brightness-[1.04] contrast-[1.06] saturate-[1.12] [transform-origin:50%_40%]"
                   : "object-center brightness-[1.12] contrast-[1.05] [transform-origin:50%_50%]"
@@ -164,13 +164,13 @@ export function ManifestoSection() {
               )}
             />
             <div className="absolute inset-x-0 bottom-8 z-[3] px-5 md:px-8">
-              <div className="container flex min-w-0 flex-col gap-4 md:flex-row md:items-end md:justify-between">
-              <p className="max-w-full text-pretty text-paper/85 text-[1.0625rem] font-light leading-[1.65] md:max-w-2xl">
+              <div className="container flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <p className="max-w-full min-w-0 text-pretty text-paper/85 text-[1.0625rem] font-light leading-[1.65] md:max-w-2xl">
                 Acreditamos que produzir alimento na cidade, com tecnologia,
                 eficiência e transparência, é uma das formas mais concretas de
                 aliviar a pressão sobre biomas como a Amazônia.
               </p>
-              <span className="shrink-0 text-pretty text-paper/55 text-[0.65rem] uppercase tracking-[0.2em] sm:text-[0.7rem] sm:tracking-[0.25em]">
+              <span className="min-w-0 max-w-full text-pretty text-paper/55 text-[0.65rem] uppercase tracking-[0.2em] sm:max-w-[min(100%,14rem)] sm:text-right sm:text-[0.7rem] sm:tracking-[0.25em]">
                 {locationChip}
               </span>
               </div>

@@ -61,8 +61,8 @@ export function Bridge() {
       ref={ref}
       className="relative z-10 -mt-[42px] md:-mt-[62px] bg-paper text-ink overflow-x-hidden overflow-y-visible pt-14 pb-16 md:pt-20 md:pb-24"
     >
-      <div className="container">
-        <div className="flex items-baseline gap-4 mb-8 md:mb-10">
+      <div className="container min-w-0">
+        <div className="flex min-w-0 items-baseline gap-4 mb-8 md:mb-10">
           <span className="font-display italic text-muted-foreground text-[0.95rem]">
             Prólogo
           </span>
@@ -73,7 +73,7 @@ export function Bridge() {
         </div>
 
         <div className="max-w-full min-w-0 md:max-w-5xl">
-          <p className="display-head hyphens-auto text-[clamp(1.75rem,5.2vw+0.25rem,4.4rem)] leading-[1.12] md:leading-[1.1] flex flex-wrap gap-x-3 gap-y-1">
+          <p className="display-head hyphens-auto max-w-full text-[clamp(1.75rem,5.2vw+0.25rem,4.4rem)] leading-[1.12] md:leading-[1.1] flex flex-wrap gap-x-3 gap-y-1">
             {phrase.map((w, i) => (
               <BridgeWord key={i} word={w} index={i} total={phrase.length} revealProgress={revealProgress} />
             ))}

@@ -87,7 +87,7 @@ export function TechnologySection() {
 
   return (
     <div id="tecnologia">
-      <section className="relative overflow-x-hidden bg-forest-dark text-paper lg:h-screen lg:overflow-hidden">
+      <section className="relative overflow-x-clip bg-forest-dark text-paper lg:h-screen lg:overflow-hidden">
         <div className="container min-w-0 py-20 lg:flex lg:h-screen lg:flex-col lg:py-10">
           <p className="eyebrow text-on-plum-soft mb-5 inline-flex max-w-full flex-wrap items-center gap-3">
             <span className="h-px w-9 shrink-0 bg-on-plum-soft/70" />
@@ -153,10 +153,10 @@ export function TechnologySection() {
                     alt={current.title}
                     className={
                       activeStep === 0
-                        ? "absolute inset-0 w-full h-full object-cover object-[50%_10%] md:object-[50%_6%]"
+                        ? "absolute inset-0 h-full w-full max-h-none max-w-none object-cover object-[50%_10%] md:object-[50%_6%]"
                         : activeStep === 1
-                          ? "absolute inset-0 w-full h-full object-cover object-[50%_58%] md:object-center"
-                          : "absolute inset-0 w-full h-full object-cover"
+                          ? "absolute inset-0 h-full w-full max-h-none max-w-none object-cover object-[50%_58%] md:object-center"
+                          : "absolute inset-0 h-full w-full max-h-none max-w-none object-cover"
                     }
                     drag="x"
                     dragConstraints={{ left: 0, right: 0 }}
@@ -176,9 +176,9 @@ export function TechnologySection() {
                   />
                 </AnimatePresence>
                 <div className="absolute inset-0 z-[1] bg-gradient-to-t from-forest-dark/50 via-forest-dark/12 to-transparent pointer-events-none" />
-                <div className="absolute bottom-5 left-5 right-5 z-[2] flex justify-between text-on-plum-strong/95 text-[0.72rem] uppercase tracking-[0.2em]">
-                  <span>FZD-UP / Cultivo</span>
-                  <span>{current.n} de 04</span>
+                <div className="absolute bottom-5 left-5 right-5 z-[2] flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 text-on-plum-strong/95 text-[0.72rem] uppercase tracking-[0.2em]">
+                  <span className="min-w-0">FZD-UP / Cultivo</span>
+                  <span className="shrink-0">{current.n} de 04</span>
                 </div>
               </div>
             </div>
