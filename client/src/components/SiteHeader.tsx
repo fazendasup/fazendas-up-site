@@ -1,8 +1,8 @@
 /**
  * Design: "Editorial Sóbrio Corporativo"
  * Header: clean wordmark, simple horizontal nav, subtle scroll-elevation.
+ * Navegação desktop vs menu móvel só com breakpoint `lg` (CSS) — não depende de JS de largura.
  */
-import { useNarrowViewport } from "@/hooks/useNarrowViewport";
 import { useEffect, useState } from "react";
 
 const navItems = [
@@ -14,7 +14,6 @@ const navItems = [
 ];
 
 export function SiteHeader() {
-  const narrow = useNarrowViewport();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -26,8 +25,17 @@ export function SiteHeader() {
   }, []);
 
   useEffect(() => {
-    if (!narrow) setOpen(false);
-  }, [narrow]);
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const closeIfDesktop = () => {
+      if (mq.matches) setOpen(false);
+    };
+    mq.addEventListener("change", closeIfDesktop);
+    window.addEventListener("resize", closeIfDesktop);
+    return () => {
+      mq.removeEventListener("change", closeIfDesktop);
+      window.removeEventListener("resize", closeIfDesktop);
+    };
+  }, []);
 
   return (
     <header
@@ -43,52 +51,44 @@ export function SiteHeader() {
           <span className={`hidden sm:inline text-[0.7rem] tracking-wide ${scrolled ? "text-muted-foreground" : "text-paper/70"}`}>, Manaus / AM</span>
         </a>
 
-        {!narrow && (
-          <>
-            <nav className="flex items-center gap-9">
-              {navItems.map((item) => (
-                <a
-                  key={item.id}
-                  href={`#${item.id}`}
-                  className={`text-[0.875rem] transition-colors ${
-                    scrolled
-                      ? "text-ink/75 hover:text-forest"
-                      : "text-paper/85 hover:text-paper"
-                  }`}
-                >
-                  {item.label}
-                </a>
-              ))}
-            </nav>
-
-            <div className="flex items-center">
+        <div className="hidden lg:flex items-center gap-9">
+          <nav className="flex items-center gap-9">
+            {navItems.map((item) => (
               <a
-                href="#contato"
-                className={`inline-flex items-center px-4 py-2 rounded-full text-[0.825rem] font-medium transition-colors ${
-                  scrolled
-                    ? "bg-forest text-paper hover:bg-forest-dark"
-                    : "bg-paper text-ink hover:bg-clay hover:text-paper"
+                key={item.id}
+                href={`#${item.id}`}
+                className={`text-[0.875rem] transition-colors ${
+                  scrolled ? "text-ink/75 hover:text-forest" : "text-paper/85 hover:text-paper"
                 }`}
               >
-                Falar com a equipe
+                {item.label}
               </a>
-            </div>
-          </>
-        )}
-
-        {narrow && (
-          <button
-            onClick={() => setOpen((v) => !v)}
-            className="shrink-0 whitespace-nowrap text-[0.825rem]"
-            aria-label="Abrir menu"
+            ))}
+          </nav>
+          <a
+            href="#contato"
+            className={`inline-flex items-center px-4 py-2 rounded-full text-[0.825rem] font-medium transition-colors ${
+              scrolled
+                ? "bg-forest text-paper hover:bg-forest-dark"
+                : "bg-paper text-ink hover:bg-clay hover:text-paper"
+            }`}
           >
-            {open ? "Fechar" : "Menu"}
-          </button>
-        )}
+            Falar com a equipe
+          </a>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="shrink-0 whitespace-nowrap text-[0.825rem] lg:hidden"
+          aria-label="Abrir menu"
+        >
+          {open ? "Fechar" : "Menu"}
+        </button>
       </div>
 
-      {open && narrow && (
-        <div className="border-t border-ink/10 bg-paper">
+      {open && (
+        <div className="border-t border-ink/10 bg-paper lg:hidden">
           <nav className="container flex flex-col gap-3 py-4 [&>*]:min-w-0">
             {navItems.map((item) => (
               <a

@@ -87,10 +87,13 @@ export function ManifestoSection() {
     <section
       id="sobre"
       ref={ref}
-      className="relative scroll-mt-20 overflow-x-visible overflow-y-visible bg-forest-dark py-28 text-paper md:scroll-mt-24 md:py-40"
+      className="relative scroll-mt-20 overflow-x-hidden overflow-y-visible bg-forest-dark py-28 text-paper md:scroll-mt-24 md:py-40 lg:overflow-x-visible"
     >
       {/* Vertical chapter mark */}
-      <div className="hidden lg:block absolute left-6 top-32 vertical-text text-paper/40 text-[0.68rem] tracking-[0.3em] uppercase">
+      <div
+        data-fu-desktop-only
+        className="hidden lg:block absolute left-6 top-32 vertical-text text-paper/40 text-[0.68rem] tracking-[0.3em] uppercase"
+      >
         Capítulo 04: Sobre / Manifesto
       </div>
 
@@ -109,7 +112,7 @@ export function ManifestoSection() {
       </div>
 
       {/* Sem w-screen/100vw: em mobile geram overflow horizontal (scrollbar) e texto parece cortado */}
-      <div className="relative w-full min-w-0 max-w-full overflow-x-visible">
+      <div className="relative w-full min-w-0 max-w-full overflow-x-hidden lg:overflow-x-visible">
         <div className="relative mb-24 h-[160vh] md:h-[170vh]">
           <div
             className="pointer-events-none absolute inset-0 z-0 overflow-hidden bg-forest-dark"

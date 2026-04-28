@@ -41,7 +41,7 @@ export function ForChefsSection() {
   return (
     <section
       ref={ref}
-      className="relative overflow-x-visible overflow-y-visible border-t border-ink/10 bg-secondary py-24 text-ink md:py-30 lg:h-screen lg:py-10"
+      className="relative overflow-x-hidden overflow-y-visible border-t border-ink/10 bg-secondary py-24 text-ink md:py-30 lg:h-screen lg:overflow-x-visible lg:py-10"
     >
       {/* Decorative big number — inset-x + overflow:hidden evita largura intrínseca gigante em Safari */}
       <div className="pointer-events-none absolute inset-x-0 -top-6 flex justify-end overflow-hidden select-none md:inset-x-auto md:right-10 md:left-auto md:w-auto">

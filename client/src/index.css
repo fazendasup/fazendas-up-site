@@ -198,6 +198,16 @@
   }
 }
 
+/**
+ * WebKit (Safari/iOS): `position:fixed` + trilhos podem inflar `scrollWidth` mesmo com `hidden lg:*`.
+ * Esconder por viewport CSS (não depende de JS) — use em trilhos editoriais / progress vertical.
+ */
+@media (max-width: 1023px) {
+  [data-fu-desktop-only] {
+    display: none !important;
+  }
+}
+
 @layer components {
   .container {
     box-sizing: border-box;

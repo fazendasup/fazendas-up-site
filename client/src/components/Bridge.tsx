@@ -59,7 +59,7 @@ export function Bridge() {
   return (
     <section
       ref={ref}
-      className="relative z-10 -mt-[42px] md:-mt-[62px] bg-paper text-ink overflow-x-visible overflow-y-visible pt-14 pb-16 md:pt-20 md:pb-24"
+      className="relative z-10 -mt-[42px] md:-mt-[62px] bg-paper text-ink overflow-x-hidden overflow-y-visible pt-14 pb-16 md:pt-20 md:pb-24 lg:overflow-x-visible"
     >
       <div className="container min-w-0">
         <div className="flex min-w-0 items-baseline gap-4 mb-8 md:mb-10">

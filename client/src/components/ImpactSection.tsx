@@ -54,7 +54,7 @@ export function ImpactSection() {
     <section
       id="impacto"
       ref={ref}
-      className="relative overflow-x-visible bg-paper pt-24 pb-16 text-ink scroll-mt-20 md:scroll-mt-24 md:pt-28 md:pb-20"
+      className="relative overflow-x-hidden bg-paper pt-24 pb-16 text-ink scroll-mt-20 lg:overflow-x-visible md:scroll-mt-24 md:pt-28 md:pb-20"
     >
       {/* Top curved seam from forest section above */}
       <svg
@@ -77,7 +77,7 @@ export function ImpactSection() {
               y: narrow ? 0 : titleY,
               scale: narrow ? 1 : titleScale,
             }}
-            className="col-span-12 z-[1] min-w-0 max-w-full origin-top-left self-start overflow-x-visible will-change-transform lg:sticky lg:top-28 lg:col-span-5"
+            className="col-span-12 z-[1] min-w-0 max-w-full origin-top-left self-start overflow-x-hidden will-change-transform lg:sticky lg:top-28 lg:col-span-5 lg:overflow-x-visible"
           >
             <p className="eyebrow mb-7 inline-flex max-w-full flex-wrap items-center gap-3">
               <span className="h-px w-9 shrink-0 bg-forest" />
@@ -97,7 +97,7 @@ export function ImpactSection() {
           </motion.div>
 
           {/* Cards column */}
-          <div className="relative z-0 col-span-12 flex min-w-0 max-w-full flex-col overflow-x-visible perspective-none lg:[perspective:1400px] lg:col-span-7 [&>*]:min-w-0">
+          <div className="relative z-0 col-span-12 flex min-w-0 max-w-full flex-col overflow-x-hidden perspective-none lg:[perspective:1400px] lg:col-span-7 lg:overflow-x-visible [&>*]:min-w-0">
             {stats.map((s, i) => (
               <motion.article
                 key={s.label}
