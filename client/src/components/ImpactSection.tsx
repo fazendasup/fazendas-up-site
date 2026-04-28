@@ -52,7 +52,7 @@ export function ImpactSection() {
     <section
       id="impacto"
       ref={ref}
-      className="relative overflow-x-clip bg-paper pt-24 pb-16 text-ink md:pt-28 md:pb-20"
+      className="relative overflow-x-clip bg-paper pt-24 pb-16 text-ink scroll-mt-20 md:scroll-mt-24 md:pt-28 md:pb-20"
     >
       {/* Top curved seam from forest section above */}
       <svg
@@ -92,7 +92,7 @@ export function ImpactSection() {
           </motion.div>
 
           {/* Cards column */}
-          <div className="relative z-0 col-span-12 flex min-w-0 flex-col [perspective:1400px] lg:col-span-7">
+          <div className="relative z-0 col-span-12 flex min-w-0 max-w-full flex-col overflow-x-clip [perspective:1400px] lg:col-span-7">
             {stats.map((s, i) => (
               <motion.article
                 key={s.label}
@@ -106,18 +106,16 @@ export function ImpactSection() {
                   mass: 1.05,
                   delay: i * 0.07,
                 }}
-                className={`relative grid min-w-0 grid-cols-12 gap-6 py-7 md:py-8 ${
+                className={`relative grid min-w-0 max-w-full grid-cols-12 gap-x-3 gap-y-4 py-7 sm:gap-x-6 sm:gap-y-6 md:py-8 ${
                   i !== stats.length - 1 ? "border-b border-ink/15" : ""
                 }`}
               >
-                <div className="col-span-2 min-w-0 md:col-span-2">
-                  <span className="font-display italic text-muted-foreground text-[0.95rem]">
+                <div className="col-span-12 flex min-w-0 items-baseline justify-between gap-3 sm:col-span-2 sm:block">
+                  <span className="shrink-0 font-display text-[0.95rem] italic text-muted-foreground tabular-nums">
                     /0{i + 1}
                   </span>
-                </div>
-                <div className="col-span-10 min-w-0 md:col-span-5">
                   <div
-                    className={`display-head break-words text-ink leading-none ${
+                    className={`display-head min-w-0 text-right sm:hidden ${
                       s.value === "0"
                         ? "text-[clamp(2rem,3.4vw,2.85rem)]"
                         : "text-[clamp(2.2rem,4.8vw,3.75rem)]"
@@ -126,11 +124,22 @@ export function ImpactSection() {
                     {s.value}
                   </div>
                 </div>
-                <div className="col-span-12 min-w-0 md:col-span-5 md:pt-2">
-                  <h3 className="mb-2 text-ink text-[1.05rem] font-medium">
+                <div className="hidden min-w-0 sm:col-span-10 md:col-span-5 sm:block">
+                  <div
+                    className={`display-head max-w-full break-words text-ink leading-none ${
+                      s.value === "0"
+                        ? "text-[clamp(2rem,3.4vw,2.85rem)]"
+                        : "text-[clamp(2.2rem,4.8vw,3.75rem)]"
+                    }`}
+                  >
+                    {s.value}
+                  </div>
+                </div>
+                <div className="col-span-12 min-w-0 w-full max-w-full md:col-span-5 md:pt-2">
+                  <h3 className="mb-2 min-w-0 text-pretty text-[1.05rem] font-medium text-ink">
                     {s.label}
                   </h3>
-                  <p className="text-pretty text-ink/65 text-[0.95rem] font-light leading-[1.65]">
+                  <p className="min-w-0 max-w-full text-pretty text-[0.95rem] font-light leading-[1.65] text-ink/65 break-words [overflow-wrap:anywhere]">
                     {s.body}
                   </p>
                 </div>

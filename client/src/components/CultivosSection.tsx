@@ -77,7 +77,7 @@ function CultivosSpreadRow({
   return (
     <div
       ref={rowRef}
-      className={`relative md:min-h-[78vh] flex flex-col justify-center ${showBorder ? "border-b border-ink/10" : ""}`}
+      className={`relative flex flex-col justify-center overflow-x-clip md:min-h-[78vh] ${showBorder ? "border-b border-ink/10" : ""}`}
     >
       <div className="container min-w-0 py-14 md:py-24">
         <div
@@ -95,9 +95,9 @@ function CultivosSpreadRow({
               damping: 20,
               mass: 1.1,
             }}
-            className="col-span-12 min-w-0 [direction:ltr] [perspective:1200px] lg:col-span-7"
+            className="col-span-12 min-w-0 max-w-full [direction:ltr] [perspective:1200px] lg:col-span-7"
           >
-            <div className="relative aspect-[5/6] w-full max-w-full overflow-hidden rounded-sm lg:aspect-[7/8]">
+            <div className="relative mx-auto aspect-[5/6] w-full max-w-full overflow-hidden rounded-sm lg:aspect-[7/8]">
               <motion.div
                 style={{ scale: imgScale, y: imgY }}
                 className="absolute inset-0 min-h-0 min-w-0 overflow-hidden will-change-transform"

@@ -52,7 +52,7 @@ export function ContactFooter() {
       {/* Contact CTA section */}
       <section
         id="contato"
-        className="relative overflow-x-clip overflow-y-visible bg-forest-dark py-24 text-paper md:py-28 lg:h-screen lg:py-10"
+        className="relative scroll-mt-20 overflow-x-clip overflow-y-visible bg-forest-dark py-24 text-paper md:scroll-mt-24 md:py-28 lg:h-screen lg:py-10"
       >
         {/* Curved seam from previous section */}
         <svg
@@ -72,7 +72,8 @@ export function ContactFooter() {
                 <span className="min-w-0">Contato</span>
               </p>
               <h2 className="display-head hyphens-auto text-paper text-[clamp(1.85rem,5.2vw+0.35rem,4.5rem)] leading-[1.08] sm:leading-[1.05] md:leading-none md:text-[clamp(2.2rem,5.2vw,4.5rem)]">
-                Vamos conversar sobre<br className="hidden md:block" />
+                Vamos conversar sobre{" "}
+                <br className="hidden md:block" />
                 o seu próximo <em className="text-brand-rose">projeto</em>.
               </h2>
               <p className="mt-5 max-w-full text-on-plum-strong/95 text-[1rem] font-light leading-[1.68] text-pretty md:max-w-xl">

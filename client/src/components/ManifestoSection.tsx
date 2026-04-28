@@ -85,7 +85,7 @@ export function ManifestoSection() {
     <section
       id="sobre"
       ref={ref}
-      className="relative overflow-x-clip overflow-y-visible bg-forest-dark py-28 text-paper md:py-40"
+      className="relative scroll-mt-20 overflow-x-clip overflow-y-visible bg-forest-dark py-28 text-paper md:scroll-mt-24 md:py-40"
     >
       {/* Vertical chapter mark */}
       <div className="hidden lg:block absolute left-6 top-32 vertical-text text-paper/40 text-[0.68rem] tracking-[0.3em] uppercase">
@@ -163,7 +163,7 @@ export function ManifestoSection() {
                   : "from-forest-dark/55 via-forest-dark/12"
               )}
             />
-            <div className="absolute inset-x-0 bottom-8 z-[3] px-5 md:px-8">
+            <div className="absolute inset-x-0 bottom-12 z-[3] px-5 md:bottom-8 md:px-8">
               <div className="container flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <p className="max-w-full min-w-0 text-pretty text-paper/85 text-[1.0625rem] font-light leading-[1.65] md:max-w-2xl">
                 Acreditamos que produzir alimento na cidade, com tecnologia,
@@ -178,7 +178,7 @@ export function ManifestoSection() {
           </div>
 
           {/* Foreground copy above sticky stack */}
-          <div className="absolute inset-x-0 bottom-0 z-[4] pt-[75vh] md:pt-[82vh] pb-2 pointer-events-none">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[4] pb-2 pt-[94svh] md:pt-[82vh]">
             <div className="container min-w-0">
               <div className="grid min-w-0 grid-cols-12 gap-8 rounded-sm bg-forest-dark/38 px-4 py-4 backdrop-blur-[1.5px] md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-0">
               <motion.div
@@ -248,7 +248,7 @@ export function ManifestoSection() {
               <h3 className="display-head hyphens-auto mb-4 max-w-full text-paper text-[clamp(1.85rem,6vw,2.4rem)] leading-tight">
                 {p.t}
               </h3>
-              <p className="text-pretty text-paper/70 text-[0.97rem] font-light leading-[1.75]">
+              <p className="text-pretty text-[0.97rem] font-light leading-[1.75] text-paper/70 break-words [overflow-wrap:anywhere]">
                 {p.b}
               </p>
             </motion.div>

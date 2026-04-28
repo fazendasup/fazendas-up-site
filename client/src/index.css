@@ -148,6 +148,7 @@
   * { @apply border-border outline-ring/50; }
   html {
     scroll-behavior: smooth;
+    scroll-padding-top: 5.5rem;
     overflow-x: clip;
     max-width: 100%;
   }
@@ -189,6 +190,7 @@
     padding-right: 1.25rem;
   }
   .flex { min-height: 0; min-width: 0; }
+  .grid { min-width: 0; }
   @media (min-width: 640px) {
     .container { padding-left: 2rem; padding-right: 2rem; }
   }

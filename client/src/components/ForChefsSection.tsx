@@ -93,7 +93,7 @@ export function ForChefsSection() {
               <span className="h-px w-9 shrink-0 bg-forest" />
               <span className="min-w-0">Capítulo 05 · Parcerias</span>
             </p>
-            <h2 className="display-head hyphens-auto max-w-full text-ink text-[clamp(1.85rem,5.2vw+0.35rem,4rem)] leading-[1.08] sm:leading-[1.05] md:leading-none md:text-[clamp(2.2rem,5vw,4rem)]">
+            <h2 className="display-head hyphens-auto max-w-full break-words text-ink text-[clamp(1.75rem,5vw+0.35rem,4rem)] leading-[1.12] sm:leading-[1.08] md:leading-none md:text-[clamp(2.2rem,5vw,4rem)]">
               Um parceiro <em>discreto</em> para cozinhas e operações exigentes.
             </h2>
             <p className="mt-6 max-w-full text-ink/75 text-[1rem] font-light leading-[1.7] text-pretty md:max-w-xl">
@@ -116,35 +116,35 @@ export function ForChefsSection() {
                     mass: 0.95,
                     delay: i * 0.09,
                   }}
-                  className="min-w-0 bg-secondary p-6 sm:p-7 transition-colors group hover:bg-paper"
+                  className="min-w-0 max-w-full overflow-x-clip bg-secondary p-6 sm:p-7 transition-colors group hover:bg-paper"
                 >
-                  <div className="flex items-center justify-between mb-6">
-                    <span className="size-10 rounded-full border border-ink/20 flex items-center justify-center group-hover:border-forest transition-colors">
+                  <div className="mb-6 flex min-w-0 items-center justify-between gap-3">
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-ink/20 transition-colors group-hover:border-forest">
                       <b.icon className="size-4 text-forest" />
                     </span>
-                    <span className="font-display italic text-muted-foreground text-[0.85rem]">
+                    <span className="shrink-0 font-display text-[0.85rem] italic text-muted-foreground tabular-nums">
                       /0{i + 1}
                     </span>
                   </div>
-                  <h3 className="text-ink text-[1.05rem] font-medium mb-2">
+                  <h3 className="mb-2 min-w-0 text-pretty text-[1.05rem] font-medium text-ink">
                     {b.title}
                   </h3>
-                  <p className="text-pretty text-ink/65 text-[0.9rem] font-light leading-[1.65]">
+                  <p className="min-w-0 text-pretty text-[0.9rem] font-light leading-[1.65] text-ink/65 break-words [overflow-wrap:anywhere]">
                     {b.body}
                   </p>
                 </motion.div>
               ))}
             </div>
 
-            <div className="mt-8 flex flex-wrap items-center gap-5">
+            <div className="mt-8 flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5">
               <a
                 href="#contato"
-                className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-forest text-paper text-[0.875rem] font-medium hover:bg-forest-dark transition-colors"
+                className="inline-flex w-full min-w-0 shrink-0 items-center justify-center gap-2 rounded-full bg-forest px-5 py-3 text-center text-[0.875rem] font-medium text-paper transition-colors hover:bg-forest-dark sm:w-auto"
               >
                 Solicitar proposta comercial
-                <ArrowUpRight className="size-4" />
+                <ArrowUpRight className="size-4 shrink-0" />
               </a>
-              <span className="text-[0.85rem] text-muted-foreground">
+              <span className="min-w-0 text-pretty text-[0.85rem] text-muted-foreground break-words [overflow-wrap:anywhere]">
                 Entrega em até 48h úteis
               </span>
             </div>
