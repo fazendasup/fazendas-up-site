@@ -203,7 +203,25 @@ function vitePluginStorageProxy(): Plugin {
   };
 }
 
-const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector(), vitePluginStorageProxy()];
+/** Cada build grava data ISO no index.html — útil para confirmar se o telefone carregou o deploy certo. */
+function vitePluginHtmlBuildStamp(): Plugin {
+  return {
+    name: "html-build-stamp",
+    transformIndexHtml(html) {
+      return html.replace("__BUILD_STAMP__", new Date().toISOString());
+    },
+  };
+}
+
+const plugins = [
+  vitePluginHtmlBuildStamp(),
+  react(),
+  tailwindcss(),
+  jsxLocPlugin(),
+  vitePluginManusRuntime(),
+  vitePluginManusDebugCollector(),
+  vitePluginStorageProxy(),
+];
 
 export default defineConfig({
   plugins,

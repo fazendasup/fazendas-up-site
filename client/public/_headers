@@ -1,0 +1,11 @@
+# Cloudflare Pages / Netlify: HTML do SPA não pode ficar horas na edge — senão o celular nunca vê o JS novo.
+# Ficheiros com hash em /assets/ podem ficar em cache longo.
+
+/
+  Cache-Control: no-cache, no-store, must-revalidate, max-age=0
+
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate, max-age=0
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
