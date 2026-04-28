@@ -6,9 +6,11 @@ import { ArrowDown } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef, useState } from "react";
 import { getSiteImage } from "@/content/siteImages";
+import { useNarrowViewport } from "@/hooks/useNarrowViewport";
 
 export function Hero() {
   const ref = useRef<HTMLDivElement>(null);
+  const narrow = useNarrowViewport();
   const [imageFailed, setImageFailed] = useState(false);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -34,7 +36,10 @@ export function Hero() {
         {/* Background image with parallax */}
         {!imageFailed && (
           <motion.div
-            style={{ scale, y: yImg }}
+            style={{
+              scale: narrow ? 1 : scale,
+              y: narrow ? "0%" : yImg,
+            }}
             className="absolute inset-0 min-h-0 min-w-0 overflow-hidden will-change-transform"
           >
             <img
@@ -71,7 +76,7 @@ export function Hero() {
                 <span className="min-w-0">Fazendas Up · Manaus, Amazonas</span>
               </p>
 
-              <h1 className="display-head hyphens-auto text-paper max-w-full text-[clamp(2rem,6.2vw+0.4rem,6rem)] leading-[1.06] sm:leading-[1.04] md:leading-none md:text-[clamp(2.6rem,7.2vw,6rem)] lg:max-w-5xl">
+              <h1 className="display-head hyphens-none text-paper max-w-full text-[clamp(1.875rem,6.2vw+0.4rem,6rem)] leading-[1.06] sm:leading-[1.04] md:leading-none md:text-[clamp(2.6rem,7.2vw,6rem)] lg:max-w-5xl">
                 Cultivar alimento na cidade <br className="hidden md:block" />
                 para que a <em className="text-brand-rose">floresta</em> siga sendo floresta.
               </h1>

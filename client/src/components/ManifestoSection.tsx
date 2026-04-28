@@ -5,6 +5,7 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { appendImageCacheBust, getSiteImage } from "@/content/siteImages";
+import { useNarrowViewport } from "@/hooks/useNarrowViewport";
 import { cn } from "@/lib/utils";
 
 function manifestoStickyKind(src: string): "aerial" | "farm" {
@@ -40,6 +41,7 @@ const pillars = [
 
 export function ManifestoSection() {
   const ref = useRef<HTMLElement>(null);
+  const narrow = useNarrowViewport();
   const manifestoChain = Array.from(
     new Set([getSiteImage("manifesto"), ...manifestoImageFallbacks.map(appendImageCacheBust)])
   );
@@ -99,7 +101,7 @@ export function ManifestoSection() {
               <span className="h-px w-9 shrink-0 bg-paper/55" />
               <span className="min-w-0">Sobre a Fazendas Up</span>
             </p>
-            <h2 className="display-head max-w-full min-w-0 break-words hyphens-auto text-paper leading-[1.08] sm:leading-[1.05] md:leading-none text-[clamp(1.85rem,5.5vw+0.35rem,5.4rem)] md:text-[clamp(2.4rem,6.4vw,5.4rem)]">
+            <h2 className="display-head max-w-full min-w-0 break-words hyphens-none text-paper leading-[1.08] sm:leading-[1.05] md:leading-none text-[clamp(1.75rem,5.5vw+0.35rem,5.4rem)] md:text-[clamp(2.4rem,6.4vw,5.4rem)]">
               Cultivar <em className="text-brand-rose">no alto</em> é uma forma de proteger o que está embaixo.
             </h2>
           </div>
@@ -140,7 +142,10 @@ export function ManifestoSection() {
             <motion.img
               src={manifestoSrc}
               alt={stickyAlt}
-              style={{ scale: imgScale, y: imgY }}
+              style={{
+                scale: narrow ? 1 : imgScale,
+                y: narrow ? "0%" : imgY,
+              }}
               className={cn(
                 "absolute inset-0 z-[1] h-full min-h-full w-full max-w-none object-cover will-change-transform md:h-[125%]",
                 stickyKind === "aerial"

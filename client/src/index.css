@@ -152,6 +152,9 @@
     overflow-x: hidden;
     width: 100%;
     max-width: 100%;
+    /* Evita zoom/reflow de texto no Safari que desalinha cabeçalhos ao viewport */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
   body {
     @apply bg-background text-foreground;

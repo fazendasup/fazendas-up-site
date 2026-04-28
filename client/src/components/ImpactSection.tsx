@@ -5,6 +5,7 @@
  */
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
+import { useNarrowViewport } from "@/hooks/useNarrowViewport";
 
 const stats = [
   {
@@ -41,6 +42,7 @@ const stats = [
 
 export function ImpactSection() {
   const ref = useRef<HTMLElement>(null);
+  const narrow = useNarrowViewport();
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "end start"],
@@ -71,14 +73,17 @@ export function ImpactSection() {
         <div className="grid grid-cols-12 gap-10 lg:gap-14 [&>*]:min-w-0">
           {/* Sticky title column */}
           <motion.div
-            style={{ y: titleY, scale: titleScale }}
+            style={{
+              y: narrow ? 0 : titleY,
+              scale: narrow ? 1 : titleScale,
+            }}
             className="col-span-12 z-[1] min-w-0 max-w-full origin-top-left self-start overflow-x-visible will-change-transform lg:sticky lg:top-28 lg:col-span-5"
           >
             <p className="eyebrow mb-7 inline-flex max-w-full flex-wrap items-center gap-3">
               <span className="h-px w-9 shrink-0 bg-forest" />
               <span className="min-w-0">Capítulo 02 · Impacto</span>
             </p>
-            <h2 className="display-head hyphens-auto mb-8 max-w-full text-ink text-[clamp(1.85rem,5.5vw+0.35rem,5rem)] leading-[1.08] sm:leading-[1.05] md:leading-none md:text-[clamp(2.4rem,6vw,5rem)]">
+            <h2 className="display-head hyphens-none mb-8 max-w-full text-ink text-[clamp(1.7rem,5.5vw+0.35rem,5rem)] leading-[1.08] sm:leading-[1.05] md:leading-none md:text-[clamp(2.4rem,6vw,5rem)]">
               Sustentabilidade <em>medida</em>, não declarada.
             </h2>
             <p className="mb-10 max-w-full text-[1.0625rem] font-light leading-[1.75] text-ink/70 md:max-w-md">

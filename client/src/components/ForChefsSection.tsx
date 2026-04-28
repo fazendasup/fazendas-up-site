@@ -6,6 +6,7 @@ import { ChefHat, Leaf, Truck, ArrowUpRight } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { getSiteImage } from "@/content/siteImages";
+import { useNarrowViewport } from "@/hooks/useNarrowViewport";
 
 const benefits = [
   {
@@ -27,6 +28,7 @@ const benefits = [
 
 export function ForChefsSection() {
   const ref = useRef<HTMLElement>(null);
+  const narrow = useNarrowViewport();
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "end start"],
@@ -54,7 +56,10 @@ export function ForChefsSection() {
           <div className="relative col-span-12 min-w-0 lg:col-span-5 lg:min-h-0">
             <div className="relative aspect-[4/5] w-full max-w-full overflow-hidden rounded-sm lg:aspect-auto lg:h-full">
               <motion.div
-                style={{ y: imgY, scale: imgScale }}
+                style={{
+                  y: narrow ? "0%" : imgY,
+                  scale: narrow ? 1 : imgScale,
+                }}
                 className="absolute inset-0 min-h-0 min-w-0 overflow-hidden will-change-transform"
               >
                 <img
@@ -94,7 +99,7 @@ export function ForChefsSection() {
               <span className="h-px w-9 shrink-0 bg-forest" />
               <span className="min-w-0">Capítulo 05 · Parcerias</span>
             </p>
-            <h2 className="display-head hyphens-auto max-w-full break-words text-ink text-[clamp(1.75rem,5vw+0.35rem,4rem)] leading-[1.12] sm:leading-[1.08] md:leading-none md:text-[clamp(2.2rem,5vw,4rem)]">
+            <h2 className="display-head hyphens-none max-w-full break-words text-ink text-[clamp(1.65rem,5vw+0.35rem,4rem)] leading-[1.12] sm:leading-[1.08] md:leading-none md:text-[clamp(2.2rem,5vw,4rem)]">
               Um parceiro <em>discreto</em> para cozinhas e operações exigentes.
             </h2>
             <p className="mt-6 max-w-full text-[1rem] font-light leading-[1.7] text-ink/75 md:max-w-xl">

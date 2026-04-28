@@ -5,7 +5,8 @@
 import { Cpu, Droplets, Sprout, Sun } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { getSiteImage, type SiteImageKey } from "@/content/siteImages";
-import { useState } from "react";
+import { useNarrowViewport } from "@/hooks/useNarrowViewport";
+import { useMemo, useState } from "react";
 
 const technologyImageKeys = [
   "technologyStep1",
@@ -58,6 +59,7 @@ const steps = [
 ];
 
 export function TechnologySection() {
+  const narrow = useNarrowViewport();
   const [activeStep, setActiveStep] = useState(0);
   const [direction, setDirection] = useState(1);
 
@@ -79,11 +81,20 @@ export function TechnologySection() {
 
   const current = steps[activeStep];
   const railWidth = `${((activeStep + 1) / steps.length) * 100}%`;
-  const slideVariants = {
-    enter: (dir: number) => ({ opacity: 0, x: dir > 0 ? 24 : -24 }),
-    center: { opacity: 1, x: 0 },
-    exit: (dir: number) => ({ opacity: 0, x: dir > 0 ? -24 : 24 }),
-  };
+  const slideVariants = useMemo(
+    () => ({
+      enter: (dir: number) => ({
+        opacity: 0,
+        x: narrow ? 0 : dir > 0 ? 24 : -24,
+      }),
+      center: { opacity: 1, x: 0 },
+      exit: (dir: number) => ({
+        opacity: 0,
+        x: narrow ? 0 : dir > 0 ? -24 : 24,
+      }),
+    }),
+    [narrow]
+  );
 
   return (
     <div id="tecnologia">

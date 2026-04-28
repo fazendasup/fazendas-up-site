@@ -6,6 +6,7 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { getSiteImage } from "@/content/siteImages";
+import { useNarrowViewport } from "@/hooks/useNarrowViewport";
 
 /**
  * Se /uploads/... não existir, tenta-se a lista (manus-storage; último = sempre o mesmo ficheiro base).
@@ -59,11 +60,13 @@ function CultivosSpreadRow({
   i,
   reverse,
   showBorder,
+  narrow,
 }: {
   c: CultivoRow;
   i: number;
   reverse: boolean;
   showBorder: boolean;
+  narrow: boolean;
 }) {
   const rowRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -99,7 +102,10 @@ function CultivosSpreadRow({
           >
             <div className="relative mx-auto aspect-[5/6] w-full max-w-full overflow-hidden rounded-sm lg:aspect-[7/8]">
               <motion.div
-                style={{ scale: imgScale, y: imgY }}
+                style={{
+                  scale: narrow ? 1 : imgScale,
+                  y: narrow ? "0%" : imgY,
+                }}
                 className="absolute inset-0 min-h-0 min-w-0 overflow-hidden will-change-transform"
               >
                 <img
@@ -177,6 +183,8 @@ function CultivosSpreadRow({
 }
 
 export function CultivosSection() {
+  const narrow = useNarrowViewport();
+
   return (
     <section id="cultivos" className="relative overflow-x-visible bg-paper text-ink">
       <motion.div
@@ -192,7 +200,7 @@ export function CultivosSection() {
               <span className="h-px w-9 shrink-0 bg-forest" />
               <span className="min-w-0">Capítulo 03 · Produtos</span>
             </p>
-            <h2 className="display-head hyphens-auto max-w-full text-ink text-[clamp(1.85rem,5.2vw+0.35rem,4.25rem)] leading-[1.12] tracking-tight sm:leading-[1.1] md:text-[clamp(2.2rem,5.2vw,4.25rem)] md:leading-[1.14]">
+            <h2 className="display-head hyphens-none max-w-full text-ink text-[clamp(1.65rem,5.2vw+0.35rem,4.25rem)] leading-[1.12] tracking-tight sm:leading-[1.1] md:text-[clamp(2.2rem,5.2vw,4.25rem)] md:leading-[1.14]">
               Categorias em produção, <em>um padrão</em>
               <br className="hidden md:block" /> de excelência.
             </h2>
@@ -209,6 +217,7 @@ export function CultivosSection() {
       {cultivos.map((c, i) => (
         <CultivosSpreadRow
           key={c.name}
+          narrow={narrow}
           c={c}
           i={i}
           reverse={i % 2 === 1}
