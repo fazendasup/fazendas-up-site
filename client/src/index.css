@@ -167,7 +167,7 @@
     max-width: 100%;
     /* Preferir quebrar linha a qualquer custo a texto cortado na horizontal */
     overflow-wrap: anywhere;
-    word-break: normal;
+    word-break: break-word;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -194,8 +194,9 @@
     max-width: 100%;
     margin-left: auto;
     margin-right: auto;
-    padding-left: max(1.25rem, env(safe-area-inset-left, 0px));
-    padding-right: max(1.25rem, env(safe-area-inset-right, 0px));
+    /* Um pouco mais de “respiro” em telas estreitas — evita texto colado ao bezel */
+    padding-left: max(1.375rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1.375rem, env(safe-area-inset-right, 0px));
   }
   .flex { min-height: 0; min-width: 0; }
   .grid { min-width: 0; }
@@ -241,13 +242,13 @@
     min-width: 0;
     max-width: 100%;
     overflow-wrap: anywhere;
-    word-break: normal;
+    word-break: break-word;
   }
   .copy-flow :where(.display-head, .display-serif, .eyebrow) {
     min-width: 0;
     max-width: 100%;
     overflow-wrap: anywhere;
-    word-break: normal;
+    word-break: break-word;
     text-wrap: wrap;
   }
   .copy-flow footer :where(a, p, h4) {
@@ -282,7 +283,7 @@
     letter-spacing: -0.035em;
     line-height: 1.08;
     overflow-wrap: anywhere;
-    word-break: normal;
+    word-break: break-word;
     text-wrap: wrap;
   }
   .display-head em {
@@ -299,7 +300,7 @@
     letter-spacing: -0.035em;
     line-height: 1.08;
     overflow-wrap: anywhere;
-    word-break: normal;
+    word-break: break-word;
     text-wrap: wrap;
   }
   .display-serif em {
@@ -318,7 +319,7 @@
     text-transform: uppercase;
     color: var(--forest);
     overflow-wrap: anywhere;
-    word-break: normal;
+    word-break: break-word;
     text-wrap: wrap;
   }
 
@@ -393,6 +394,17 @@
   header nav.flex.flex-col > * {
     min-width: 0;
     max-width: 100%;
+  }
+}
+
+/**
+ * Framer Motion aplica transform inline — em mobile Safari continua a ganhar ao hook JS em alguns builds.
+ * Força reset só onde marcamos will-change-transform (camadas de foto/parallax).
+ */
+@media (max-width: 1023px) {
+  main .will-change-transform {
+    transform: none !important;
+    will-change: auto !important;
   }
 }
 

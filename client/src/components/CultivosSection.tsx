@@ -89,8 +89,8 @@ function CultivosSpreadRow({
           }`}
         >
           <motion.div
-            initial={{ opacity: 0, y: 72, rotateY: reverse ? 5 : -5, filter: "blur(16px)" }}
-            whileInView={{ opacity: 1, y: 0, rotateY: 0, filter: "blur(0px)" }}
+            initial={{ opacity: 0, y: 48, filter: "blur(12px)" }}
+            whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             viewport={{ once: true, margin: "-12% 0px" }}
             transition={{
               type: "spring",
@@ -98,7 +98,7 @@ function CultivosSpreadRow({
               damping: 20,
               mass: 1.1,
             }}
-            className="col-span-12 min-w-0 max-w-full [direction:ltr] [perspective:1200px] lg:col-span-7"
+            className="col-span-12 min-w-0 max-w-full [direction:ltr] perspective-none lg:[perspective:1200px] lg:col-span-7"
           >
             <div className="relative mx-auto aspect-[5/6] w-full max-w-full overflow-hidden rounded-sm lg:aspect-[7/8]">
               <motion.div

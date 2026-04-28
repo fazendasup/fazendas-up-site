@@ -97,12 +97,12 @@ export function ImpactSection() {
           </motion.div>
 
           {/* Cards column */}
-          <div className="relative z-0 col-span-12 flex min-w-0 max-w-full flex-col overflow-x-visible [perspective:1400px] lg:col-span-7 [&>*]:min-w-0">
+          <div className="relative z-0 col-span-12 flex min-w-0 max-w-full flex-col overflow-x-visible perspective-none lg:[perspective:1400px] lg:col-span-7 [&>*]:min-w-0">
             {stats.map((s, i) => (
               <motion.article
                 key={s.label}
-                initial={{ opacity: 0, y: 110, rotateX: -6, filter: "blur(12px)" }}
-                whileInView={{ opacity: 1, y: 0, rotateX: 0, filter: "blur(0px)" }}
+                initial={{ opacity: 0, y: 48, filter: "blur(10px)" }}
+                whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 viewport={{ once: true, margin: "-14% 0px" }}
                 transition={{
                   type: "spring",
