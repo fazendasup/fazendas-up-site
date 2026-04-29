@@ -28,7 +28,7 @@ export function Hero() {
     <section
       id="top"
       ref={ref}
-      className="relative z-20 isolate w-full max-w-full min-w-0 overflow-x-hidden overflow-x-clip overflow-y-hidden bg-gradient-to-b from-forest-dark via-ink to-ink text-paper"
+      className="relative z-20 isolate w-full max-w-full min-w-0 overflow-x-hidden overflow-y-hidden bg-gradient-to-b from-forest-dark via-ink to-ink text-paper"
       style={{ height: "100svh" }}
     >
       {/* Sticky stage — same height as section so no ink gradient shows between image and wave */}

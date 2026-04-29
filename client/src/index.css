@@ -146,6 +146,10 @@
 
 @layer base {
   * { @apply border-border outline-ring/50; }
+  /**
+   * NUNCA `overflow-x: clip` em html/body/#root: no WebKit o eixo Y também é afetado
+   * (texto/botões “cortados”); parece que o CSS “não mudou nada” em mobile.
+   */
   #root {
     position: relative;
     isolation: isolate;
@@ -153,14 +157,12 @@
     max-width: 100%;
     min-height: 100%;
     overflow-x: hidden;
-    overflow-x: clip;
     overscroll-behavior-x: none;
   }
   html {
     scroll-behavior: smooth;
     scroll-padding-top: 5.5rem;
     overflow-x: hidden;
-    overflow-x: clip;
     overscroll-behavior-x: none;
     width: 100%;
     max-width: 100%;
@@ -175,7 +177,6 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     overflow-x: hidden;
-    overflow-x: clip;
     overscroll-behavior-x: none;
     width: 100%;
     max-width: 100%;

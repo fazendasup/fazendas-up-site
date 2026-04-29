@@ -3,6 +3,7 @@
  * Contact + Footer — institutional contact section + four-column corporate footer.
  */
 import { ArrowUpRight } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const channels = [
   { label: "Telefone / WhatsApp", value: "(92) 98404-0397", href: "https://wa.me/5592984040397" },
@@ -47,12 +48,19 @@ const footerCols = [
 ];
 
 export function ContactFooter() {
+  const [buildStamp, setBuildStamp] = useState<string | null>(null);
+  useEffect(() => {
+    setBuildStamp(
+      document.querySelector('meta[name="build-stamp"]')?.getAttribute("content") || null
+    );
+  }, []);
+
   return (
     <>
       {/* Contact CTA section */}
       <section
         id="contato"
-        className="relative isolate w-full max-w-full min-w-0 scroll-mt-20 overflow-x-hidden overflow-x-clip overflow-y-visible bg-forest-dark py-24 text-paper md:scroll-mt-24 md:py-28 lg:h-screen lg:overflow-x-visible lg:py-10"
+        className="relative isolate w-full max-w-full min-w-0 scroll-mt-20 overflow-x-hidden overflow-y-visible bg-forest-dark py-24 text-paper md:scroll-mt-24 md:py-28 lg:h-screen lg:overflow-x-visible lg:py-10"
       >
         {/* Curved seam from previous section */}
         <svg
@@ -116,7 +124,7 @@ export function ContactFooter() {
 
       {/* Footer */}
 
-      <footer className="isolate w-full max-w-full min-w-0 overflow-x-hidden overflow-x-clip border-t border-on-plum-soft/25 bg-forest text-paper lg:overflow-x-visible">
+      <footer className="isolate w-full max-w-full min-w-0 overflow-x-hidden border-t border-on-plum-soft/25 bg-forest text-paper lg:overflow-x-visible">
         <div className="container min-w-0 py-16">
           <div className="grid grid-cols-12 gap-10 [&>*]:min-w-0">
             <div className="col-span-12 min-w-0 lg:col-span-4">
@@ -150,9 +158,19 @@ export function ContactFooter() {
             ))}
           </div>
 
-          <div className="mt-16 pt-6 border-t border-paper/10 flex flex-col md:flex-row gap-3 md:items-center md:justify-between text-[0.8rem] text-paper/50">
+          <div className="mt-16 flex flex-col gap-2 border-t border-paper/10 pt-6 text-[0.8rem] text-paper/50 md:flex-row md:items-center md:justify-between">
             <div>© 2026 Fazendas Up. Todos os direitos reservados.</div>
-            <div>Manaus / AM · Brasil</div>
+            <div className="flex flex-col gap-1 md:items-end">
+              <div>Manaus / AM · Brasil</div>
+              {buildStamp && (
+                <div
+                  className="text-[0.65rem] font-mono text-paper/30 tabular-nums"
+                  title="Data deste build no HTML. Se não mudar após um deploy, o cache do telemóvel ou da rede ainda está a servir o site antigo."
+                >
+                  Build: {buildStamp}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </footer>
