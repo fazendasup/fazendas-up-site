@@ -104,7 +104,7 @@ export function ManifestoSection() {
               <span className="h-px w-9 shrink-0 bg-paper/55" />
               <span className="min-w-0">Sobre a Fazendas Up</span>
             </p>
-            <h2 className="display-head w-full min-w-0 max-w-full hyphens-none text-paper leading-[1.08] sm:leading-[1.05] md:leading-none text-[clamp(1.45rem,4.15vw+0.65rem,3.6rem)] md:text-[clamp(2.4rem,6.4vw,5.4rem)] [overflow-wrap:anywhere] [word-break:break-word]">
+            <h2 className="display-head w-full min-w-0 max-w-full hyphens-auto text-paper leading-[1.08] sm:leading-[1.05] md:leading-none text-[clamp(1.45rem,min(4.15vw+0.65rem,8.2vw),3.6rem)] md:text-[clamp(2.4rem,6.4vw,5.4rem)] [overflow-wrap:anywhere] [word-break:break-word]">
               Cultivar <em className="text-brand-rose">no alto</em> é uma forma de proteger o que está embaixo.
             </h2>
           </div>
@@ -254,7 +254,7 @@ export function ManifestoSection() {
 
       <div className="container min-w-0">
         {/* Pillars */}
-        <div className="grid w-full min-w-0 max-w-full grid-cols-12 gap-x-10 gap-y-14 lg:px-[5%] [&>*]:min-w-0">
+        <div className="grid w-full min-w-0 max-w-full grid-cols-12 gap-x-4 gap-y-12 sm:gap-x-8 md:gap-x-10 md:gap-y-14 lg:px-[5%] [&>*]:min-w-0">
           {pillars.map((p, i) => (
             <motion.div
               key={p.t}
@@ -269,7 +269,7 @@ export function ManifestoSection() {
                 </span>
                 <span className="size-1.5 shrink-0 rounded-full bg-clay" />
               </div>
-              <h3 className="display-head mb-4 max-w-full min-w-0 hyphens-none text-paper text-[clamp(1.85rem,6vw,2.4rem)] leading-tight">
+              <h3 className="display-head mb-4 max-w-full min-w-0 hyphens-auto text-paper text-[clamp(1.85rem,min(6vw,12vw),2.4rem)] leading-tight [overflow-wrap:anywhere]">
                 {p.t}
               </h3>
               <p className="w-full min-w-0 max-w-full text-[0.97rem] font-light leading-[1.75] text-paper/70 [overflow-wrap:anywhere] [word-break:break-word]">

@@ -44,8 +44,8 @@ export function ForChefsSection() {
       ref={ref}
       className="relative isolate w-full max-w-full min-w-0 overflow-x-hidden overflow-y-visible border-t border-ink/10 bg-secondary pt-24 pb-32 text-ink md:py-30 lg:h-screen lg:overflow-x-visible lg:py-10"
     >
-      {/* Decorative big number — inset-x + overflow:hidden evita largura intrínseca gigante em Safari */}
-      <div className="pointer-events-none absolute inset-x-0 left-0 right-0 -top-6 flex max-w-full justify-end overflow-hidden select-none md:inset-x-auto md:right-10 md:left-auto md:w-auto">
+      {/* Decorativo enorme — em mobile empurra layout/scrollWidth mesmo com overflow; só a partir de md */}
+      <div className="pointer-events-none absolute inset-x-0 -top-6 hidden max-w-full justify-end overflow-hidden select-none md:flex md:inset-x-auto md:right-10 md:left-auto md:w-auto">
         <span className="font-display italic text-ink/[0.05] text-[clamp(6rem,42vw,12rem)] leading-none whitespace-nowrap sm:text-[15rem] md:text-[22rem] lg:text-[26rem]">
           B2B
         </span>
@@ -164,7 +164,7 @@ export function ForChefsSection() {
             <div className="mt-10 flex w-full min-w-0 max-w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5 max-lg:pb-1">
               <a
                 href="#contato"
-                className="inline-flex w-full min-w-0 max-w-full items-center justify-center gap-2 rounded-full bg-forest px-4 py-3 text-center text-[0.875rem] font-medium text-paper transition-colors [overflow-wrap:anywhere] hover:bg-forest-dark sm:w-auto sm:max-w-none sm:px-5 sm:shrink-0"
+                className="box-border inline-flex w-full min-w-0 max-w-full shrink-0 items-center justify-center gap-2 rounded-full bg-forest px-4 py-3 text-center text-[0.875rem] font-medium text-paper transition-colors [overflow-wrap:anywhere] hover:bg-forest-dark sm:w-auto sm:max-w-[min(100%,28rem)] sm:px-5"
               >
                 Solicitar proposta comercial
                 <ArrowUpRight className="size-4 shrink-0" />

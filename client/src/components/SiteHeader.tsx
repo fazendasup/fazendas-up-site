@@ -45,7 +45,7 @@ export function SiteHeader() {
           : "bg-transparent text-paper"
       }`}
     >
-      <div className="container flex h-[72px] min-w-0 items-center justify-between gap-3 [&>*]:min-w-0">
+      <div className="container flex h-[72px] min-w-0 max-w-full items-center justify-between gap-3 [&>*]:min-w-0">
         <a href="#top" className="flex min-w-0 items-baseline gap-2">
           <span className="display-serif min-w-0 shrink text-[1.25rem] leading-none sm:text-[1.4rem]">Fazendas Up</span>
           <span className={`hidden sm:inline text-[0.7rem] tracking-wide ${scrolled ? "text-muted-foreground" : "text-paper/70"}`}>, Manaus / AM</span>
@@ -80,7 +80,7 @@ export function SiteHeader() {
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="shrink-0 whitespace-nowrap text-[0.825rem] lg:hidden"
+          className="shrink-0 whitespace-nowrap ps-2 text-[0.825rem] lg:hidden pe-[max(0.125rem,env(safe-area-inset-right,0px))]"
           aria-label="Abrir menu"
         >
           {open ? "Fechar" : "Menu"}

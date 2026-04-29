@@ -119,6 +119,7 @@ export function ImpactSection() {
             {stats.map((s, i) => (
               <motion.article
                 key={s.label}
+                layout={false}
                 {...motionEnterFromBelow()}
                 viewport={{ once: true, margin: "-14% 0px" }}
                 transition={{
@@ -128,21 +129,21 @@ export function ImpactSection() {
                   mass: 1.05,
                   delay: i * 0.07,
                 }}
-                className={`relative flex min-w-0 max-w-full flex-col gap-y-5 overflow-visible py-7 lg:grid lg:grid-cols-12 lg:gap-x-6 lg:gap-y-6 md:py-8 lg:items-start [&>*]:min-w-0 ${
+                className={`relative flex w-full min-w-0 max-w-full flex-col gap-y-5 overflow-x-clip py-7 lg:grid lg:grid-cols-12 lg:gap-x-6 lg:gap-y-6 md:py-8 lg:items-start lg:overflow-x-visible [&>*]:min-w-0 ${
                   i !== stats.length - 1 ? "border-b border-ink/15" : ""
                 }`}
               >
-                {/* &lt;lg: coluna única — grelha sm: empurrava % para 10 col e cortava no Safari */}
+                {/* &lt;lg: coluna única */}
                 <div className="col-span-12 space-y-3 lg:col-span-2 lg:space-y-0">
                   <div className="space-y-3 lg:hidden">
                     <span className="block font-display text-[0.95rem] italic text-muted-foreground tabular-nums">
                       /0{i + 1}
                     </span>
                     <div
-                      className={`display-head w-full min-w-0 max-w-full text-left break-words leading-none tracking-tight ${
+                      className={`display-head w-full min-w-0 max-w-full text-left break-words leading-none tracking-normal tabular-nums [overflow-wrap:anywhere] ${
                         s.value === "0"
-                          ? "text-[clamp(1.45rem,7vw,2.2rem)]"
-                          : "text-[clamp(1.45rem,7vw,2.35rem)]"
+                          ? "text-[clamp(1.35rem,5vw,2rem)]"
+                          : "text-[clamp(1.35rem,5vw,2.05rem)]"
                       }`}
                     >
                       {s.value}

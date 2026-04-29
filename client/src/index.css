@@ -443,8 +443,14 @@
  * `transform: none !important` ganha ao inline do Framer só nesta propriedade; opacity mantém-se.
  */
 @media (max-width: 1023px) {
+  /**
+   * Framer usa translate3d/matrix — nem sempre a string "transform" aparece como esperado.
+   * Qualquer translate residual aumenta scrollWidth e o texto parece cortado à direita com overflow-x.
+   */
   .copy-flow main [style*="transform"],
-  .copy-flow main [style*="Transform"] {
+  .copy-flow main [style*="Transform"],
+  .copy-flow main [style*="translate"],
+  .copy-flow main [style*="matrix"] {
     transform: none !important;
   }
   main .will-change-transform {
