@@ -21,7 +21,7 @@ const phrase = [
   "mundo.",
 ];
 
-function BridgeWord({
+function BridgeWordMotion({
   word,
   index,
   total,
@@ -46,6 +46,18 @@ function BridgeWord({
   );
 }
 
+/** Mobile: zero Framer neste bloco — evita scrollWidth/layout estranhos. */
+function BridgeWordStatic({ word }: { word: string }) {
+  const isAccent = word === "floresta";
+  return (
+    <span
+      className={`min-w-0 max-w-full ${isAccent ? "font-display italic text-forest" : ""}`}
+    >
+      {word}
+    </span>
+  );
+}
+
 export function Bridge() {
   const ref = useRef<HTMLElement>(null);
   const desktopLg = useMinLg();
@@ -60,7 +72,7 @@ export function Bridge() {
   return (
     <section
       ref={ref}
-      className="relative z-10 isolate -mt-[42px] w-full max-w-full min-w-0 bg-paper text-ink overflow-x-hidden overflow-y-visible pt-14 pb-16 md:-mt-[62px] md:pt-20 md:pb-24 lg:overflow-x-visible"
+      className="relative z-10 isolate -mt-[42px] w-full max-w-full min-w-0 overflow-x-visible overflow-y-visible bg-paper text-ink pt-14 pb-16 md:-mt-[62px] md:pt-20 md:pb-24"
     >
       <div className="container min-w-0">
         <div className="flex min-w-0 items-baseline gap-4 mb-8 md:mb-10">
@@ -79,28 +91,54 @@ export function Bridge() {
 
         <div className="max-w-full min-w-0 md:max-w-5xl">
           <p className="display-head hyphens-none max-w-full text-[clamp(1.75rem,5.2vw+0.25rem,4.4rem)] leading-[1.12] md:leading-[1.1] flex flex-wrap gap-x-3 gap-y-1">
-            {phrase.map((w, i) => (
-              <BridgeWord key={i} word={w} index={i} total={phrase.length} revealProgress={revealProgress} />
-            ))}
+            {phrase.map((w, i) =>
+              desktopLg ? (
+                <BridgeWordMotion
+                  key={i}
+                  word={w}
+                  index={i}
+                  total={phrase.length}
+                  revealProgress={revealProgress}
+                />
+              ) : (
+                <BridgeWordStatic key={i} word={w} />
+              )
+            )}
           </p>
         </div>
 
-        <motion.div
-          style={{ opacity: deckOpacity }}
-          className="mt-10 grid min-w-0 grid-cols-12 items-end gap-8 md:mt-14 [&>*]:min-w-0"
-        >
-          <div className="col-span-12 min-w-0 md:col-span-7 lg:col-span-5 lg:col-start-2">
-            <p className="text-[1.0625rem] font-light leading-[1.75] text-ink/70">
-              Da semente ao prato, em metros, não em milhares de quilômetros.
-              Conheça os princípios que sustentam nossa operação em Manaus.
-            </p>
+        {desktopLg ? (
+          <motion.div
+            style={{ opacity: deckOpacity }}
+            className="mt-10 grid min-w-0 grid-cols-12 items-end gap-8 md:mt-14 [&>*]:min-w-0"
+          >
+            <div className="col-span-12 min-w-0 md:col-span-7 lg:col-span-5 lg:col-start-2">
+              <p className="text-[1.0625rem] font-light leading-[1.75] text-ink/70">
+                Da semente ao prato, em metros, não em milhares de quilômetros.
+                Conheça os princípios que sustentam nossa operação em Manaus.
+              </p>
+            </div>
+            <div className="col-span-12 flex min-w-0 md:col-span-5 md:justify-end lg:col-span-3 lg:col-start-9">
+              <span className="font-display text-[0.9rem] italic text-muted-foreground">
+                ↓ Capítulo I: Tecnologia
+              </span>
+            </div>
+          </motion.div>
+        ) : (
+          <div className="mt-10 grid min-w-0 grid-cols-12 items-end gap-8 md:mt-14 [&>*]:min-w-0">
+            <div className="col-span-12 min-w-0 md:col-span-7 lg:col-span-5 lg:col-start-2">
+              <p className="text-[1.0625rem] font-light leading-[1.75] text-ink/70">
+                Da semente ao prato, em metros, não em milhares de quilômetros.
+                Conheça os princípios que sustentam nossa operação em Manaus.
+              </p>
+            </div>
+            <div className="col-span-12 flex min-w-0 md:col-span-5 md:justify-end lg:col-span-3 lg:col-start-9">
+              <span className="font-display text-[0.9rem] italic text-muted-foreground">
+                ↓ Capítulo I: Tecnologia
+              </span>
+            </div>
           </div>
-          <div className="col-span-12 flex min-w-0 md:col-span-5 md:justify-end lg:col-span-3 lg:col-start-9">
-            <span className="font-display text-[0.9rem] italic text-muted-foreground">
-              ↓ Capítulo I: Tecnologia
-            </span>
-          </div>
-        </motion.div>
+        )}
       </div>
     </section>
   );

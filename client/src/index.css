@@ -459,12 +459,45 @@
     will-change: auto !important;
   }
 
-  /** Reforço no main sem clip em html/body/#root (WebKit). */
+  /**
+   * `hyphens-none` (Tailwind) impede hifenização — em PT linhas longas parecem “cortadas”
+   * junto com overflow-x nos pais; em mobile preferimos hifenização onde o browser suportar.
+   */
+  .copy-flow main .hyphens-none {
+    hyphens: auto !important;
+    -webkit-hyphens: auto;
+  }
+
   .fu-main-mobile {
-    overflow-x: clip;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+  }
+
+  /**
+   * Overflow-x empilhado (section/card/article + root) cortava texto/botões mesmo sem scrollWidth real.
+   * Em mobile deixamos o eixo X visível só até lg; desktop mantém hidden nos wrappers do layout.
+   */
+  html,
+  body,
+  #root {
+    overflow-x: visible !important;
+  }
+
+  .copy-flow {
+    overflow-x: visible !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  html,
+  body,
+  #root {
+    overflow-x: hidden;
+  }
+
+  .copy-flow {
+    overflow-x: hidden;
   }
 }
 

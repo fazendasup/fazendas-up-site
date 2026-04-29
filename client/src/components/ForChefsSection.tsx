@@ -42,7 +42,7 @@ export function ForChefsSection() {
   return (
     <section
       ref={ref}
-      className="relative isolate w-full max-w-full min-w-0 overflow-x-hidden overflow-y-visible border-t border-ink/10 bg-secondary pt-24 pb-32 text-ink md:py-30 lg:h-screen lg:overflow-x-visible lg:py-10"
+      className="relative isolate w-full max-w-full min-w-0 overflow-x-visible overflow-y-visible border-t border-ink/10 bg-secondary pt-24 pb-32 text-ink md:py-30 lg:h-screen lg:py-10"
     >
       {/* Decorativo enorme — em mobile empurra layout/scrollWidth mesmo com overflow; só a partir de md */}
       <div className="pointer-events-none absolute inset-x-0 -top-6 hidden max-w-full justify-end overflow-hidden select-none md:flex md:inset-x-auto md:right-10 md:left-auto md:w-auto">
@@ -141,7 +141,7 @@ export function ForChefsSection() {
                     mass: 0.95,
                     delay: i * 0.09,
                   }}
-                  className="min-w-0 max-w-full overflow-x-hidden overflow-y-visible bg-secondary px-5 pt-6 pb-7 sm:p-7 transition-colors group hover:bg-paper"
+                  className="min-w-0 max-w-full overflow-x-visible overflow-y-visible bg-secondary px-5 pt-6 pb-7 sm:p-7 transition-colors group hover:bg-paper"
                 >
                   <div className="mb-5 flex min-w-0 items-start justify-between gap-3">
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-ink/20 transition-colors group-hover:border-forest">
