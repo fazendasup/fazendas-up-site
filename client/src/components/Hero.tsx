@@ -25,11 +25,14 @@ export function Hero() {
     <section
       id="top"
       ref={ref}
-      className="relative z-20 isolate w-full max-w-full min-w-0 overflow-x-hidden overflow-y-hidden bg-gradient-to-b from-forest-dark via-ink to-ink text-paper"
-      style={{ height: "100svh" }}
+      className="relative z-20 isolate w-full max-w-full min-w-0 overflow-x-hidden bg-gradient-to-b from-forest-dark via-ink to-ink text-paper min-h-[100svh] max-lg:overflow-y-visible lg:h-[100svh] lg:overflow-y-hidden"
     >
-      {/* Sticky stage — same height as section so no ink gradient shows between image and wave */}
-      <div className="sticky top-0 z-0 h-[100svh] overflow-x-hidden overflow-y-hidden">
+      {/**
+       * Mobile: sem `overflow-y-hidden` nem altura fixa — headline + safe-area + PT do header
+       * podem exceder 100svh; cortar aqui parecia “texto/botões cortados” em qualquer browser.
+       * Desktop: mantém o palco cinematográfico 100svh com crop controlado.
+       */}
+      <div className="sticky top-0 z-0 min-h-[100svh] overflow-x-hidden max-lg:h-auto max-lg:overflow-y-visible lg:h-[100svh] lg:overflow-y-hidden">
         {imageFailed && (
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(230,31,147,0.12),transparent_45%),radial-gradient(circle_at_80%_30%,rgba(75,0,79,0.35),transparent_42%),linear-gradient(180deg,#1a0a1c_0%,#110d11_100%)]" />
         )}

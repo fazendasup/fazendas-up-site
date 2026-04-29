@@ -8,8 +8,8 @@ import { useEffect, useState } from "react";
 const chapters = [
   { id: "top", label: "Abertura" },
   { id: "tecnologia", label: "I · Tecnologia" },
-  { id: "sustentabilidade", label: "II · Impacto" },
-  { id: "produtos", label: "III · Produtos" },
+  { id: "impacto", label: "II · Impacto" },
+  { id: "cultivos", label: "III · Produtos" },
   { id: "sobre", label: "IV · Sobre" },
   { id: "contato", label: "V · Contato" },
 ];
