@@ -6,7 +6,7 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { getSiteImage } from "@/content/siteImages";
-import { useNarrowViewport } from "@/hooks/useNarrowViewport";
+import { useMinLg } from "@/hooks/useMinLg";
 import { motionEnterFromBelow } from "@/lib/motionEntrance";
 
 /**
@@ -61,13 +61,13 @@ function CultivosSpreadRow({
   i,
   reverse,
   showBorder,
-  narrow,
+  desktopLg,
 }: {
   c: CultivoRow;
   i: number;
   reverse: boolean;
   showBorder: boolean;
-  narrow: boolean;
+  desktopLg: boolean;
 }) {
   const rowRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -101,29 +101,46 @@ function CultivosSpreadRow({
             className="col-span-12 min-w-0 max-w-full [direction:ltr] perspective-none lg:[perspective:1200px] lg:col-span-7"
           >
             <div className="relative mx-auto aspect-[5/6] w-full max-w-full overflow-hidden rounded-sm lg:aspect-[7/8]">
-              <motion.div
-                style={{
-                  scale: narrow ? 1 : imgScale,
-                  y: narrow ? "0%" : imgY,
-                }}
-                className="absolute inset-0 min-h-0 min-w-0 overflow-hidden will-change-transform"
-              >
-                <img
-                  key={c.image}
-                  src={c.image}
-                  alt={c.name}
-                  className="h-full w-full max-w-none object-cover"
-                  onError={(e) => {
-                    const el = e.currentTarget;
-                    const chain = cultivosImageFallbackChain[i] ?? [];
-                    const prev = el.getAttribute("data-cultivos-fb");
-                    const nextIdx = prev === null ? 0 : Number(prev) + 1;
-                    if (nextIdx >= chain.length) return;
-                    el.setAttribute("data-cultivos-fb", String(nextIdx));
-                    el.src = chain[nextIdx] ?? "";
-                  }}
-                />
-              </motion.div>
+              {desktopLg ? (
+                <motion.div
+                  style={{ scale: imgScale, y: imgY }}
+                  className="absolute inset-0 min-h-0 min-w-0 overflow-hidden will-change-transform"
+                >
+                  <img
+                    key={c.image}
+                    src={c.image}
+                    alt={c.name}
+                    className="h-full w-full max-w-none object-cover"
+                    onError={(e) => {
+                      const el = e.currentTarget;
+                      const chain = cultivosImageFallbackChain[i] ?? [];
+                      const prev = el.getAttribute("data-cultivos-fb");
+                      const nextIdx = prev === null ? 0 : Number(prev) + 1;
+                      if (nextIdx >= chain.length) return;
+                      el.setAttribute("data-cultivos-fb", String(nextIdx));
+                      el.src = chain[nextIdx] ?? "";
+                    }}
+                  />
+                </motion.div>
+              ) : (
+                <div className="absolute inset-0 min-h-0 min-w-0 overflow-hidden">
+                  <img
+                    key={c.image}
+                    src={c.image}
+                    alt={c.name}
+                    className="h-full w-full max-w-none object-cover"
+                    onError={(e) => {
+                      const el = e.currentTarget;
+                      const chain = cultivosImageFallbackChain[i] ?? [];
+                      const prev = el.getAttribute("data-cultivos-fb");
+                      const nextIdx = prev === null ? 0 : Number(prev) + 1;
+                      if (nextIdx >= chain.length) return;
+                      el.setAttribute("data-cultivos-fb", String(nextIdx));
+                      el.src = chain[nextIdx] ?? "";
+                    }}
+                  />
+                </div>
+              )}
               <motion.div
                 style={{ opacity: gloss }}
                 className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-ink/25 via-transparent to-paper/20"
@@ -182,7 +199,7 @@ function CultivosSpreadRow({
 }
 
 export function CultivosSection() {
-  const narrow = useNarrowViewport();
+  const desktopLg = useMinLg();
 
   return (
     <section id="cultivos" className="relative isolate w-full max-w-full min-w-0 overflow-x-hidden bg-paper text-ink lg:overflow-x-visible">
@@ -215,7 +232,7 @@ export function CultivosSection() {
       {cultivos.map((c, i) => (
         <CultivosSpreadRow
           key={c.name}
-          narrow={narrow}
+          desktopLg={desktopLg}
           c={c}
           i={i}
           reverse={i % 2 === 1}

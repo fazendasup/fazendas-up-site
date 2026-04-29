@@ -6,7 +6,7 @@ import { ChefHat, Leaf, Truck, ArrowUpRight } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { getSiteImage } from "@/content/siteImages";
-import { useNarrowViewport } from "@/hooks/useNarrowViewport";
+import { useMinLg } from "@/hooks/useMinLg";
 import { motionEnterFromBelow } from "@/lib/motionEntrance";
 
 const benefits = [
@@ -29,7 +29,7 @@ const benefits = [
 
 export function ForChefsSection() {
   const ref = useRef<HTMLElement>(null);
-  const narrow = useNarrowViewport();
+  const desktopLg = useMinLg();
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "end start"],
@@ -56,31 +56,50 @@ export function ForChefsSection() {
           {/* Image with parallax */}
           <div className="relative col-span-12 min-w-0 lg:col-span-5 lg:min-h-0">
             <div className="relative aspect-[4/5] w-full max-w-full overflow-hidden rounded-sm lg:aspect-auto lg:h-full">
-              <motion.div
-                style={{
-                  y: narrow ? "0%" : imgY,
-                  scale: narrow ? 1 : imgScale,
-                }}
-                className="absolute inset-0 min-h-0 min-w-0 overflow-hidden will-change-transform"
-              >
-                <img
-                  src={getSiteImage("forChefs")}
-                  alt="Prato com ingredientes frescos da Fazendas Up"
-                  className="absolute inset-0 h-full w-full max-w-none object-cover object-center md:h-[125%]"
-                  onError={(e) => {
-                    const el = e.currentTarget;
-                    const step = el.getAttribute("data-for-chefs-fb");
-                    if (step === "2") return;
-                    if (step === "1") {
-                      el.setAttribute("data-for-chefs-fb", "2");
-                      el.src = "/manus-storage/vertical_farm_alt_0fb78d96.jpg";
-                      return;
-                    }
-                    el.setAttribute("data-for-chefs-fb", "1");
-                    el.src = "/uploads/prato_16.png";
-                  }}
-                />
-              </motion.div>
+              {desktopLg ? (
+                <motion.div
+                  style={{ y: imgY, scale: imgScale }}
+                  className="absolute inset-0 min-h-0 min-w-0 overflow-hidden will-change-transform"
+                >
+                  <img
+                    src={getSiteImage("forChefs")}
+                    alt="Prato com ingredientes frescos da Fazendas Up"
+                    className="absolute inset-0 h-full w-full max-w-none object-cover object-center md:h-[125%]"
+                    onError={(e) => {
+                      const el = e.currentTarget;
+                      const step = el.getAttribute("data-for-chefs-fb");
+                      if (step === "2") return;
+                      if (step === "1") {
+                        el.setAttribute("data-for-chefs-fb", "2");
+                        el.src = "/manus-storage/vertical_farm_alt_0fb78d96.jpg";
+                        return;
+                      }
+                      el.setAttribute("data-for-chefs-fb", "1");
+                      el.src = "/uploads/prato_16.png";
+                    }}
+                  />
+                </motion.div>
+              ) : (
+                <div className="absolute inset-0 min-h-0 min-w-0 overflow-hidden">
+                  <img
+                    src={getSiteImage("forChefs")}
+                    alt="Prato com ingredientes frescos da Fazendas Up"
+                    className="absolute inset-0 h-full w-full max-w-none object-cover object-center"
+                    onError={(e) => {
+                      const el = e.currentTarget;
+                      const step = el.getAttribute("data-for-chefs-fb");
+                      if (step === "2") return;
+                      if (step === "1") {
+                        el.setAttribute("data-for-chefs-fb", "2");
+                        el.src = "/manus-storage/vertical_farm_alt_0fb78d96.jpg";
+                        return;
+                      }
+                      el.setAttribute("data-for-chefs-fb", "1");
+                      el.src = "/uploads/prato_16.png";
+                    }}
+                  />
+                </div>
+              )}
               <motion.div
                 style={{ opacity: vignette }}
                 className="pointer-events-none absolute inset-0 bg-gradient-to-b from-ink/25 via-transparent to-ink/55"

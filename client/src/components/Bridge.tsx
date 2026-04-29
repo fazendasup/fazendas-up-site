@@ -5,7 +5,7 @@
  */
 import { motion, MotionValue, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
-import { useNarrowViewport } from "@/hooks/useNarrowViewport";
+import { useMinLg } from "@/hooks/useMinLg";
 
 const phrase = [
   "Uma",
@@ -48,7 +48,7 @@ function BridgeWord({
 
 export function Bridge() {
   const ref = useRef<HTMLElement>(null);
-  const narrow = useNarrowViewport();
+  const desktopLg = useMinLg();
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start 0.95", "end 0.35"],
@@ -67,7 +67,7 @@ export function Bridge() {
           <span className="font-display italic text-muted-foreground text-[0.95rem]">
             Prólogo
           </span>
-          {narrow ? (
+          {!desktopLg ? (
             <span className="h-px max-w-[200px] flex-1 bg-ink/15" aria-hidden />
           ) : (
             <motion.span

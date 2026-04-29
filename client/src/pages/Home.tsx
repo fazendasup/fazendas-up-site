@@ -20,7 +20,7 @@ export default function Home() {
       <SiteHeader />
       <div className="copy-flow min-w-0 w-full max-w-full overflow-x-hidden">
         <ScrollProgress />
-        <main className="min-w-0 max-w-full touch-pan-y overflow-x-hidden">
+        <main className="w-full min-w-0 max-w-full touch-pan-y overflow-x-hidden">
           <Hero />
           <div className="relative">
             <Bridge />

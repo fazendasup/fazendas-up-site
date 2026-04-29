@@ -6,7 +6,6 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { appendImageCacheBust, getSiteImage } from "@/content/siteImages";
 import { useMinLg } from "@/hooks/useMinLg";
-import { useNarrowViewport } from "@/hooks/useNarrowViewport";
 import { motionEnterFromBelow } from "@/lib/motionEntrance";
 import { cn } from "@/lib/utils";
 
@@ -44,7 +43,6 @@ const pillars = [
 export function ManifestoSection() {
   const ref = useRef<HTMLElement>(null);
   const desktopLg = useMinLg();
-  const narrow = useNarrowViewport();
   const manifestoChain = Array.from(
     new Set([getSiteImage("manifesto"), ...manifestoImageFallbacks.map(appendImageCacheBust)])
   );
@@ -144,28 +142,46 @@ export function ManifestoSection() {
             <div className="absolute inset-0 bg-gradient-to-b from-forest-dark/40 via-forest/20 to-forest-dark" />
           </div>
           <div className="sticky top-14 z-[1] h-[78vh] min-h-[560px] overflow-hidden md:top-24 md:h-[min(88vh,920px)] md:min-h-[72vh]">
-            <motion.img
-              src={manifestoSrc}
-              alt={stickyAlt}
-              style={{
-                scale: narrow ? 1 : imgScale,
-                y: narrow ? "0%" : imgY,
-              }}
-              className={cn(
-                "absolute inset-0 z-[1] h-full min-h-full w-full max-w-none object-cover will-change-transform md:h-[125%]",
-                stickyKind === "aerial"
-                  ? "object-[48%_36%] brightness-[1.04] contrast-[1.06] saturate-[1.12] [transform-origin:50%_40%]"
-                  : "object-center brightness-[1.12] contrast-[1.05] [transform-origin:50%_50%]"
-              )}
-              decoding="async"
-              fetchPriority="high"
-              onError={() => {
-                setManifestoIdx((i) => {
-                  const max = manifestoChain.length - 1;
-                  return i < max ? i + 1 : i;
-                });
-              }}
-            />
+            {desktopLg ? (
+              <motion.img
+                src={manifestoSrc}
+                alt={stickyAlt}
+                style={{ scale: imgScale, y: imgY }}
+                className={cn(
+                  "absolute inset-0 z-[1] h-full min-h-full w-full max-w-none object-cover will-change-transform md:h-[125%]",
+                  stickyKind === "aerial"
+                    ? "object-[48%_36%] brightness-[1.04] contrast-[1.06] saturate-[1.12] [transform-origin:50%_40%]"
+                    : "object-center brightness-[1.12] contrast-[1.05] [transform-origin:50%_50%]"
+                )}
+                decoding="async"
+                fetchPriority="high"
+                onError={() => {
+                  setManifestoIdx((i) => {
+                    const max = manifestoChain.length - 1;
+                    return i < max ? i + 1 : i;
+                  });
+                }}
+              />
+            ) : (
+              <img
+                src={manifestoSrc}
+                alt={stickyAlt}
+                className={cn(
+                  "absolute inset-0 z-[1] h-full min-h-full w-full max-w-none object-cover md:h-[125%]",
+                  stickyKind === "aerial"
+                    ? "object-[48%_36%] brightness-[1.04] contrast-[1.06] saturate-[1.12]"
+                    : "object-center brightness-[1.12] contrast-[1.05]"
+                )}
+                decoding="async"
+                fetchPriority="high"
+                onError={() => {
+                  setManifestoIdx((i) => {
+                    const max = manifestoChain.length - 1;
+                    return i < max ? i + 1 : i;
+                  });
+                }}
+              />
+            )}
             <div
               className={cn(
                 "absolute inset-0 z-[2] pointer-events-none bg-gradient-to-t to-transparent",

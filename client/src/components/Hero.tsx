@@ -7,13 +7,10 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef, useState } from "react";
 import { getSiteImage } from "@/content/siteImages";
 import { useMinLg } from "@/hooks/useMinLg";
-import { useNarrowViewport } from "@/hooks/useNarrowViewport";
 
 export function Hero() {
   const ref = useRef<HTMLDivElement>(null);
   const desktopLg = useMinLg();
-  /** Parallax só viewport estreito (hook); trilhos só montam em lg+ (fora do DOM no telefone). */
-  const narrow = useNarrowViewport();
   const [imageFailed, setImageFailed] = useState(false);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -37,24 +34,33 @@ export function Hero() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(230,31,147,0.12),transparent_45%),radial-gradient(circle_at_80%_30%,rgba(75,0,79,0.35),transparent_42%),linear-gradient(180deg,#1a0a1c_0%,#110d11_100%)]" />
         )}
         {/* Background image with parallax */}
-        {!imageFailed && (
-          <motion.div
-            style={{
-              scale: narrow ? 1 : scale,
-              y: narrow ? "0%" : yImg,
-            }}
-            className="absolute inset-0 min-h-0 min-w-0 overflow-hidden will-change-transform"
-          >
-            <img
-              src={getSiteImage("hero")}
-              alt="Operação e cultivo vertical da Fazendas Up em Manaus, Amazonas"
-              className="h-full w-full max-w-none object-cover object-center"
-              decoding="async"
-              fetchPriority="high"
-              onError={() => setImageFailed(true)}
-            />
-          </motion.div>
-        )}
+        {!imageFailed &&
+          (desktopLg ? (
+            <motion.div
+              style={{ scale, y: yImg }}
+              className="absolute inset-0 min-h-0 min-w-0 overflow-hidden will-change-transform"
+            >
+              <img
+                src={getSiteImage("hero")}
+                alt="Operação e cultivo vertical da Fazendas Up em Manaus, Amazonas"
+                className="h-full w-full max-w-none object-cover object-center"
+                decoding="async"
+                fetchPriority="high"
+                onError={() => setImageFailed(true)}
+              />
+            </motion.div>
+          ) : (
+            <div className="absolute inset-0 min-h-0 min-w-0 overflow-hidden">
+              <img
+                src={getSiteImage("hero")}
+                alt="Operação e cultivo vertical da Fazendas Up em Manaus, Amazonas"
+                className="h-full w-full max-w-none object-cover object-center"
+                decoding="async"
+                fetchPriority="high"
+                onError={() => setImageFailed(true)}
+              />
+            </div>
+          ))}
 
         {/* Animated overlay */}
         <motion.div

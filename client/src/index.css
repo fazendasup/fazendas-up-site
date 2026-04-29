@@ -210,6 +210,9 @@
   [data-fu-desktop-only] {
     display: none !important;
   }
+  .copy-flow .reveal {
+    animation: reveal-fade 0.75s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
 }
 
 @layer components {
@@ -350,10 +353,14 @@
     text-wrap: wrap;
   }
 
-  /* Subtle reveal (kept minimal) */
+  /* Subtle reveal — desktop: leve translateY; mobile: só opacity (translate infla scrollWidth no Safari) */
   @keyframes reveal-up {
     from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes reveal-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
   .reveal { animation: reveal-up 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 
