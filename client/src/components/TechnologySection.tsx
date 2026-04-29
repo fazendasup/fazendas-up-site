@@ -5,7 +5,6 @@
 import { Cpu, Droplets, Sprout, Sun } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { getSiteImage, type SiteImageKey } from "@/content/siteImages";
-import { useNarrowViewport } from "@/hooks/useNarrowViewport";
 import { useMemo, useState } from "react";
 
 const technologyImageKeys = [
@@ -59,7 +58,6 @@ const steps = [
 ];
 
 export function TechnologySection() {
-  const narrow = useNarrowViewport();
   const [activeStep, setActiveStep] = useState(0);
   const [direction, setDirection] = useState(1);
 
@@ -81,19 +79,20 @@ export function TechnologySection() {
 
   const current = steps[activeStep];
   const railWidth = `${((activeStep + 1) / steps.length) * 100}%`;
+  /** Sem translateX: no iOS infla scrollWidth e corta texto à direita. */
   const slideVariants = useMemo(
     () => ({
-      enter: (dir: number) => ({
+      enter: () => ({
         opacity: 0,
-        x: narrow ? 0 : dir > 0 ? 24 : -24,
+        x: 0,
       }),
       center: { opacity: 1, x: 0 },
-      exit: (dir: number) => ({
+      exit: () => ({
         opacity: 0,
-        x: narrow ? 0 : dir > 0 ? -24 : 24,
+        x: 0,
       }),
     }),
-    [narrow]
+    []
   );
 
   return (

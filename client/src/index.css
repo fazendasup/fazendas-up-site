@@ -432,7 +432,7 @@
 /**
  * Framer Motion injeta transform inline — pode ganhar ao CSS de overflow.
  * Fotos/parallax: reset onde há `will-change-transform`.
- * Entradas whileInView (translateY): ver `@/lib/motionEntrance` — em viewport estreito só opacity.
+ * Entradas em `@/lib/motionEntrance`: só opacity (sem translate) para não inflar scrollWidth no iOS.
  */
 @media (max-width: 1023px) {
   main .will-change-transform {

@@ -1,10 +1,8 @@
 /**
- * Safari/WebKit: `translateY` / `translateX` nas entradas (whileInView) aumenta scrollWidth e
- * corta texto — parece que “CSS não atualiza” porque Framer injeta transform inline por cima.
- * Em viewport estreito usamos só fade (opacity).
+ * Safari/iOS: `translateY` / `translateX` em `whileInView` ou variants aumenta `scrollWidth`
+ * e o texto/botões parecem “cortados” com `overflow-x: hidden`.
+ * Só fade — sem deslocamento; mais fiável que depender de `useNarrowViewport` em todos os frames.
  */
-export function motionEnterFromBelow(yPx: number, narrow: boolean) {
-  return narrow
-    ? { initial: { opacity: 0 }, whileInView: { opacity: 1 } }
-    : { initial: { opacity: 0, y: yPx }, whileInView: { opacity: 1, y: 0 } };
+export function motionEnterFromBelow(_yPx?: number) {
+  return { initial: { opacity: 0 }, whileInView: { opacity: 1 } };
 }

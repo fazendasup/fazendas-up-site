@@ -102,7 +102,7 @@ export function ImpactSection() {
             {stats.map((s, i) => (
               <motion.article
                 key={s.label}
-                {...motionEnterFromBelow(28, narrow)}
+                {...motionEnterFromBelow()}
                 viewport={{ once: true, margin: "-14% 0px" }}
                 transition={{
                   type: "spring",

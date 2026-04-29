@@ -90,7 +90,7 @@ function CultivosSpreadRow({
           }`}
         >
           <motion.div
-            {...motionEnterFromBelow(32, narrow)}
+            {...motionEnterFromBelow()}
             viewport={{ once: true, margin: "-12% 0px" }}
             transition={{
               type: "spring",
@@ -141,7 +141,7 @@ function CultivosSpreadRow({
           </motion.div>
 
           <motion.div
-            {...motionEnterFromBelow(36, narrow)}
+            {...motionEnterFromBelow()}
             viewport={{ once: true, margin: "-12% 0px" }}
             transition={{
               type: "spring",
@@ -187,7 +187,7 @@ export function CultivosSection() {
   return (
     <section id="cultivos" className="relative isolate w-full max-w-full min-w-0 overflow-x-hidden bg-paper text-ink lg:overflow-x-visible">
       <motion.div
-        {...motionEnterFromBelow(28, narrow)}
+        {...motionEnterFromBelow()}
         viewport={{ once: true, margin: "-8% 0px" }}
         transition={{ type: "spring", stiffness: 52, damping: 22 }}
         className="container min-w-0 pt-16 pb-12 md:pt-20 md:pb-16"

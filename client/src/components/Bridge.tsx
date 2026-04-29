@@ -54,7 +54,6 @@ export function Bridge() {
     offset: ["start 0.95", "end 0.35"],
   });
   const revealProgress = useTransform(scrollYProgress, [0, 0.68], [0, 1]);
-  const deckLift = useTransform(revealProgress, [0.25, 0.92], [28, 0]);
   const deckOpacity = useTransform(revealProgress, [0.2, 0.55], [0, 1]);
   const railScaleX = useTransform(revealProgress, [0.15, 0.5], [0.08, 1]);
 
@@ -68,10 +67,14 @@ export function Bridge() {
           <span className="font-display italic text-muted-foreground text-[0.95rem]">
             Prólogo
           </span>
-          <motion.span
-            style={{ scaleX: railScaleX }}
-            className="h-px flex-1 bg-ink/15 max-w-[200px] origin-left"
-          />
+          {narrow ? (
+            <span className="h-px max-w-[200px] flex-1 bg-ink/15" aria-hidden />
+          ) : (
+            <motion.span
+              style={{ scaleX: railScaleX }}
+              className="h-px max-w-[200px] flex-1 origin-left bg-ink/15"
+            />
+          )}
         </div>
 
         <div className="max-w-full min-w-0 md:max-w-5xl">
@@ -83,9 +86,7 @@ export function Bridge() {
         </div>
 
         <motion.div
-          style={
-            narrow ? { opacity: deckOpacity } : { opacity: deckOpacity, y: deckLift }
-          }
+          style={{ opacity: deckOpacity }}
           className="mt-10 grid min-w-0 grid-cols-12 items-end gap-8 md:mt-14 [&>*]:min-w-0"
         >
           <div className="col-span-12 min-w-0 md:col-span-7 lg:col-span-5 lg:col-start-2">

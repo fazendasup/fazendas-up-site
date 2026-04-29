@@ -113,7 +113,7 @@ export function ForChefsSection() {
               {benefits.map((b, i) => (
                 <motion.div
                   key={b.title}
-                  {...motionEnterFromBelow(32, narrow)}
+                  {...motionEnterFromBelow()}
                   viewport={{ once: true, margin: "-12% 0px" }}
                   transition={{
                     type: "spring",
