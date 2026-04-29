@@ -42,10 +42,10 @@ export function ForChefsSection() {
   return (
     <section
       ref={ref}
-      className="relative isolate w-full max-w-full min-w-0 overflow-x-hidden overflow-x-clip overflow-y-visible border-t border-ink/10 bg-secondary py-24 text-ink md:py-30 lg:h-screen lg:overflow-x-visible lg:py-10"
+      className="relative isolate w-full max-w-full min-w-0 overflow-x-hidden overflow-y-visible border-t border-ink/10 bg-secondary pt-24 pb-32 text-ink md:py-30 lg:h-screen lg:overflow-x-visible lg:py-10"
     >
       {/* Decorative big number — inset-x + overflow:hidden evita largura intrínseca gigante em Safari */}
-      <div className="pointer-events-none absolute inset-x-0 left-0 right-0 -top-6 flex max-w-full justify-end overflow-x-clip overflow-hidden select-none md:inset-x-auto md:right-10 md:left-auto md:w-auto">
+      <div className="pointer-events-none absolute inset-x-0 left-0 right-0 -top-6 flex max-w-full justify-end overflow-hidden select-none md:inset-x-auto md:right-10 md:left-auto md:w-auto">
         <span className="font-display italic text-ink/[0.05] text-[clamp(6rem,42vw,12rem)] leading-none whitespace-nowrap sm:text-[15rem] md:text-[22rem] lg:text-[26rem]">
           B2B
         </span>
@@ -95,12 +95,12 @@ export function ForChefsSection() {
             </div>
           </div>
 
-          <div className="col-span-12 min-w-0 lg:col-span-7 lg:flex lg:flex-col lg:justify-center">
+          <div className="col-span-12 min-w-0 max-w-full lg:col-span-7 lg:flex lg:flex-col lg:justify-center">
             <p className="eyebrow mb-6 inline-flex max-w-full flex-wrap items-center gap-3">
               <span className="h-px w-9 shrink-0 bg-forest" />
               <span className="min-w-0">Capítulo 05 · Parcerias</span>
             </p>
-            <h2 className="display-head hyphens-none max-w-full break-words text-ink text-[clamp(1.45rem,4.5vw+0.35rem,4rem)] leading-[1.12] sm:leading-[1.08] md:leading-none md:text-[clamp(2.2rem,5vw,4rem)]">
+            <h2 className="display-head hyphens-none max-w-full break-words pb-1 text-ink text-[clamp(1.45rem,4.5vw+0.35rem,4rem)] leading-[1.32] sm:leading-[1.26] md:leading-none md:text-[clamp(2.2rem,5vw,4rem)] [&_em]:font-display [&_em]:italic [&_em]:font-normal [&_em]:text-brand-rose">
               Um parceiro <em>discreto</em> para cozinhas e operações exigentes.
             </h2>
             <p className="mt-6 max-w-full text-[1rem] font-light leading-[1.7] text-ink/75 md:max-w-xl">
@@ -109,7 +109,7 @@ export function ForChefsSection() {
               estratégica.
             </p>
 
-            <div className="mt-9 grid grid-cols-1 gap-px border border-ink/10 bg-ink/10 md:grid-cols-3 [&>*]:min-w-0">
+            <div className="mt-9 grid w-full min-w-0 max-w-full rounded-sm border border-ink/10 bg-ink/10 [grid-template-columns:minmax(0,1fr)] md:[grid-template-columns:repeat(3,minmax(0,1fr))] [&>*]:min-w-0">
               {benefits.map((b, i) => (
                 <motion.div
                   key={b.title}
@@ -122,9 +122,9 @@ export function ForChefsSection() {
                     mass: 0.95,
                     delay: i * 0.09,
                   }}
-                  className="min-w-0 max-w-full overflow-hidden bg-secondary p-5 sm:p-7 transition-colors group hover:bg-paper"
+                  className="min-w-0 max-w-full overflow-x-hidden overflow-y-visible bg-secondary px-5 pt-6 pb-7 sm:p-7 transition-colors group hover:bg-paper"
                 >
-                  <div className="mb-6 flex min-w-0 items-start justify-between gap-3">
+                  <div className="mb-5 flex min-w-0 items-start justify-between gap-3">
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-ink/20 transition-colors group-hover:border-forest">
                       <b.icon className="size-4 text-forest" />
                     </span>
@@ -132,20 +132,20 @@ export function ForChefsSection() {
                       /0{i + 1}
                     </span>
                   </div>
-                  <h3 className="mb-2 min-w-0 text-[1.05rem] font-medium text-ink">
+                  <h3 className="mb-3.5 min-w-0 text-[1.05rem] font-medium leading-snug text-ink">
                     {b.title}
                   </h3>
-                  <p className="min-w-0 text-[0.9rem] font-light leading-[1.65] text-ink/65">
+                  <p className="min-w-0 text-[0.9rem] font-light leading-[1.78] text-ink/65 md:leading-[1.72] [overflow-wrap:anywhere] [word-break:break-word] max-md:pb-0.5">
                     {b.body}
                   </p>
                 </motion.div>
               ))}
             </div>
 
-            <div className="mt-8 flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5">
+            <div className="mt-10 flex w-full min-w-0 max-w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5 max-lg:pb-1">
               <a
                 href="#contato"
-                className="inline-flex w-full max-w-full min-w-0 shrink-0 items-center justify-center gap-2 rounded-full bg-forest px-5 py-3 text-center text-[0.875rem] font-medium text-paper transition-colors hover:bg-forest-dark sm:w-auto"
+                className="inline-flex w-full min-w-0 max-w-full items-center justify-center gap-2 rounded-full bg-forest px-4 py-3 text-center text-[0.875rem] font-medium text-paper transition-colors [overflow-wrap:anywhere] hover:bg-forest-dark sm:w-auto sm:max-w-none sm:px-5 sm:shrink-0"
               >
                 Solicitar proposta comercial
                 <ArrowUpRight className="size-4 shrink-0" />

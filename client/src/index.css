@@ -246,7 +246,8 @@
     min-width: 0;
     max-width: 100%;
     width: 100%;
-    overflow-x: clip;
+    /* `hidden`: mesmo efeito anti-scroll horizontal que `clip`, sem recorte vertical bugado no WebKit */
+    overflow-x: hidden;
   }
 
   /** Evita faixa editorial mais larga que o viewport (comum com grid 12 col + gaps em mobile). */
@@ -405,6 +406,11 @@
   .copy-flow .grid > * {
     min-width: 0 !important;
     max-width: 100%;
+  }
+
+  /** Safari: `repeat(12, 1fr)` com min de track = auto estoura quando um filho tem min-content largo */
+  .copy-flow main section .grid.grid-cols-12 {
+    grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
   }
 
   .copy-flow main .flex > *:not(.shrink-0),

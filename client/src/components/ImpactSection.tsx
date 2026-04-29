@@ -55,7 +55,7 @@ export function ImpactSection() {
     <section
       id="impacto"
       ref={ref}
-      className="relative isolate w-full max-w-full min-w-0 overflow-x-hidden overflow-x-clip bg-paper pt-24 pb-16 text-ink scroll-mt-20 lg:overflow-x-visible md:scroll-mt-24 md:pt-28 md:pb-20"
+      className="relative isolate w-full max-w-full min-w-0 overflow-x-hidden bg-paper pt-24 pb-16 text-ink scroll-mt-20 lg:overflow-x-visible md:scroll-mt-24 md:pt-28 md:pb-20"
     >
       {/* Top curved seam from forest section above */}
       <svg
@@ -98,7 +98,7 @@ export function ImpactSection() {
           </motion.div>
 
           {/* Cards column */}
-          <div className="relative z-0 col-span-12 flex min-w-0 max-w-full flex-col overflow-x-hidden perspective-none lg:[perspective:1400px] lg:col-span-7 lg:overflow-x-visible [&>*]:min-w-0">
+          <div className="relative z-0 col-span-12 flex min-w-0 max-w-full flex-col overflow-x-hidden overflow-y-visible perspective-none lg:[perspective:1400px] lg:col-span-7 lg:overflow-x-visible [&>*]:min-w-0">
             {stats.map((s, i) => (
               <motion.article
                 key={s.label}
@@ -111,7 +111,7 @@ export function ImpactSection() {
                   mass: 1.05,
                   delay: i * 0.07,
                 }}
-                className={`relative flex min-w-0 max-w-full flex-col gap-y-5 py-7 lg:grid lg:grid-cols-12 lg:gap-x-6 lg:gap-y-6 md:py-8 lg:items-start [&>*]:min-w-0 ${
+                className={`relative flex min-w-0 max-w-full flex-col gap-y-5 overflow-visible py-7 lg:grid lg:grid-cols-12 lg:gap-x-6 lg:gap-y-6 md:py-8 lg:items-start [&>*]:min-w-0 ${
                   i !== stats.length - 1 ? "border-b border-ink/15" : ""
                 }`}
               >
@@ -124,8 +124,8 @@ export function ImpactSection() {
                     <div
                       className={`display-head w-full min-w-0 max-w-full text-left break-words leading-none tracking-tight ${
                         s.value === "0"
-                          ? "text-[clamp(1.5rem,7.5vw,2.35rem)]"
-                          : "text-[clamp(1.55rem,8vw,2.5rem)]"
+                          ? "text-[clamp(1.45rem,7vw,2.2rem)]"
+                          : "text-[clamp(1.45rem,7vw,2.35rem)]"
                       }`}
                     >
                       {s.value}
@@ -150,7 +150,7 @@ export function ImpactSection() {
                   <h3 className="mb-2 min-w-0 text-[1.05rem] font-medium text-ink">
                     {s.label}
                   </h3>
-                  <p className="min-w-0 max-w-full text-[0.95rem] font-light leading-[1.65] text-ink/65">
+                  <p className="min-w-0 max-w-full overflow-visible pb-0.5 text-[0.95rem] font-light leading-[1.75] text-ink/65 md:leading-[1.65] md:pb-0">
                     {s.body}
                   </p>
                 </div>

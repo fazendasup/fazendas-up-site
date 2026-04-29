@@ -16,11 +16,11 @@ import { ScrollProgress } from "@/components/ScrollProgress";
 
 export default function Home() {
   return (
-    <div className="relative min-h-screen w-full max-w-full min-w-0 overflow-x-hidden overflow-x-clip bg-paper text-ink">
+    <div className="relative min-h-screen w-full max-w-full min-w-0 overflow-x-hidden bg-paper text-ink">
       <SiteHeader />
       <div className="copy-flow min-w-0 w-full max-w-full overflow-x-hidden">
         <ScrollProgress />
-        <main className="min-w-0 max-w-full touch-pan-y overflow-x-clip">
+        <main className="min-w-0 max-w-full touch-pan-y overflow-x-hidden">
           <Hero />
           <div className="relative">
             <Bridge />

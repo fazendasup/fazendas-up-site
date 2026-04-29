@@ -90,7 +90,7 @@ export function ManifestoSection() {
     <section
       id="sobre"
       ref={ref}
-      className="relative isolate scroll-mt-20 w-full max-w-full min-w-0 overflow-x-hidden overflow-x-clip overflow-y-visible bg-forest-dark py-28 text-paper md:scroll-mt-24 md:py-40 lg:overflow-x-visible"
+      className="relative isolate scroll-mt-20 w-full max-w-full min-w-0 overflow-x-hidden overflow-y-visible bg-forest-dark py-28 text-paper md:scroll-mt-24 md:py-40 lg:overflow-x-visible"
     >
       {/* Vertical chapter mark */}
       {desktopLg && (
@@ -106,7 +106,7 @@ export function ManifestoSection() {
               <span className="h-px w-9 shrink-0 bg-paper/55" />
               <span className="min-w-0">Sobre a Fazendas Up</span>
             </p>
-            <h2 className="display-head max-w-full min-w-0 break-words hyphens-none text-paper leading-[1.08] sm:leading-[1.05] md:leading-none text-[clamp(1.45rem,4.15vw+0.65rem,3.6rem)] md:text-[clamp(2.4rem,6.4vw,5.4rem)]">
+            <h2 className="display-head w-full min-w-0 max-w-full hyphens-none text-paper leading-[1.08] sm:leading-[1.05] md:leading-none text-[clamp(1.45rem,4.15vw+0.65rem,3.6rem)] md:text-[clamp(2.4rem,6.4vw,5.4rem)] [overflow-wrap:anywhere] [word-break:break-word]">
               Cultivar <em className="text-brand-rose">no alto</em> é uma forma de proteger o que está embaixo.
             </h2>
           </div>
@@ -114,7 +114,7 @@ export function ManifestoSection() {
       </div>
 
       {/* Sem w-screen/100vw: em mobile geram overflow horizontal (scrollbar) e texto parece cortado */}
-      <div className="relative w-full min-w-0 max-w-full overflow-x-hidden overflow-x-clip lg:overflow-x-visible">
+      <div className="relative w-full min-w-0 max-w-full overflow-x-hidden overflow-y-visible lg:overflow-x-visible">
         <div className="relative mx-auto mb-24 max-w-full min-w-0 h-[160vh] md:h-[170vh]">
           <div
             className="pointer-events-none absolute inset-0 z-0 overflow-hidden bg-forest-dark"
@@ -238,25 +238,25 @@ export function ManifestoSection() {
 
       <div className="container min-w-0">
         {/* Pillars */}
-        <div className="grid grid-cols-12 gap-x-10 gap-y-14 lg:px-[5%] [&>*]:min-w-0">
+        <div className="grid w-full min-w-0 max-w-full grid-cols-12 gap-x-10 gap-y-14 lg:px-[5%] [&>*]:min-w-0">
           {pillars.map((p, i) => (
             <motion.div
               key={p.t}
               {...motionEnterFromBelow(60, narrow)}
               viewport={{ once: true, margin: "-15% 0px" }}
               transition={{ duration: 0.9, ease: [0.2, 0.7, 0.2, 1], delay: i * 0.12 }}
-              className="col-span-12 min-w-0 border-t border-paper/20 pt-7 md:col-span-4"
+              className="col-span-12 w-full min-w-0 max-w-full border-t border-paper/20 pt-7 md:col-span-4"
             >
-              <div className="flex items-center justify-between mb-5">
-                <span className="font-display italic text-paper/45 text-[0.95rem]">
+              <div className="mb-5 flex min-w-0 max-w-full items-center justify-between gap-3">
+                <span className="shrink-0 font-display text-[0.95rem] italic text-paper/45">
                   /0{i + 1}
                 </span>
-                <span className="size-1.5 rounded-full bg-clay" />
+                <span className="size-1.5 shrink-0 rounded-full bg-clay" />
               </div>
-              <h3 className="display-head hyphens-none mb-4 max-w-full text-paper text-[clamp(1.85rem,6vw,2.4rem)] leading-tight">
+              <h3 className="display-head mb-4 max-w-full min-w-0 hyphens-none text-paper text-[clamp(1.85rem,6vw,2.4rem)] leading-tight">
                 {p.t}
               </h3>
-              <p className="max-w-full min-w-0 break-words text-[0.97rem] font-light leading-[1.75] text-paper/70">
+              <p className="w-full min-w-0 max-w-full text-[0.97rem] font-light leading-[1.75] text-paper/70 [overflow-wrap:anywhere] [word-break:break-word]">
                 {p.b}
               </p>
             </motion.div>
