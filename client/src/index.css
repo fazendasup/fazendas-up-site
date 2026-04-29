@@ -444,18 +444,27 @@
  */
 @media (max-width: 1023px) {
   /**
-   * Framer usa translate3d/matrix — nem sempre a string "transform" aparece como esperado.
-   * Qualquer translate residual aumenta scrollWidth e o texto parece cortado à direita com overflow-x.
+   * Reforço de segurança além de MotionConfig(reducedMotion:always): inline pode usar só parte da string.
    */
   .copy-flow main [style*="transform"],
   .copy-flow main [style*="Transform"],
   .copy-flow main [style*="translate"],
-  .copy-flow main [style*="matrix"] {
+  .copy-flow main [style*="matrix"],
+  .copy-flow main [style*="scale"],
+  .copy-flow main [style*="rotate"] {
     transform: none !important;
   }
   main .will-change-transform {
     transform: none !important;
     will-change: auto !important;
+  }
+
+  /** Reforço no main sem clip em html/body/#root (WebKit). */
+  .fu-main-mobile {
+    overflow-x: clip;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 }
 
