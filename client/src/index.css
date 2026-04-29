@@ -430,11 +430,16 @@
 }
 
 /**
- * Framer Motion injeta transform inline — pode ganhar ao CSS de overflow.
- * Fotos/parallax: reset onde há `will-change-transform`.
- * Entradas em `@/lib/motionEntrance`: só opacity (sem translate) para não inflar scrollWidth no iOS.
+ * Framer Motion (parallax scale/translate): no Safari o scrollWidth fica maior que o viewport
+ * e o texto/botões parecem cortados com overflow-x hidden — mesmo quando o React já desligou
+ * o parallax via `narrow`, restos de transform ou um frame inicial ainda estragam o layout.
+ * `transform: none !important` ganha ao inline do Framer só nesta propriedade; opacity mantém-se.
  */
 @media (max-width: 1023px) {
+  .copy-flow main [style*="transform"],
+  .copy-flow main [style*="Transform"] {
+    transform: none !important;
+  }
   main .will-change-transform {
     transform: none !important;
     will-change: auto !important;

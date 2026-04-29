@@ -34,7 +34,10 @@ function subscribe(onStoreChange: () => void): () => void {
 /**
  * Viewport estreito: parallax/transform em cadeia com overflow cortam texto/imagens no Safari/iOS.
  * `useSyncExternalStore` mantém leitura alinhada ao paint e evita “flicker” de estado.
+ *
+ * `getServerSnapshot: true` (mobile-first): um frame inicial “desktop” no telemóvel aplicava
+ * scale/translate antes do paint e o layout ficava permanentemente errado para o utilizador.
  */
 export function useNarrowViewport(): boolean {
-  return useSyncExternalStore(subscribe, isNarrowViewport, () => false);
+  return useSyncExternalStore(subscribe, isNarrowViewport, () => true);
 }
