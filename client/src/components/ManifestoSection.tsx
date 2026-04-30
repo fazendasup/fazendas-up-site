@@ -1,6 +1,6 @@
 /**
- * Manifesto / Sobre — Hero full-bleed (desktop) com Amazónia + pista das torres;
- * texto editorial no `.container`; pilares Missão/Visão/Valores abaixo.
+ * Manifesto / Sobre — Hero full-bleed: Amazónia e torres em coluna (sem sobreposição);
+ * texto editorial no `.container`; pilares abaixo.
  */
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -76,17 +76,6 @@ export function ManifestoSection() {
       : "Cultivo vertical e hidroponia na unidade Fazendas Up, Manaus";
   const locationChip = stickyKind === "aerial" ? "Floresta · Manaus / AM" : "Cultivo · Manaus / AM";
 
-  /** Amazónia opaca no topo; fundo desvanecido em baixo para a pista das torres aparecer (vista aérea). */
-  const amazonTowerMaskStyle =
-    stickyKind === "aerial"
-      ? ({
-          maskImage:
-            "linear-gradient(to bottom, #000 0%, #000 58%, rgba(0,0,0,0.88) 74%, rgba(0,0,0,0.35) 88%, transparent 100%)",
-          WebkitMaskImage:
-            "linear-gradient(to bottom, #000 0%, #000 58%, rgba(0,0,0,0.88) 74%, rgba(0,0,0,0.35) 88%, transparent 100%)",
-        } as const)
-      : undefined;
-
   useEffect(() => {
     const primary = getSiteImage("manifesto");
     const track = getSiteImage("manifestoTrack");
@@ -138,34 +127,21 @@ export function ManifestoSection() {
           {/**
            * Hero à largura da secção (fora do `.container` 1360px) + texto editorial no container.
            */}
-          <div className="mb-12 w-full max-w-full min-w-0 lg:mb-16">
+          <div className="mb-12 flex w-full max-w-full min-w-0 flex-col lg:mb-16">
+            {/* Amazónia — só esta faixa leva legenda; nada de máscara nem segunda foto por cima. */}
             <div
               className={cn(
                 "relative w-full max-w-full overflow-hidden bg-forest-dark",
-                "min-h-[600px] h-[88vh] md:min-h-[640px] md:h-[min(92vh,1040px)]"
+                "min-h-[min(52vh,560px)] h-[52vh] md:min-h-[520px] md:h-[min(58vh,640px)]"
               )}
             >
-              {showTrackLayer && (
-                <img
-                  src={trackChain[trackTry]}
-                  alt=""
-                  aria-hidden
-                  className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[118%] min-h-full w-full object-cover object-[50%_88%] opacity-[0.96] brightness-[0.99] contrast-[1.05]"
-                  decoding="async"
-                  loading="eager"
-                  onError={() =>
-                    setTrackTry((t) => (t < trackChain.length - 1 ? t + 1 : trackChain.length))
-                  }
-                />
-              )}
               <img
                 src={manifestoSrc}
                 alt={stickyAlt}
-                style={amazonTowerMaskStyle}
                 className={cn(
-                  "absolute inset-0 z-[1] h-full w-full object-cover [mask-size:100%_100%] [-webkit-mask-size:100%_100%]",
+                  "absolute inset-0 z-[1] h-full w-full object-cover",
                   stickyKind === "aerial"
-                    ? "object-[48%_32%] brightness-[1.04] contrast-[1.06] saturate-[1.12]"
+                    ? "object-[48%_34%] brightness-[1.04] contrast-[1.06] saturate-[1.12]"
                     : "object-center brightness-[1.12] contrast-[1.05]"
                 )}
                 decoding="async"
@@ -185,21 +161,36 @@ export function ManifestoSection() {
                     : "from-forest-dark/55 via-forest-dark/12"
                 )}
               />
-              <div className="absolute inset-x-0 bottom-0 z-[3] px-6 pb-12 pt-28 md:px-10 md:pb-14 md:pt-32">
+              <div className="absolute inset-x-0 bottom-0 z-[3] px-6 pb-14 pt-24 md:px-10 md:pb-16 md:pt-28">
                 <div className="container flex min-w-0 max-w-full flex-col gap-5 sm:flex-row sm:items-end sm:gap-10">
-                  <p className="max-w-full min-w-0 flex-1 text-paper text-[1.12rem] font-light leading-[1.68] md:max-w-3xl md:text-[1.22rem] md:leading-[1.7]">
+                  <p className="max-w-full min-w-0 flex-1 text-paper text-[1.14rem] font-light leading-[1.7] md:max-w-3xl md:text-[1.3rem] md:leading-[1.72]">
                     Acreditamos que produzir alimento na cidade, com tecnologia, eficiência e transparência, é uma das
                     formas mais concretas de aliviar a pressão sobre biomas como a Amazônia.
                   </p>
-                  <span className="min-w-0 max-w-full shrink-0 text-paper/70 text-[0.72rem] uppercase tracking-[0.22em] sm:max-w-[min(100%,15rem)] sm:text-right sm:text-[0.8rem] sm:tracking-[0.26em]">
+                  <span className="min-w-0 max-w-full shrink-0 text-paper/75 text-[0.74rem] uppercase tracking-[0.22em] sm:max-w-[min(100%,15rem)] sm:text-right sm:text-[0.88rem] sm:tracking-[0.26em]">
                     {locationChip}
                   </span>
                 </div>
               </div>
             </div>
+            {/* Torres — bloco separado por baixo, mesma largura. */}
+            {showTrackLayer && (
+              <div className="relative w-full max-w-full overflow-hidden bg-forest-dark min-h-[220px] h-[min(32vh,400px)] md:min-h-[280px] md:h-[min(38vh,480px)]">
+                <img
+                  src={trackChain[trackTry]}
+                  alt="Cultivo vertical na unidade Fazendas Up, Manaus"
+                  className="absolute inset-0 z-0 h-full w-full object-cover object-center brightness-[1.02] contrast-[1.04]"
+                  decoding="async"
+                  loading="eager"
+                  onError={() =>
+                    setTrackTry((t) => (t < trackChain.length - 1 ? t + 1 : trackChain.length))
+                  }
+                />
+              </div>
+            )}
           </div>
 
-          <div className="container min-w-0 pb-16">
+          <div className="container min-w-0 pb-16 pt-6 md:pt-10">
           <div className="mb-8 grid min-w-0 grid-cols-1 gap-12 gap-y-14 lg:grid-cols-12 lg:gap-x-14 [&>*]:min-w-0">
             <motion.div
               {...motionEnterFromBelow()}
@@ -207,11 +198,11 @@ export function ManifestoSection() {
               transition={{ duration: 0.9 }}
               className="col-span-full min-w-0 max-w-full lg:col-span-5 lg:col-start-2"
             >
-              <p className="eyebrow mb-5 inline-flex max-w-full flex-wrap items-center gap-3 text-paper/85 md:text-[0.95rem]">
+              <p className="eyebrow mb-5 inline-flex max-w-full flex-wrap items-center gap-3 text-paper/88 text-[0.82rem] md:text-[0.98rem]">
                 <span className="h-px w-10 shrink-0 bg-paper/70" />
                 <span className="min-w-0">Por que cultivar verticalmente</span>
               </p>
-              <p className="max-w-full min-w-0 text-paper text-[1.1rem] font-normal leading-[1.82] md:text-[1.18rem] md:leading-[1.84]">
+              <p className="max-w-full min-w-0 text-paper text-[1.14rem] font-normal leading-[1.82] md:text-[1.26rem] md:leading-[1.86]">
                 Cada quilo produzido em ambiente urbano e controlado representa uma pequena área de floresta que não
                 precisou ser derrubada. Esse é o nosso cálculo ético antes de qualquer cálculo econômico.
               </p>
@@ -222,17 +213,17 @@ export function ManifestoSection() {
               transition={{ duration: 0.9, delay: 0.15 }}
               className="col-span-full min-w-0 max-w-full lg:col-span-4 lg:col-start-8"
             >
-              <ul className="space-y-4 text-[1.02rem] font-normal leading-snug text-paper/92 md:text-[1.08rem] md:leading-relaxed">
-                <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3">
-                  <span className="font-display pt-0.5 text-[0.95rem] italic text-clay">01</span>
+              <ul className="space-y-4 text-[1.06rem] font-normal leading-relaxed text-paper/92 md:text-[1.14rem] md:leading-[1.75]">
+                <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3 md:pt-4">
+                  <span className="font-display pt-0.5 text-[1rem] italic text-clay md:text-[1.05rem]">01</span>
                   <span className="min-w-0">Operamos em Manaus, no centro do bioma que protegemos.</span>
                 </li>
-                <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3">
-                  <span className="font-display pt-0.5 text-[0.95rem] italic text-clay">02</span>
+                <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3 md:pt-4">
+                  <span className="font-display pt-0.5 text-[1rem] italic text-clay md:text-[1.05rem]">02</span>
                   <span className="min-w-0">Cada lote tem rastreabilidade da semente à colheita.</span>
                 </li>
-                <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3">
-                  <span className="font-display pt-0.5 text-[0.95rem] italic text-clay">03</span>
+                <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3 md:pt-4">
+                  <span className="font-display pt-0.5 text-[1rem] italic text-clay md:text-[1.05rem]">03</span>
                   <span className="min-w-0">Aliamos técnica agrônoma a engenharia de dados.</span>
                 </li>
               </ul>
@@ -242,86 +233,85 @@ export function ManifestoSection() {
         </>
       ) : (
         <div className="container min-w-0 pb-16">
-          {/**
-           * Mesma leitura visual que no desktop: pista das torres por baixo + foto principal por cima.
-           * Antes só existia `manifestoSrc` no &lt;lg, por isso as torres “sumiam” no telemóvel.
-           */}
-          <div
-            className={cn(
-              "relative mb-10 w-full max-w-full overflow-hidden rounded-sm bg-forest-dark",
-              "aspect-[4/5] sm:aspect-[5/6]"
-            )}
-          >
-            {showTrackLayer && (
-              <img
-                src={trackChain[trackTry]}
-                alt=""
-                aria-hidden
-                className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[115%] min-h-full w-full object-cover object-[50%_85%] opacity-[0.92] brightness-[0.98] contrast-[1.04]"
-                decoding="async"
-                loading="eager"
-                onError={() =>
-                  setTrackTry((t) => (t < trackChain.length - 1 ? t + 1 : trackChain.length))
-                }
-              />
-            )}
-            <img
-              src={manifestoSrc}
-              alt={stickyAlt}
-              style={amazonTowerMaskStyle}
-              className={cn(
-                "absolute inset-0 z-[1] h-full w-full object-cover [mask-size:100%_100%] [-webkit-mask-size:100%_100%]",
-                stickyKind === "aerial"
-                  ? "object-[48%_36%] brightness-[1.04] contrast-[1.06] saturate-[1.12]"
-                  : "object-center brightness-[1.12] contrast-[1.05]"
-              )}
-              decoding="async"
-              fetchPriority="high"
-              onError={() => {
-                setManifestoIdx((i) => {
-                  const max = manifestoChain.length - 1;
-                  return i < max ? i + 1 : i;
-                });
-              }}
-            />
+          {/** Mobile: Amazónia e torres em coluna (sem sobreposição). */}
+          <div className="mb-10 flex w-full max-w-full min-w-0 flex-col overflow-hidden rounded-sm bg-forest-dark">
             <div
               className={cn(
-                "pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t to-transparent",
-                stickyKind === "aerial"
-                  ? "from-forest-dark/80 via-forest-dark/15"
-                  : "from-forest-dark/55 via-forest-dark/12"
+                "relative w-full overflow-hidden",
+                "aspect-[4/5] min-h-[280px] sm:aspect-[5/6] sm:min-h-[320px]"
               )}
-            />
+            >
+              <img
+                src={manifestoSrc}
+                alt={stickyAlt}
+                className={cn(
+                  "absolute inset-0 z-[1] h-full w-full object-cover",
+                  stickyKind === "aerial"
+                    ? "object-[48%_36%] brightness-[1.04] contrast-[1.06] saturate-[1.12]"
+                    : "object-center brightness-[1.12] contrast-[1.05]"
+                )}
+                decoding="async"
+                fetchPriority="high"
+                onError={() => {
+                  setManifestoIdx((i) => {
+                    const max = manifestoChain.length - 1;
+                    return i < max ? i + 1 : i;
+                  });
+                }}
+              />
+              <div
+                className={cn(
+                  "pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t to-transparent",
+                  stickyKind === "aerial"
+                    ? "from-forest-dark/80 via-forest-dark/15"
+                    : "from-forest-dark/55 via-forest-dark/12"
+                )}
+              />
+            </div>
+            {showTrackLayer && (
+              <div className="relative aspect-[16/11] w-full min-h-[200px] overflow-hidden border-t border-paper/10 sm:aspect-[16/10] sm:min-h-[220px]">
+                <img
+                  src={trackChain[trackTry]}
+                  alt="Cultivo vertical na unidade Fazendas Up, Manaus"
+                  className="absolute inset-0 h-full w-full object-cover object-center brightness-[1.02] contrast-[1.04]"
+                  decoding="async"
+                  loading="eager"
+                  onError={() =>
+                    setTrackTry((t) => (t < trackChain.length - 1 ? t + 1 : trackChain.length))
+                  }
+                />
+              </div>
+            )}
           </div>
-          <div className="mb-12 min-w-0 space-y-3">
-            <p className="text-[1.0625rem] font-light leading-[1.65] text-paper/85">
+          <div className="mb-12 min-w-0 space-y-4">
+            <p className="text-[1.1rem] font-light leading-[1.68] text-paper/88 sm:text-[1.14rem] sm:leading-[1.7]">
               Acreditamos que produzir alimento na cidade, com tecnologia, eficiência e transparência, é uma das formas
               mais concretas de aliviar a pressão sobre biomas como a Amazônia.
             </p>
-            <p className="text-[0.65rem] uppercase tracking-[0.2em] text-paper/55">{locationChip}</p>
+            <p className="text-[0.72rem] uppercase tracking-[0.22em] text-paper/60 sm:text-[0.78rem]">{locationChip}</p>
           </div>
-          <div className="grid min-w-0 grid-cols-1 gap-10 rounded-sm bg-forest-dark/45 px-4 py-6 sm:px-5">
+          <div className="grid min-w-0 grid-cols-1 gap-10 rounded-sm bg-forest-dark/45 px-4 py-7 sm:gap-12 sm:px-6 sm:py-8">
             <div className="min-w-0">
-              <p className="eyebrow mb-4 inline-flex max-w-full flex-wrap items-center gap-3 text-paper/80">
+              <p className="eyebrow mb-4 inline-flex max-w-full flex-wrap items-center gap-3 text-paper/85 text-[0.82rem] sm:text-[0.9rem]">
                 <span className="h-px w-9 shrink-0 bg-paper/70" />
                 <span className="min-w-0">Por que cultivar verticalmente</span>
               </p>
-              <p className="max-w-full min-w-0 text-paper text-[1.06rem] font-normal leading-[1.8]">
+              <p className="max-w-full min-w-0 text-paper text-[1.08rem] font-normal leading-[1.82] sm:text-[1.14rem] sm:leading-[1.84]">
                 Cada quilo produzido em ambiente urbano e controlado representa uma pequena área de floresta que não
                 precisou ser derrubada. Esse é o nosso cálculo ético antes de qualquer cálculo econômico.
               </p>
             </div>
-            <ul className="min-w-0 space-y-3 text-[0.98rem] font-normal text-paper/92">
-              <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3">
-                <span className="font-display pt-0.5 text-[0.95rem] italic text-clay">01</span>
+            <ul className="min-w-0 space-y-4 text-[1.02rem] font-normal leading-relaxed text-paper/92 sm:text-[1.06rem]">
+              <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3 sm:pt-4">
+                <span className="font-display pt-0.5 text-[1rem] italic text-clay">01</span>
                 <span className="min-w-0">Operamos em Manaus, no centro do bioma que protegemos.</span>
               </li>
-              <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3">
-                <span className="font-display pt-0.5 text-[0.95rem] italic text-clay">02</span>
+              <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3 sm:pt-4">
+                <span className="font-display pt-0.5 text-[1rem] italic text-clay">02</span>
                 <span className="min-w-0">Cada lote tem rastreabilidade da semente à colheita.</span>
               </li>
-              <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3">
-                <span className="font-display pt-0.5 text-[0.95rem] italic text-clay">03</span>
+              <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3 sm:pt-4">
+                <span className="font-display pt-0.5 text-[1rem] italic text-clay">03</span>
                 <span className="min-w-0">Aliamos técnica agrônoma a engenharia de dados.</span>
               </li>
             </ul>
