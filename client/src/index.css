@@ -223,8 +223,8 @@
     margin-left: auto;
     margin-right: auto;
     /* Um pouco mais de “respiro” em telas estreitas — evita texto colado ao bezel */
-    padding-left: max(1.375rem, env(safe-area-inset-left, 0px));
-    padding-right: max(1.375rem, env(safe-area-inset-right, 0px));
+    padding-left: max(1.5rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1.5rem, env(safe-area-inset-right, 0px));
   }
   .flex { min-height: 0; min-width: 0; }
   .grid { min-width: 0; }
@@ -451,6 +451,15 @@
   .copy-flow main .hyphens-none {
     hyphens: auto !important;
     -webkit-hyphens: auto;
+  }
+
+  /**
+   * Display + itálico (Newsreader): glifos ultrapassam a caixa tipográfica (~overshoot).
+   * Com `#root { overflow-x: hidden }`, o último carácter parece “cortado” no bezel — padding só à direita resolve sem mexer no layout desktop.
+   */
+  .copy-flow main .display-head {
+    padding-inline-end: max(0.5rem, 0.08em);
+    box-sizing: border-box;
   }
 
   .fu-main-mobile {

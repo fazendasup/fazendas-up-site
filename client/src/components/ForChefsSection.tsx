@@ -125,7 +125,7 @@ export function ForChefsSection() {
               <span className="h-px w-9 shrink-0 bg-forest" />
               <span className="min-w-0">Capítulo 05 · Parcerias</span>
             </p>
-            <h2 className="display-head hyphens-none max-w-full break-words pb-1 text-ink text-[clamp(1.45rem,4.5vw+0.35rem,4rem)] leading-[1.32] sm:leading-[1.26] md:leading-none md:text-[clamp(2.2rem,5vw,4rem)] [&_em]:font-display [&_em]:italic [&_em]:font-normal [&_em]:text-brand-rose">
+            <h2 className="display-head hyphens-auto lg:hyphens-none max-w-full break-words pb-1 text-ink text-[clamp(1.45rem,4.5vw+0.35rem,4rem)] leading-[1.32] sm:leading-[1.26] md:leading-none md:text-[clamp(2.2rem,5vw,4rem)] [&_em]:font-display [&_em]:italic [&_em]:font-normal [&_em]:text-brand-rose">
               Um parceiro <em>discreto</em> para cozinhas e operações exigentes.
             </h2>
             <p className="mt-6 max-w-full text-[1rem] font-light leading-[1.7] text-ink/75 md:max-w-xl">
