@@ -122,25 +122,31 @@ export function ImpactSection() {
               }`;
               const inner = (
                 <>
-                  <div className="flex w-full min-w-0 max-w-full flex-row items-start gap-3 sm:gap-4 lg:hidden">
-                    <div className="min-w-0 flex-1 space-y-3">
-                      <span className="block font-display text-[0.95rem] italic text-muted-foreground tabular-nums">
+                  {/**
+                   * Mobile: nunca `shrink-0` + métrica grande na mesma linha que blocos longos —
+                   * o min-content ultrapassa o viewport e o `%` / `×` cortam com overflow-x na raiz.
+                   * Linha 1: índice + valor (valor em faixa flexível, tipografia com teto menor).
+                   * Depois título e texto.
+                   */}
+                  <div className="flex w-full min-w-0 max-w-full flex-col gap-3 lg:hidden">
+                    <div className="flex min-w-0 max-w-full flex-row items-baseline justify-between gap-3">
+                      <span className="shrink-0 font-display text-[0.95rem] italic text-muted-foreground tabular-nums">
                         /0{i + 1}
                       </span>
-                      <h3 className="mb-0 min-w-0 text-[1.05rem] font-medium text-ink">{s.label}</h3>
-                      <p className="min-w-0 max-w-full pb-0.5 text-[0.95rem] font-light leading-[1.75] text-ink/65 md:leading-[1.65] md:pb-0">
-                        {s.body}
-                      </p>
+                      <div
+                        className={`display-head min-w-0 flex-1 text-end leading-none tracking-normal tabular-nums text-ink break-normal [overflow-wrap:normal] ${
+                          s.value === "0"
+                            ? "text-[clamp(1.25rem,6.5vw+0.35rem,1.85rem)]"
+                            : "text-[clamp(1.25rem,6.5vw+0.35rem,1.9rem)]"
+                        }`}
+                      >
+                        {s.value}
+                      </div>
                     </div>
-                    <div
-                      className={`display-head max-w-[min(40%,11rem)] shrink-0 text-right break-words leading-none tracking-normal tabular-nums text-ink [overflow-wrap:anywhere] ${
-                        s.value === "0"
-                          ? "text-[clamp(1.35rem,min(10vw,4rem),2rem)]"
-                          : "text-[clamp(1.35rem,min(10vw,4rem),2.05rem)]"
-                      }`}
-                    >
-                      {s.value}
-                    </div>
+                    <h3 className="mb-0 min-w-0 text-[1.05rem] font-medium text-ink">{s.label}</h3>
+                    <p className="min-w-0 max-w-full pb-0.5 text-[0.95rem] font-light leading-[1.75] text-ink/65 md:leading-[1.65] md:pb-0">
+                      {s.body}
+                    </p>
                   </div>
 
                   <div className="hidden space-y-0 lg:col-span-2 lg:block lg:space-y-0">
