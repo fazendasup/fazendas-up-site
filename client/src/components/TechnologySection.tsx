@@ -105,8 +105,9 @@ export function TechnologySection() {
             <span className="h-px w-9 shrink-0 bg-on-plum-soft/70" />
             <span className="min-w-0">Capitulo 01 · Tecnologia</span>
           </p>
-          <h2 className="display-head hyphens-auto text-paper max-w-full text-[clamp(1.65rem,5.8vw+0.35rem,2.5rem)] leading-[1.08] sm:leading-[1.05] md:leading-none lg:max-w-3xl lg:text-[clamp(2rem,3.6vw,3.25rem)]">
-            Um <em className="text-on-plum-strong not-italic">sistema agricola</em> que une biologia, engenharia e dados.
+          <h2 className="display-head hyphens-none break-normal text-paper max-w-full leading-[1.08] text-[clamp(1.65rem,5.8vw+0.35rem,2.5rem)] [overflow-wrap:normal] sm:leading-[1.05] md:leading-none lg:max-w-5xl lg:text-[clamp(2rem,3.6vw,3.25rem)]">
+            Um <em className="text-on-plum-strong not-italic">sistema agricola</em> que une{" "}
+            <span className="whitespace-nowrap">biologia</span>, engenharia e dados.
           </h2>
           <p className="mt-5 max-w-full text-[0.95rem] leading-[1.65] text-on-plum-soft md:max-w-xl">
             Quatro principios sustentam cada bandeja produzida pela Fazendas Up.

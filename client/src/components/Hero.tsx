@@ -95,7 +95,7 @@ export function Hero() {
                 <span className="min-w-0">Fazendas Up · Manaus, Amazonas</span>
               </p>
 
-              <h1 className="display-head hyphens-none break-normal text-paper max-w-full leading-[1.05] [overflow-wrap:normal] max-lg:text-[clamp(1.92rem,7.4vw+0.5rem,3.45rem)] max-lg:leading-[1.07] lg:max-w-5xl lg:text-[clamp(2.6rem,7.2vw,6rem)] lg:leading-none">
+              <h1 className="display-head hyphens-none break-normal text-paper max-w-full leading-[1.05] [overflow-wrap:normal] max-lg:text-[clamp(1.92rem,7.4vw+0.5rem,3.45rem)] max-lg:leading-[1.07] lg:text-[clamp(2.6rem,7.2vw,6rem)] lg:leading-none">
                 Cultivar alimento na cidade <br className="hidden md:block" />
                 para que a{" "}
                 <em className="whitespace-nowrap text-brand-rose [overflow-wrap:normal]">floresta</em> siga sendo{" "}

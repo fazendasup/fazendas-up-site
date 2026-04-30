@@ -238,7 +238,13 @@
     .container {
       padding-left: max(2.5rem, env(safe-area-inset-left, 0px));
       padding-right: max(2.5rem, env(safe-area-inset-right, 0px));
-      max-width: 1360px;
+      /* Desktop editorial mais largo (~1180px úteis vs ~1310px antes com mesmos paddings). */
+      max-width: 1600px;
+    }
+  }
+  @media (min-width: 1536px) {
+    .container {
+      max-width: min(1720px, 100vw - 3rem);
     }
   }
 

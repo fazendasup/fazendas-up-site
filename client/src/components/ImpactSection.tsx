@@ -85,7 +85,7 @@ export function ImpactSection() {
               <h2 className="display-head hyphens-none mb-8 max-w-full text-ink text-[clamp(1.7rem,5.5vw+0.35rem,5rem)] leading-[1.08] sm:leading-[1.05] md:leading-none md:text-[clamp(2.4rem,6vw,5rem)]">
                 Sustentabilidade <em>medida</em>, não declarada.
               </h2>
-              <p className="mb-10 max-w-full text-[1.0625rem] font-light leading-[1.75] text-ink/70 md:max-w-md">
+              <p className="mb-10 max-w-full text-[1.0625rem] font-light leading-[1.75] text-ink/70 md:max-w-xl lg:max-w-2xl">
                 Cada indicador foi acompanhado durante a operação da nossa
                 unidade em Manaus. Acreditamos que sustentabilidade só faz sentido
                 se puder ser auditada.
@@ -103,7 +103,7 @@ export function ImpactSection() {
               <h2 className="display-head hyphens-none mb-8 max-w-full text-ink text-[clamp(1.7rem,5.5vw+0.35rem,5rem)] leading-[1.08] sm:leading-[1.05] md:leading-none md:text-[clamp(2.4rem,6vw,5rem)]">
                 Sustentabilidade <em>medida</em>, não declarada.
               </h2>
-              <p className="mb-10 max-w-full text-[1.0625rem] font-light leading-[1.75] text-ink/70 md:max-w-md">
+              <p className="mb-10 max-w-full text-[1.0625rem] font-light leading-[1.75] text-ink/70 md:max-w-xl lg:max-w-2xl">
                 Cada indicador foi acompanhado durante a operação da nossa
                 unidade em Manaus. Acreditamos que sustentabilidade só faz sentido
                 se puder ser auditada.

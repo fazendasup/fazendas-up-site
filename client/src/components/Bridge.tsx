@@ -89,7 +89,7 @@ export function Bridge() {
           )}
         </div>
 
-        <div className="max-w-full min-w-0 md:max-w-5xl">
+        <div className="max-w-full min-w-0">
           <p className="display-head hyphens-none max-w-full text-[clamp(1.75rem,5.2vw+0.25rem,4.4rem)] leading-[1.12] md:leading-[1.1] flex flex-wrap gap-x-3 gap-y-1">
             {phrase.map((w, i) =>
               desktopLg ? (
