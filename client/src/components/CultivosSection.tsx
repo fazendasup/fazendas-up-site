@@ -36,7 +36,7 @@ const cultivos = [
   },
   {
     n: "02",
-    name: "Hortalicas folhosas",
+    name: "Hortaliças folhosas",
     subtitle: "Produção ativa",
     image: getSiteImage("cultivosSalanova"),
     body: "Produzimos hortaliças folhosas para consumo diário, com manejo controlado e padrão consistente para canais de consumo e venda.",

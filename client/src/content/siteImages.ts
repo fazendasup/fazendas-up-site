@@ -26,7 +26,7 @@ const fallbackImages: Record<SiteImageKey, string> = {
   technologyStep2: "/uploads/IMG_0073.jpg",
   technologyStep3: "/uploads/IMG_6915.jpg",
   technologyStep4: "/uploads/DSC_9912.jpg",
-  /* Cultivos: chaves herdadas do código — salanova = hortalicas folhosas; flores = saladas prontas */
+  /* Cultivos: chaves herdadas do código — salanova = hortaliças folhosas; flores = saladas prontas */
   cultivosMicroverdes: "/uploads/DSC_7134.jpg",
   /** Cap. Produtos — Nº02 Hortaliças folhosas */
   cultivosSalanova: "/uploads/IMG_7964.jpg",
