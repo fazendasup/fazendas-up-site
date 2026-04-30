@@ -52,10 +52,8 @@ export function ManifestoSection() {
     target: ref,
     offset: ["start end", "end start"],
   });
-  /** Entrada já em escala 1 (sem “caixa” no meio); leve zoom só no fim do pin. */
+  /** Zoom muito leve no pin; sem translateY — o parallax vertical fazia o conteúdo seguinte “passar por detrás” da foto. */
   const imgScale = useTransform(scrollYProgress, [0, 0.55, 1], [1, 1.03, 1.05]);
-  /** Parallax vertical só na foto principal; a camada das torres fica fixa (evita “subir” estranho e faixa no topo). */
-  const imgY = useTransform(scrollYProgress, [0, 1], ["4%", "-12%"]);
   const [trackImgFailed, setTrackImgFailed] = useState(false);
   const trackSrc = getSiteImage("manifestoTrack");
   const stickyKind = manifestoStickyKind(manifestoSrc);
@@ -112,7 +110,7 @@ export function ManifestoSection() {
       </div>
 
       {desktopLg ? (
-        <div className="relative w-full min-w-0 max-w-full overflow-x-visible overflow-y-visible">
+        <div className="relative z-0 w-full min-w-0 max-w-full overflow-x-visible overflow-y-visible">
           <div className="relative mx-auto mb-24 max-w-full min-w-0 h-[160vh] md:h-[170vh]">
             {/**
              * Camada das torres: começa abaixo do `sticky top-14/md:top-24` — evita faixa visível entre
@@ -148,9 +146,9 @@ export function ManifestoSection() {
               <motion.img
                 src={manifestoSrc}
                 alt={stickyAlt}
-                style={{ scale: imgScale, y: imgY }}
+                style={{ scale: imgScale }}
                 className={cn(
-                  "absolute inset-0 z-[1] h-full min-h-full w-full max-w-full object-cover will-change-transform md:h-[125%]",
+                  "absolute inset-0 z-[1] h-full min-h-full w-full max-w-full object-cover will-change-transform",
                   stickyKind === "aerial"
                     ? "object-[48%_36%] brightness-[1.04] contrast-[1.06] saturate-[1.12] [transform-origin:50%_40%]"
                     : "object-center brightness-[1.12] contrast-[1.05] [transform-origin:50%_50%]"
@@ -315,7 +313,12 @@ export function ManifestoSection() {
         </div>
       )}
 
-      <div className="container min-w-0">
+      {/**
+       * z-10 + fundo: o bloco sticky da foto fica numa camada composta; sem isto, Missão/Visão/Valores
+       * pareciam subir “por detrás” da Amazónia ao scroll.
+       */}
+      <div className="relative z-10 min-w-0 bg-forest-dark pt-10 md:pt-14">
+        <div className="container min-w-0">
         {/* Pillars */}
         <div className="grid w-full min-w-0 max-w-full grid-cols-1 gap-x-4 gap-y-12 sm:gap-x-8 md:grid-cols-12 md:gap-x-10 md:gap-y-14 lg:px-[5%] [&>*]:min-w-0">
           {pillars.map((p, i) => {
@@ -353,6 +356,7 @@ export function ManifestoSection() {
               </div>
             );
           })}
+        </div>
         </div>
       </div>
     </section>
