@@ -10,17 +10,17 @@ import { motionEnterFromBelow } from "@/lib/motionEntrance";
 
 const stats = [
   {
-    value: "−95%",
+    value: "-95%",
     label: "Consumo de água",
     body: "A hidroponia recirculante reaproveita praticamente toda a água do sistema.",
   },
   {
-    value: "−80%",
+    value: "-80%",
     label: "Pegada de carbono",
     body: "Cultivar próximo ao consumidor encurta a cadeia entre quem planta e quem come.",
   },
   {
-    value: "−40%",
+    value: "-40%",
     label: "Uso de fertilizantes",
     body: "Aplicamos exatamente o que cada cultura precisa, sem excesso.",
   },
@@ -117,27 +117,21 @@ export function ImpactSection() {
           {/* Cards column */}
           <div className="relative z-0 col-span-12 flex min-w-0 max-w-full flex-col overflow-x-visible overflow-y-visible perspective-none lg:[perspective:1400px] lg:col-span-7 [&>*]:min-w-0">
             {stats.map((s, i) => {
-              const rowClass = `relative grid w-full min-w-0 max-w-full grid-cols-1 gap-y-5 overflow-x-visible py-7 lg:grid-cols-12 lg:gap-x-6 lg:gap-y-6 md:py-8 lg:items-start [&>*]:min-w-0 ${
+              const rowClass = `fu-impact-stat-row relative grid w-full min-w-0 max-w-full grid-cols-1 gap-y-5 overflow-x-visible py-7 lg:grid-cols-12 lg:gap-x-6 lg:gap-y-6 md:py-8 lg:items-start [&>*]:min-w-0 ${
                 i !== stats.length - 1 ? "border-b border-ink/15" : ""
               }`;
               const inner = (
                 <>
                   {/**
-                   * Mobile (Safari): métrica ao lado do índice ainda estourava min-content → `%`/`×` cortados pela #root.
-                   * Coluna estrita: índice → título → métrica em linha própria `w-full` (sem display-head global).
+                   * Mobile: tipografia só em Tailwind não bastava — Safari pintava `%`/`×` fora da caixa com `#root { overflow-x: hidden }`.
+                   * Tamanho via CSS `min(vw, rem)` + classe dedicada em index.css (`fu-impact-stat-value`).
                    */}
-                  <div className="flex w-full min-w-0 max-w-full flex-col gap-3 lg:hidden">
+                  <div className="fu-impact-mobile-stack flex w-full min-w-0 max-w-full flex-col gap-3 lg:hidden">
                     <span className="font-display text-[0.95rem] italic text-muted-foreground tabular-nums">
                       /0{i + 1}
                     </span>
                     <h3 className="mb-0 min-w-0 text-[1.05rem] font-medium text-ink">{s.label}</h3>
-                    <div
-                      className={`box-border w-full min-w-0 max-w-full text-end font-sans font-medium tabular-nums leading-none tracking-[-0.03em] text-ink break-normal [overflow-wrap:normal] ${
-                        s.value === "0"
-                          ? "text-[clamp(1rem,calc(0.28rem+3.6vw),1.42rem)]"
-                          : "text-[clamp(1rem,calc(0.32rem+3.85vw),1.52rem)]"
-                      }`}
-                    >
+                    <div className={`fu-impact-stat-value ${s.value === "0" ? "fu-impact-stat-value--zero" : ""}`}>
                       {s.value}
                     </div>
                     <p className="min-w-0 max-w-full pb-0.5 text-[0.95rem] font-light leading-[1.75] text-ink/65 md:leading-[1.65] md:pb-0">

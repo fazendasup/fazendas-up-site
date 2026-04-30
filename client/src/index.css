@@ -474,6 +474,50 @@
   }
 
   /**
+   * Impacto (<lg): métricas grandes cortadas à direita — combinação de overshoot tipográfico + `#root { overflow-x: hidden }`.
+   * Solução estável: `font-size: min(vw, rem)` + caixas `min-width:0` + clip só dentro desta secção (sem tocar no Hero sticky).
+   */
+  section#impacto {
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
+  section#impacto article.fu-impact-stat-row {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  section#impacto .fu-impact-mobile-stack {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  section#impacto .fu-impact-stat-value {
+    display: block;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.045em;
+    line-height: 1;
+    text-align: right;
+    white-space: nowrap;
+    color: var(--ink);
+    font-size: min(6.25vw + 0.2rem, 1.42rem);
+  }
+
+  section#impacto .fu-impact-stat-value--zero {
+    font-size: min(5.85vw + 0.25rem, 1.38rem);
+  }
+
+  /**
    * Mobile (Chrome Android + Safari): `overflow-x: hidden` em html *e* body *e* #root empilha
    * caixas de clip com sticky/fixed e o recorte parece assimétrico. Um único clip no #root.
    */
