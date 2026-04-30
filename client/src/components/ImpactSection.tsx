@@ -123,27 +123,23 @@ export function ImpactSection() {
               const inner = (
                 <>
                   {/**
-                   * Mobile: nunca `shrink-0` + métrica grande na mesma linha que blocos longos —
-                   * o min-content ultrapassa o viewport e o `%` / `×` cortam com overflow-x na raiz.
-                   * Linha 1: índice + valor (valor em faixa flexível, tipografia com teto menor).
-                   * Depois título e texto.
+                   * Mobile (Safari): métrica ao lado do índice ainda estourava min-content → `%`/`×` cortados pela #root.
+                   * Coluna estrita: índice → título → métrica em linha própria `w-full` (sem display-head global).
                    */}
                   <div className="flex w-full min-w-0 max-w-full flex-col gap-3 lg:hidden">
-                    <div className="flex min-w-0 max-w-full flex-row items-baseline justify-between gap-3">
-                      <span className="shrink-0 font-display text-[0.95rem] italic text-muted-foreground tabular-nums">
-                        /0{i + 1}
-                      </span>
-                      <div
-                        className={`display-head min-w-0 flex-1 text-end leading-none tracking-normal tabular-nums text-ink break-normal [overflow-wrap:normal] ${
-                          s.value === "0"
-                            ? "text-[clamp(1.25rem,6.5vw+0.35rem,1.85rem)]"
-                            : "text-[clamp(1.25rem,6.5vw+0.35rem,1.9rem)]"
-                        }`}
-                      >
-                        {s.value}
-                      </div>
-                    </div>
+                    <span className="font-display text-[0.95rem] italic text-muted-foreground tabular-nums">
+                      /0{i + 1}
+                    </span>
                     <h3 className="mb-0 min-w-0 text-[1.05rem] font-medium text-ink">{s.label}</h3>
+                    <div
+                      className={`box-border w-full min-w-0 max-w-full text-end font-sans font-medium tabular-nums leading-none tracking-[-0.03em] text-ink break-normal [overflow-wrap:normal] ${
+                        s.value === "0"
+                          ? "text-[clamp(1rem,calc(0.28rem+3.6vw),1.42rem)]"
+                          : "text-[clamp(1rem,calc(0.32rem+3.85vw),1.52rem)]"
+                      }`}
+                    >
+                      {s.value}
+                    </div>
                     <p className="min-w-0 max-w-full pb-0.5 text-[0.95rem] font-light leading-[1.75] text-ink/65 md:leading-[1.65] md:pb-0">
                       {s.body}
                     </p>
