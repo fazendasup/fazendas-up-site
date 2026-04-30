@@ -1,6 +1,6 @@
 /**
- * Manifesto / Sobre — Hero full-bleed: Amazónia e torres em coluna (sem sobreposição);
- * texto editorial no `.container`; pilares abaixo.
+ * Manifesto / Sobre — Duas faixas full-bleed em coluna (Amazónia → torres), cada uma com o mesmo degradê + legenda;
+ * sem sobrepor torres por detrás da Amazónia.
  */
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -18,6 +18,13 @@ function manifestoStickyKind(src: string): "aerial" | "farm" {
   return "aerial";
 }
 
+function manifestoPhotoGradientOverlay(kind: "aerial" | "farm") {
+  return cn(
+    "pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t to-transparent",
+    kind === "aerial" ? "from-forest-dark/80 via-forest-dark/15" : "from-forest-dark/55 via-forest-dark/12"
+  );
+}
+
 const manifestoImageFallbacks = [
   "/uploads/amazonia_aerea_dark.png",
   "/uploads/amazonia_aerea_dark.webp",
@@ -32,6 +39,11 @@ const manifestoTrackFallbacks = [
   "/uploads/IMG_0073.jpg",
   "/uploads/DSC_0229.jpg",
 ];
+
+/** Legenda sobre as torres — mesmo degradê + hierarquia tipográfica da faixa da Amazónia (bloco seguinte, não fundo). */
+const towerStripCaption =
+  "Cada nível das nossas torres é um laboratório vivo: clima, nutrientes e colheita guiados por dados, da semente à expedição.";
+const towerStripChip = "Cultivo vertical · Manaus / AM";
 
 const pillars = [
   {
@@ -132,7 +144,7 @@ export function ManifestoSection() {
             <div
               className={cn(
                 "relative w-full max-w-full overflow-hidden bg-forest-dark",
-                "min-h-[min(52vh,560px)] h-[52vh] md:min-h-[520px] md:h-[min(58vh,640px)]"
+                "min-h-[min(58vh,620px)] h-[58vh] md:min-h-[560px] md:h-[min(66vh,720px)]"
               )}
             >
               <img
@@ -153,14 +165,7 @@ export function ManifestoSection() {
                   });
                 }}
               />
-              <div
-                className={cn(
-                  "pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t to-transparent",
-                  stickyKind === "aerial"
-                    ? "from-forest-dark/80 via-forest-dark/15"
-                    : "from-forest-dark/55 via-forest-dark/12"
-                )}
-              />
+              <div className={manifestoPhotoGradientOverlay(stickyKind)} />
               <div className="absolute inset-x-0 bottom-0 z-[3] px-6 pb-14 pt-24 md:px-10 md:pb-16 md:pt-28">
                 <div className="container flex min-w-0 max-w-full flex-col gap-5 sm:flex-row sm:items-end sm:gap-10">
                   <p className="max-w-full min-w-0 flex-1 text-paper text-[1.14rem] font-light leading-[1.7] md:max-w-3xl md:text-[1.3rem] md:leading-[1.72]">
@@ -175,17 +180,28 @@ export function ManifestoSection() {
             </div>
             {/* Torres — bloco separado por baixo, mesma largura. */}
             {showTrackLayer && (
-              <div className="relative w-full max-w-full overflow-hidden bg-forest-dark min-h-[220px] h-[min(32vh,400px)] md:min-h-[280px] md:h-[min(38vh,480px)]">
+              <div className="relative w-full max-w-full overflow-hidden bg-forest-dark min-h-[280px] h-[min(40vh,520px)] md:min-h-[320px] md:h-[min(46vh,580px)]">
                 <img
                   src={trackChain[trackTry]}
                   alt="Cultivo vertical na unidade Fazendas Up, Manaus"
-                  className="absolute inset-0 z-0 h-full w-full object-cover object-center brightness-[1.02] contrast-[1.04]"
+                  className="absolute inset-0 z-[1] h-full w-full object-cover object-center brightness-[1.02] contrast-[1.04]"
                   decoding="async"
                   loading="eager"
                   onError={() =>
                     setTrackTry((t) => (t < trackChain.length - 1 ? t + 1 : trackChain.length))
                   }
                 />
+                <div className={manifestoPhotoGradientOverlay(stickyKind)} />
+                <div className="absolute inset-x-0 bottom-0 z-[3] px-6 pb-14 pt-24 md:px-10 md:pb-16 md:pt-28">
+                  <div className="container flex min-w-0 max-w-full flex-col gap-5 sm:flex-row sm:items-end sm:gap-10">
+                    <p className="max-w-full min-w-0 flex-1 text-paper text-[1.14rem] font-light leading-[1.7] md:max-w-3xl md:text-[1.3rem] md:leading-[1.72]">
+                      {towerStripCaption}
+                    </p>
+                    <span className="min-w-0 max-w-full shrink-0 text-paper/75 text-[0.74rem] uppercase tracking-[0.22em] sm:max-w-[min(100%,15rem)] sm:text-right sm:text-[0.88rem] sm:tracking-[0.26em]">
+                      {towerStripChip}
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -259,27 +275,31 @@ export function ManifestoSection() {
                   });
                 }}
               />
-              <div
-                className={cn(
-                  "pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t to-transparent",
-                  stickyKind === "aerial"
-                    ? "from-forest-dark/80 via-forest-dark/15"
-                    : "from-forest-dark/55 via-forest-dark/12"
-                )}
-              />
+              <div className={manifestoPhotoGradientOverlay(stickyKind)} />
             </div>
             {showTrackLayer && (
-              <div className="relative aspect-[16/11] w-full min-h-[200px] overflow-hidden border-t border-paper/10 sm:aspect-[16/10] sm:min-h-[220px]">
+              <div className="relative aspect-[16/10] w-full min-h-[240px] overflow-hidden border-t border-paper/10 sm:aspect-[16/9] sm:min-h-[260px]">
                 <img
                   src={trackChain[trackTry]}
                   alt="Cultivo vertical na unidade Fazendas Up, Manaus"
-                  className="absolute inset-0 h-full w-full object-cover object-center brightness-[1.02] contrast-[1.04]"
+                  className="absolute inset-0 z-[1] h-full w-full object-cover object-center brightness-[1.02] contrast-[1.04]"
                   decoding="async"
                   loading="eager"
                   onError={() =>
                     setTrackTry((t) => (t < trackChain.length - 1 ? t + 1 : trackChain.length))
                   }
                 />
+                <div className={manifestoPhotoGradientOverlay(stickyKind)} />
+                <div className="absolute inset-x-0 bottom-0 z-[3] px-5 pb-10 pt-16 sm:px-6 sm:pb-11 sm:pt-20">
+                  <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end sm:gap-6">
+                    <p className="min-w-0 flex-1 text-paper text-[1.05rem] font-light leading-[1.68] sm:text-[1.1rem] sm:leading-[1.7]">
+                      {towerStripCaption}
+                    </p>
+                    <span className="min-w-0 shrink-0 text-paper/75 text-[0.68rem] uppercase tracking-[0.22em] sm:text-[0.74rem]">
+                      {towerStripChip}
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
           </div>
