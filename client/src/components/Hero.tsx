@@ -25,14 +25,13 @@ export function Hero() {
     <section
       id="top"
       ref={ref}
-      className="relative z-20 isolate w-full max-w-full min-w-0 overflow-x-visible bg-gradient-to-b from-forest-dark via-ink to-ink text-paper min-h-[100svh] max-lg:overflow-y-visible lg:h-[100svh] lg:overflow-y-hidden"
+      className="relative z-20 isolate w-full max-w-full min-w-0 overflow-x-visible bg-gradient-to-b from-forest-dark via-ink to-ink text-paper min-h-[100svh] max-lg:min-h-[min(64svh,560px)] max-lg:overflow-y-visible lg:h-[100svh] lg:overflow-y-hidden"
     >
       {/**
-       * Mobile: sem `overflow-y-hidden` nem altura fixa — headline + safe-area + PT do header
-       * podem exceder 100svh; cortar aqui parecia “texto/botões cortados” em qualquer browser.
-       * Desktop: mantém o palco cinematográfico 100svh com crop controlado.
+       * Mobile: altura mais baixa que 100svh + texto alinhado ao topo para não ficar metade do ecrã “vazio”.
+       * Desktop: palco 100svh, headline junto à base (justify-end).
        */}
-      <div className="sticky top-0 z-0 min-h-[100svh] overflow-x-visible max-lg:h-auto max-lg:overflow-y-visible lg:h-[100svh] lg:overflow-y-hidden">
+      <div className="sticky top-0 z-0 min-h-[100svh] overflow-x-visible max-lg:min-h-[min(64svh,560px)] max-lg:h-auto max-lg:overflow-y-visible lg:h-[100svh] lg:overflow-y-hidden">
         {imageFailed && (
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(230,31,147,0.12),transparent_45%),radial-gradient(circle_at_80%_30%,rgba(75,0,79,0.35),transparent_42%),linear-gradient(180deg,#1a0a1c_0%,#110d11_100%)]" />
         )}
@@ -88,7 +87,7 @@ export function Hero() {
           </div>
         )}
 
-        <div className="relative container flex h-full min-w-0 flex-col justify-end pt-24 pb-[max(10.5rem,15svh)] md:pb-[max(12rem,16svh)] lg:pb-52">
+        <div className="relative container flex h-full min-w-0 flex-col max-lg:justify-start max-lg:pt-[calc(5.5rem+env(safe-area-inset-top,0px))] max-lg:pb-12 lg:justify-end lg:pt-24 lg:pb-52">
           <div className="grid min-w-0 grid-cols-1 items-end gap-8 lg:grid-cols-12 [&>*]:min-w-0">
             <div className="col-span-full min-w-0 lg:col-span-9 reveal">
               <p className="eyebrow text-on-plum-strong mb-7 inline-flex max-w-full flex-wrap items-center gap-3">
