@@ -194,10 +194,10 @@ export function TechnologySection() {
                       alt={current.title}
                       className={
                         activeStep === 0
-                          ? "absolute inset-0 h-full w-full max-h-none max-w-none object-cover object-[50%_10%] md:object-[50%_6%]"
+                          ? "absolute inset-0 h-full w-full max-h-none max-w-full object-cover object-[50%_10%] md:object-[50%_6%]"
                           : activeStep === 1
-                            ? "absolute inset-0 h-full w-full max-h-none max-w-none object-cover object-[50%_58%] md:object-center"
-                            : "absolute inset-0 h-full w-full max-h-none max-w-none object-cover"
+                            ? "absolute inset-0 h-full w-full max-h-none max-w-full object-cover object-[50%_58%] md:object-center"
+                            : "absolute inset-0 h-full w-full max-h-none max-w-full object-cover"
                       }
                       onError={(e) => {
                         const el = e.currentTarget;
@@ -216,10 +216,10 @@ export function TechnologySection() {
                     alt={current.title}
                     className={
                       activeStep === 0
-                        ? "absolute inset-0 h-full w-full max-h-none max-w-none object-cover object-[50%_10%] md:object-[50%_6%]"
+                        ? "absolute inset-0 h-full w-full max-h-none max-w-full object-cover object-[50%_10%] md:object-[50%_6%]"
                         : activeStep === 1
-                          ? "absolute inset-0 h-full w-full max-h-none max-w-none object-cover object-[50%_58%] md:object-center"
-                          : "absolute inset-0 h-full w-full max-h-none max-w-none object-cover"
+                          ? "absolute inset-0 h-full w-full max-h-none max-w-full object-cover object-[50%_58%] md:object-center"
+                          : "absolute inset-0 h-full w-full max-h-none max-w-full object-cover"
                     }
                     onError={(e) => {
                       const el = e.currentTarget;

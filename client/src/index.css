@@ -459,6 +459,11 @@
     box-sizing: border-box;
   }
 
+  /** Imagens editoriais: largura intrínseca alta + max-w-none já causou ΔscrollWidth em mobile. */
+  .copy-flow img {
+    max-width: 100%;
+  }
+
   /**
    * Mobile (Chrome Android + Safari): `overflow-x: hidden` em html *e* body *e* #root empilha
    * caixas de clip com sticky/fixed e o recorte parece assimétrico. Um único clip no #root.

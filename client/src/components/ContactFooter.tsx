@@ -98,7 +98,7 @@ export function ContactFooter() {
                       href={c.href}
                       target="_blank"
                       rel="noreferrer"
-                      className="group flex min-w-0 items-start justify-between gap-3 py-5 transition-all hover:px-1 sm:hover:px-2"
+                      className="group flex min-w-0 items-start justify-between gap-3 py-5 transition-colors"
                     >
                       <div className="min-w-0 flex-1">
                         <div className="mb-1.5 text-[0.7rem] tracking-[0.12em] text-on-plum-muted uppercase">

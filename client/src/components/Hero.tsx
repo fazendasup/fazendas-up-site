@@ -46,7 +46,7 @@ export function Hero() {
               <img
                 src={getSiteImage("hero")}
                 alt="Operação e cultivo vertical da Fazendas Up em Manaus, Amazonas"
-                className="h-full w-full max-w-none object-cover object-center"
+                className="h-full w-full max-w-full object-cover object-center"
                 decoding="async"
                 fetchPriority="high"
                 onError={() => setImageFailed(true)}
@@ -57,7 +57,7 @@ export function Hero() {
               <img
                 src={getSiteImage("hero")}
                 alt="Operação e cultivo vertical da Fazendas Up em Manaus, Amazonas"
-                className="h-full w-full max-w-none object-cover object-center"
+                className="h-full w-full max-w-full object-cover object-center"
                 decoding="async"
                 fetchPriority="high"
                 onError={() => setImageFailed(true)}

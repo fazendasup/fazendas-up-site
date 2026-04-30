@@ -147,7 +147,7 @@ export function ManifestoSection() {
                 alt={stickyAlt}
                 style={{ scale: imgScale, y: imgY }}
                 className={cn(
-                  "absolute inset-0 z-[1] h-full min-h-full w-full max-w-none object-cover will-change-transform md:h-[125%]",
+                  "absolute inset-0 z-[1] h-full min-h-full w-full max-w-full object-cover will-change-transform md:h-[125%]",
                   stickyKind === "aerial"
                     ? "object-[48%_36%] brightness-[1.04] contrast-[1.06] saturate-[1.12] [transform-origin:50%_40%]"
                     : "object-center brightness-[1.12] contrast-[1.05] [transform-origin:50%_50%]"
