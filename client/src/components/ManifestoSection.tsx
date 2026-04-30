@@ -54,8 +54,8 @@ export function ManifestoSection() {
   });
   /** Entrada já em escala 1 (sem “caixa” no meio); leve zoom só no fim do pin. */
   const imgScale = useTransform(scrollYProgress, [0, 0.55, 1], [1, 1.03, 1.05]);
+  /** Parallax vertical só na foto principal; a camada das torres fica fixa (evita “subir” estranho e faixa no topo). */
   const imgY = useTransform(scrollYProgress, [0, 1], ["4%", "-12%"]);
-  const trackY = useTransform(scrollYProgress, [0, 1], ["2%", "-6%"]);
   const [trackImgFailed, setTrackImgFailed] = useState(false);
   const trackSrc = getSiteImage("manifestoTrack");
   const stickyKind = manifestoStickyKind(manifestoSrc);
@@ -114,8 +114,12 @@ export function ManifestoSection() {
       {desktopLg ? (
         <div className="relative w-full min-w-0 max-w-full overflow-x-visible overflow-y-visible">
           <div className="relative mx-auto mb-24 max-w-full min-w-0 h-[160vh] md:h-[170vh]">
+            {/**
+             * Camada das torres: começa abaixo do `sticky top-14/md:top-24` — evita faixa visível entre
+             * cabeçalho e floresta e elimina parallax na pista (antes “subia” com o scroll).
+             */}
             <div
-              className="pointer-events-none absolute inset-0 z-0 overflow-hidden bg-forest-dark"
+              className="pointer-events-none absolute inset-x-0 top-14 bottom-0 z-0 overflow-hidden bg-forest-dark md:top-24"
               aria-hidden
             >
               {!trackImgFailed && (
@@ -128,11 +132,10 @@ export function ManifestoSection() {
                     loading="eager"
                     onError={() => setTrackImgFailed(true)}
                   />
-                  <motion.img
+                  <img
                     src={trackSrc}
                     alt=""
-                    style={{ y: trackY }}
-                    className="absolute inset-0 hidden h-full w-full min-h-full object-cover object-[50%_45%] opacity-[0.92] will-change-transform brightness-[0.98] contrast-[1.04] md:block"
+                    className="absolute inset-0 hidden h-full w-full min-h-full object-cover object-[50%_45%] opacity-[0.92] brightness-[0.98] contrast-[1.04] md:block"
                     decoding="async"
                     onError={() => setTrackImgFailed(true)}
                   />
@@ -184,12 +187,12 @@ export function ManifestoSection() {
 
             <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[4] pb-2 pt-[94svh] md:pt-[82vh]">
               <div className="container min-w-0">
-                <div className="grid min-w-0 grid-cols-1 gap-8 rounded-sm bg-forest-dark/45 px-4 py-4 lg:grid-cols-12 [&>*]:min-w-0 md:bg-transparent md:px-0 md:py-0">
+                <div className="grid min-w-0 grid-cols-1 gap-8 gap-y-10 rounded-sm bg-forest-dark/45 px-4 py-4 lg:grid-cols-12 lg:gap-x-12 lg:gap-y-0 [&>*]:min-w-0 md:bg-transparent md:px-0 md:py-0">
                   <motion.div
                     {...motionEnterFromBelow()}
                     viewport={{ once: true, margin: "-10% 0px" }}
                     transition={{ duration: 0.9 }}
-                    className="pointer-events-auto col-span-full min-w-0 lg:col-span-5 lg:col-start-2"
+                    className="pointer-events-auto col-span-full min-w-0 max-w-full lg:col-span-5 lg:col-start-2"
                   >
                     <p className="eyebrow mb-4 inline-flex max-w-full flex-wrap items-center gap-3 text-paper/80">
                       <span className="h-px w-9 shrink-0 bg-paper/70" />
@@ -204,7 +207,7 @@ export function ManifestoSection() {
                     {...motionEnterFromBelow()}
                     viewport={{ once: true, margin: "-10% 0px" }}
                     transition={{ duration: 0.9, delay: 0.15 }}
-                    className="pointer-events-auto col-span-full min-w-0 lg:col-span-4 lg:col-start-8"
+                    className="pointer-events-auto col-span-full min-w-0 max-w-full lg:col-span-4 lg:col-start-8"
                   >
                     <ul className="space-y-3 text-[0.98rem] font-normal text-paper/92">
                       <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3">
@@ -228,17 +231,32 @@ export function ManifestoSection() {
         </div>
       ) : (
         <div className="container min-w-0 pb-16">
+          {/**
+           * Mesma leitura visual que no desktop: pista das torres por baixo + foto principal por cima.
+           * Antes só existia `manifestoSrc` no &lt;lg, por isso as torres “sumiam” no telemóvel.
+           */}
           <div
             className={cn(
               "relative mb-10 w-full max-w-full overflow-hidden rounded-sm bg-forest-dark",
               "aspect-[4/5] sm:aspect-[5/6]"
             )}
           >
+            {!trackImgFailed && (
+              <img
+                src={trackSrc}
+                alt=""
+                aria-hidden
+                className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover object-[50%_52%] opacity-[0.92] brightness-[0.98] contrast-[1.04]"
+                decoding="async"
+                loading="eager"
+                onError={() => setTrackImgFailed(true)}
+              />
+            )}
             <img
               src={manifestoSrc}
               alt={stickyAlt}
               className={cn(
-                "h-full w-full object-cover",
+                "absolute inset-0 z-[1] h-full w-full object-cover",
                 stickyKind === "aerial"
                   ? "object-[48%_36%] brightness-[1.04] contrast-[1.06] saturate-[1.12]"
                   : "object-center brightness-[1.12] contrast-[1.05]"
@@ -254,7 +272,7 @@ export function ManifestoSection() {
             />
             <div
               className={cn(
-                "pointer-events-none absolute inset-0 bg-gradient-to-t to-transparent",
+                "pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t to-transparent",
                 stickyKind === "aerial"
                   ? "from-forest-dark/80 via-forest-dark/15"
                   : "from-forest-dark/55 via-forest-dark/12"
