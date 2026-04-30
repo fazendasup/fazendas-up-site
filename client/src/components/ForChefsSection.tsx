@@ -34,9 +34,8 @@ export function ForChefsSection() {
     target: ref,
     offset: ["start end", "end start"],
   });
-  const imgY = useTransform(scrollYProgress, [0, 1], ["2%", "-18%"]);
-  /** Parallax suave — escala alta em mobile corta a foto nas bordas (object-cover + overflow). */
-  const imgScale = useTransform(scrollYProgress, [0, 0.5, 1], [1.07, 1.04, 1]);
+  /** Sem translateY no desktop: empurra o clip do overflow e aparece faixa acinzentada por baixo da foto. */
+  const imgScale = useTransform(scrollYProgress, [0, 0.5, 1], [1.04, 1.02, 1]);
   const vignette = useTransform(scrollYProgress, [0, 0.45, 1], [0.18, 0.28, 0.38]);
 
   return (
@@ -55,16 +54,16 @@ export function ForChefsSection() {
         <div className="grid grid-cols-12 items-stretch gap-10 lg:gap-14 [&>*]:min-w-0">
           {/* Image with parallax */}
           <div className="relative col-span-12 min-w-0 lg:col-span-5 lg:min-h-0">
-            <div className="relative aspect-[4/5] w-full max-w-full overflow-hidden rounded-sm bg-ink/35 lg:aspect-auto lg:h-full">
+            <div className="relative aspect-[4/5] w-full max-w-full overflow-hidden rounded-sm bg-secondary lg:aspect-auto lg:h-full lg:min-h-[min(100%,560px)]">
               {desktopLg ? (
                 <motion.div
-                  style={{ y: imgY, scale: imgScale }}
+                  style={{ scale: imgScale }}
                   className="absolute inset-0 min-h-0 min-w-0 overflow-hidden will-change-transform"
                 >
                   <img
                     src={getSiteImage("forChefs")}
                     alt="Prato com ingredientes frescos da Fazendas Up"
-                    className="absolute inset-0 h-full w-full max-w-none object-cover object-center md:h-[125%]"
+                    className="pointer-events-none absolute left-0 right-0 top-1/2 z-0 block h-[132%] w-full max-w-none -translate-y-1/2 object-cover object-center select-none"
                     onError={(e) => {
                       const el = e.currentTarget;
                       const step = el.getAttribute("data-for-chefs-fb");
@@ -84,7 +83,7 @@ export function ForChefsSection() {
                   <img
                     src={getSiteImage("forChefs")}
                     alt="Prato com ingredientes frescos da Fazendas Up"
-                    className="absolute inset-0 z-0 h-full w-full min-h-full min-w-full max-w-none scale-[1.002] object-cover object-center"
+                    className="pointer-events-none absolute left-0 right-0 top-1/2 z-0 block h-[132%] w-full max-w-none -translate-y-1/2 object-cover object-center select-none"
                     onError={(e) => {
                       const el = e.currentTarget;
                       const step = el.getAttribute("data-for-chefs-fb");
