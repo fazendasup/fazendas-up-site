@@ -145,7 +145,7 @@ function CultivosSpreadRow({
                     key={c.image}
                     src={c.image}
                     alt={c.name}
-                    className="pointer-events-none absolute left-0 right-0 top-1/2 z-0 block h-[132%] w-full max-w-none -translate-y-1/2 object-cover object-center select-none"
+                    className="pointer-events-none absolute inset-0 z-0 block h-full w-full object-cover object-center select-none"
                     onError={(e) => {
                       const el = e.currentTarget;
                       const chain = cultivosImageFallbackChain[i] ?? [];

@@ -74,7 +74,7 @@ export function ForChefsSection() {
             <img
               src={getSiteImage("forChefs")}
               alt="Prato com ingredientes frescos da Fazendas Up"
-              className="pointer-events-none absolute left-0 right-0 top-1/2 z-0 block h-[132%] w-full max-w-none -translate-y-1/2 object-cover object-center select-none"
+              className="pointer-events-none absolute inset-0 z-0 block h-full w-full object-cover object-center select-none"
               onError={chefsPhotoOnError}
             />
           </div>
