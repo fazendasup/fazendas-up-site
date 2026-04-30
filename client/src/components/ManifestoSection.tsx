@@ -111,38 +111,37 @@ export function ManifestoSection() {
         </div>
       </div>
 
-      {/* Sem w-screen/100vw: em mobile geram overflow horizontal (scrollbar) e texto parece cortado */}
-      <div className="relative w-full min-w-0 max-w-full overflow-x-visible overflow-y-visible">
-        <div className="relative mx-auto mb-24 max-w-full min-w-0 h-[160vh] md:h-[170vh]">
-          <div
-            className="pointer-events-none absolute inset-0 z-0 overflow-hidden bg-forest-dark"
-            aria-hidden
-          >
-            {!trackImgFailed && (
-              <>
-                <img
-                  src={trackSrc}
-                  alt=""
-                  className="absolute inset-0 h-full w-full min-h-full object-cover object-[50%_48%] opacity-[0.92] brightness-[0.98] contrast-[1.04] md:hidden"
-                  decoding="async"
-                  loading="eager"
-                  onError={() => setTrackImgFailed(true)}
-                />
-                <motion.img
-                  src={trackSrc}
-                  alt=""
-                  style={{ y: trackY }}
-                  className="absolute inset-0 h-full w-full min-h-full object-cover object-[50%_45%] opacity-[0.92] will-change-transform brightness-[0.98] contrast-[1.04] hidden md:block"
-                  decoding="async"
-                  onError={() => setTrackImgFailed(true)}
-                />
-              </>
-            )}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_100%_85%_at_50%_40%,oklch(0.22_0.05_300_/_0.28),transparent_70%)]" />
-            <div className="absolute inset-0 bg-gradient-to-b from-forest-dark/40 via-forest/20 to-forest-dark" />
-          </div>
-          <div className="sticky top-14 z-[1] h-[78vh] min-h-[560px] overflow-hidden md:top-24 md:h-[min(88vh,920px)] md:min-h-[72vh]">
-            {desktopLg ? (
+      {desktopLg ? (
+        <div className="relative w-full min-w-0 max-w-full overflow-x-visible overflow-y-visible">
+          <div className="relative mx-auto mb-24 max-w-full min-w-0 h-[160vh] md:h-[170vh]">
+            <div
+              className="pointer-events-none absolute inset-0 z-0 overflow-hidden bg-forest-dark"
+              aria-hidden
+            >
+              {!trackImgFailed && (
+                <>
+                  <img
+                    src={trackSrc}
+                    alt=""
+                    className="absolute inset-0 h-full w-full min-h-full object-cover object-[50%_48%] opacity-[0.92] brightness-[0.98] contrast-[1.04] md:hidden"
+                    decoding="async"
+                    loading="eager"
+                    onError={() => setTrackImgFailed(true)}
+                  />
+                  <motion.img
+                    src={trackSrc}
+                    alt=""
+                    style={{ y: trackY }}
+                    className="absolute inset-0 hidden h-full w-full min-h-full object-cover object-[50%_45%] opacity-[0.92] will-change-transform brightness-[0.98] contrast-[1.04] md:block"
+                    decoding="async"
+                    onError={() => setTrackImgFailed(true)}
+                  />
+                </>
+              )}
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_100%_85%_at_50%_40%,oklch(0.22_0.05_300_/_0.28),transparent_70%)]" />
+              <div className="absolute inset-0 bg-gradient-to-b from-forest-dark/40 via-forest/20 to-forest-dark" />
+            </div>
+            <div className="sticky top-14 z-[1] h-[78vh] min-h-[560px] overflow-hidden md:top-24 md:h-[min(88vh,920px)] md:min-h-[72vh]">
               <motion.img
                 src={manifestoSrc}
                 alt={stickyAlt}
@@ -162,95 +161,141 @@ export function ManifestoSection() {
                   });
                 }}
               />
-            ) : (
-              <img
-                src={manifestoSrc}
-                alt={stickyAlt}
+              <div
                 className={cn(
-                  "absolute inset-0 z-[1] h-full min-h-full w-full max-w-none object-cover md:h-[125%]",
+                  "pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t to-transparent",
                   stickyKind === "aerial"
-                    ? "object-[48%_36%] brightness-[1.04] contrast-[1.06] saturate-[1.12]"
-                    : "object-center brightness-[1.12] contrast-[1.05]"
+                    ? "from-forest-dark/80 via-forest-dark/15"
+                    : "from-forest-dark/55 via-forest-dark/12"
                 )}
-                decoding="async"
-                fetchPriority="high"
-                onError={() => {
-                  setManifestoIdx((i) => {
-                    const max = manifestoChain.length - 1;
-                    return i < max ? i + 1 : i;
-                  });
-                }}
               />
+              <div className="absolute inset-x-0 bottom-12 z-[3] px-5 md:bottom-8 md:px-8">
+                <div className="container flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end sm:gap-8">
+                  <p className="max-w-full min-w-0 flex-1 text-paper/85 text-[1.0625rem] font-light leading-[1.65] md:max-w-2xl">
+                    Acreditamos que produzir alimento na cidade, com tecnologia, eficiência e transparência, é uma das
+                    formas mais concretas de aliviar a pressão sobre biomas como a Amazônia.
+                  </p>
+                  <span className="min-w-0 max-w-full shrink-0 text-paper/55 text-[0.65rem] uppercase tracking-[0.2em] sm:max-w-[min(100%,14rem)] sm:text-right sm:text-[0.7rem] sm:tracking-[0.25em]">
+                    {locationChip}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[4] pb-2 pt-[94svh] md:pt-[82vh]">
+              <div className="container min-w-0">
+                <div className="grid min-w-0 grid-cols-12 gap-8 rounded-sm bg-forest-dark/45 px-4 py-4 [&>*]:min-w-0 md:bg-transparent md:px-0 md:py-0">
+                  <motion.div
+                    {...motionEnterFromBelow()}
+                    viewport={{ once: true, margin: "-10% 0px" }}
+                    transition={{ duration: 0.9 }}
+                    className="pointer-events-auto col-span-12 min-w-0 lg:col-span-5 lg:col-start-2"
+                  >
+                    <p className="eyebrow mb-4 inline-flex max-w-full flex-wrap items-center gap-3 text-paper/80">
+                      <span className="h-px w-9 shrink-0 bg-paper/70" />
+                      <span className="min-w-0">Por que cultivar verticalmente</span>
+                    </p>
+                    <p className="max-w-full min-w-0 text-paper text-[1.06rem] font-normal leading-[1.8]">
+                      Cada quilo produzido em ambiente urbano e controlado representa uma pequena área de floresta que
+                      não precisou ser derrubada. Esse é o nosso cálculo ético antes de qualquer cálculo econômico.
+                    </p>
+                  </motion.div>
+                  <motion.div
+                    {...motionEnterFromBelow()}
+                    viewport={{ once: true, margin: "-10% 0px" }}
+                    transition={{ duration: 0.9, delay: 0.15 }}
+                    className="pointer-events-auto col-span-12 min-w-0 lg:col-span-4 lg:col-start-8"
+                  >
+                    <ul className="space-y-3 text-[0.98rem] font-normal text-paper/92">
+                      <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3">
+                        <span className="font-display pt-0.5 text-[0.95rem] italic text-clay">01</span>
+                        <span className="min-w-0">Operamos em Manaus, no centro do bioma que protegemos.</span>
+                      </li>
+                      <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3">
+                        <span className="font-display pt-0.5 text-[0.95rem] italic text-clay">02</span>
+                        <span className="min-w-0">Cada lote tem rastreabilidade da semente à colheita.</span>
+                      </li>
+                      <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3">
+                        <span className="font-display pt-0.5 text-[0.95rem] italic text-clay">03</span>
+                        <span className="min-w-0">Aliamos técnica agrônoma a engenharia de dados.</span>
+                      </li>
+                    </ul>
+                  </motion.div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="container min-w-0 pb-16">
+          <div
+            className={cn(
+              "relative mb-10 w-full max-w-full overflow-hidden rounded-sm bg-forest-dark",
+              "aspect-[4/5] sm:aspect-[5/6]"
             )}
+          >
+            <img
+              src={manifestoSrc}
+              alt={stickyAlt}
+              className={cn(
+                "h-full w-full object-cover",
+                stickyKind === "aerial"
+                  ? "object-[48%_36%] brightness-[1.04] contrast-[1.06] saturate-[1.12]"
+                  : "object-center brightness-[1.12] contrast-[1.05]"
+              )}
+              decoding="async"
+              fetchPriority="high"
+              onError={() => {
+                setManifestoIdx((i) => {
+                  const max = manifestoChain.length - 1;
+                  return i < max ? i + 1 : i;
+                });
+              }}
+            />
             <div
               className={cn(
-                "absolute inset-0 z-[2] pointer-events-none bg-gradient-to-t to-transparent",
+                "pointer-events-none absolute inset-0 bg-gradient-to-t to-transparent",
                 stickyKind === "aerial"
                   ? "from-forest-dark/80 via-forest-dark/15"
                   : "from-forest-dark/55 via-forest-dark/12"
               )}
             />
-            <div className="absolute inset-x-0 bottom-12 z-[3] px-5 md:bottom-8 md:px-8">
-              <div className="container flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end sm:gap-8">
-              <p className="max-w-full min-w-0 flex-1 text-paper/85 text-[1.0625rem] font-light leading-[1.65] md:max-w-2xl">
-                Acreditamos que produzir alimento na cidade, com tecnologia,
-                eficiência e transparência, é uma das formas mais concretas de
-                aliviar a pressão sobre biomas como a Amazônia.
-              </p>
-              <span className="min-w-0 max-w-full shrink-0 text-paper/55 text-[0.65rem] uppercase tracking-[0.2em] sm:max-w-[min(100%,14rem)] sm:text-right sm:text-[0.7rem] sm:tracking-[0.25em]">
-                {locationChip}
-              </span>
-              </div>
-            </div>
           </div>
-
-          {/* Foreground copy above sticky stack */}
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[4] pb-2 pt-[94svh] md:pt-[82vh]">
-            <div className="container min-w-0">
-              <div className="grid min-w-0 grid-cols-12 gap-8 rounded-sm bg-forest-dark/45 px-4 py-4 [&>*]:min-w-0 md:bg-transparent md:px-0 md:py-0">
-              <motion.div
-                {...motionEnterFromBelow()}
-                viewport={{ once: true, margin: "-10% 0px" }}
-                transition={{ duration: 0.9 }}
-                className="col-span-12 min-w-0 pointer-events-auto lg:col-span-5 lg:col-start-2"
-              >
-                <p className="eyebrow text-paper/80 mb-4 inline-flex max-w-full flex-wrap items-center gap-3">
-                  <span className="h-px w-9 shrink-0 bg-paper/70" />
-                  <span className="min-w-0">Por que cultivar verticalmente</span>
-                </p>
-                <p className="max-w-full min-w-0 text-paper text-[1.06rem] font-normal leading-[1.8]">
-                  Cada quilo produzido em ambiente urbano e controlado
-                  representa uma pequena área de floresta que não precisou ser
-                  derrubada. Esse é o nosso cálculo ético antes de qualquer
-                  cálculo econômico.
-                </p>
-              </motion.div>
-              <motion.div
-                {...motionEnterFromBelow()}
-                viewport={{ once: true, margin: "-10% 0px" }}
-                transition={{ duration: 0.9, delay: 0.15 }}
-                className="col-span-12 min-w-0 pointer-events-auto lg:col-span-4 lg:col-start-8"
-              >
-                <ul className="space-y-3 text-paper/92 text-[0.98rem] font-normal">
-                  <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3">
-                    <span className="font-display pt-0.5 text-[0.95rem] italic text-clay">01</span>
-                    <span className="min-w-0">Operamos em Manaus, no centro do bioma que protegemos.</span>
-                  </li>
-                  <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3">
-                    <span className="font-display pt-0.5 text-[0.95rem] italic text-clay">02</span>
-                    <span className="min-w-0">Cada lote tem rastreabilidade da semente à colheita.</span>
-                  </li>
-                  <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3">
-                    <span className="font-display pt-0.5 text-[0.95rem] italic text-clay">03</span>
-                    <span className="min-w-0">Aliamos técnica agrônoma a engenharia de dados.</span>
-                  </li>
-                </ul>
-              </motion.div>
-              </div>
+          <div className="mb-12 min-w-0 space-y-3">
+            <p className="text-[1.0625rem] font-light leading-[1.65] text-paper/85">
+              Acreditamos que produzir alimento na cidade, com tecnologia, eficiência e transparência, é uma das formas
+              mais concretas de aliviar a pressão sobre biomas como a Amazônia.
+            </p>
+            <p className="text-[0.65rem] uppercase tracking-[0.2em] text-paper/55">{locationChip}</p>
+          </div>
+          <div className="grid min-w-0 grid-cols-1 gap-10 rounded-sm bg-forest-dark/45 px-4 py-6 sm:px-5">
+            <div className="min-w-0">
+              <p className="eyebrow mb-4 inline-flex max-w-full flex-wrap items-center gap-3 text-paper/80">
+                <span className="h-px w-9 shrink-0 bg-paper/70" />
+                <span className="min-w-0">Por que cultivar verticalmente</span>
+              </p>
+              <p className="max-w-full min-w-0 text-paper text-[1.06rem] font-normal leading-[1.8]">
+                Cada quilo produzido em ambiente urbano e controlado representa uma pequena área de floresta que não
+                precisou ser derrubada. Esse é o nosso cálculo ético antes de qualquer cálculo econômico.
+              </p>
             </div>
+            <ul className="min-w-0 space-y-3 text-[0.98rem] font-normal text-paper/92">
+              <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3">
+                <span className="font-display pt-0.5 text-[0.95rem] italic text-clay">01</span>
+                <span className="min-w-0">Operamos em Manaus, no centro do bioma que protegemos.</span>
+              </li>
+              <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3">
+                <span className="font-display pt-0.5 text-[0.95rem] italic text-clay">02</span>
+                <span className="min-w-0">Cada lote tem rastreabilidade da semente à colheita.</span>
+              </li>
+              <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3">
+                <span className="font-display pt-0.5 text-[0.95rem] italic text-clay">03</span>
+                <span className="min-w-0">Aliamos técnica agrônoma a engenharia de dados.</span>
+              </li>
+            </ul>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="container min-w-0">
         {/* Pillars */}

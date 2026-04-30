@@ -89,19 +89,19 @@ function CultivosSpreadRow({
             reverse ? "lg:[direction:rtl]" : ""
           }`}
         >
-          <motion.div
-            {...motionEnterFromBelow()}
-            viewport={{ once: true, margin: "-12% 0px" }}
-            transition={{
-              type: "spring",
-              stiffness: 48,
-              damping: 20,
-              mass: 1.1,
-            }}
-            className="col-span-12 min-w-0 max-w-full [direction:ltr] perspective-none lg:[perspective:1200px] lg:col-span-7"
-          >
-            <div className="relative mx-auto aspect-[5/6] w-full max-w-full overflow-hidden rounded-sm bg-paper lg:aspect-[7/8]">
-              {desktopLg ? (
+          {desktopLg ? (
+            <motion.div
+              {...motionEnterFromBelow()}
+              viewport={{ once: true, margin: "-12% 0px" }}
+              transition={{
+                type: "spring",
+                stiffness: 48,
+                damping: 20,
+                mass: 1.1,
+              }}
+              className="col-span-12 min-w-0 max-w-full [direction:ltr] perspective-none lg:[perspective:1200px] lg:col-span-7"
+            >
+              <div className="relative mx-auto aspect-[5/6] w-full max-w-full overflow-hidden rounded-sm bg-paper lg:aspect-[7/8]">
                 <motion.div
                   style={{ scale: imgScale }}
                   className="absolute inset-0 min-h-0 min-w-0 overflow-hidden will-change-transform"
@@ -122,7 +122,24 @@ function CultivosSpreadRow({
                     }}
                   />
                 </motion.div>
-              ) : (
+                <motion.div
+                  style={{ opacity: gloss }}
+                  className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-tr from-ink/25 via-transparent to-paper/20"
+                />
+              <div
+                className="absolute top-5 left-5 z-[2] px-3 py-1.5 text-[0.7rem] tracking-[0.25em] uppercase text-paper"
+                style={{ background: c.accent }}
+              >
+                Nº {c.n}
+              </div>
+              <div className="absolute bottom-5 right-5 z-[2] text-paper/85 text-[0.7rem] uppercase tracking-[0.25em] bg-ink/40 backdrop-blur-sm px-3 py-1.5">
+                {c.subtitle}
+              </div>
+            </div>
+            </motion.div>
+          ) : (
+            <div className="col-span-12 min-w-0 max-w-full [direction:ltr] lg:col-span-7">
+              <div className="relative mx-auto aspect-[5/6] w-full max-w-full overflow-hidden rounded-sm bg-paper lg:aspect-[7/8]">
                 <div className="absolute inset-0 min-h-0 min-w-0 overflow-hidden">
                   <img
                     key={c.image}
@@ -140,65 +157,80 @@ function CultivosSpreadRow({
                     }}
                   />
                 </div>
-              )}
-              {desktopLg ? (
-                <motion.div
-                  style={{ opacity: gloss }}
-                  className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-tr from-ink/25 via-transparent to-paper/20"
-                />
-              ) : (
                 <div
                   className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-tr from-ink/25 via-transparent to-paper/20 opacity-[0.35]"
                   aria-hidden
                 />
-              )}
-              <div
-                className="absolute top-5 left-5 z-[2] px-3 py-1.5 text-[0.7rem] tracking-[0.25em] uppercase text-paper"
-                style={{ background: c.accent }}
-              >
-                Nº {c.n}
-              </div>
-              <div className="absolute bottom-5 right-5 z-[2] text-paper/85 text-[0.7rem] uppercase tracking-[0.25em] bg-ink/40 backdrop-blur-sm px-3 py-1.5">
-                {c.subtitle}
+                <div
+                  className="absolute top-5 left-5 z-[2] px-3 py-1.5 text-[0.7rem] tracking-[0.25em] uppercase text-paper"
+                  style={{ background: c.accent }}
+                >
+                  Nº {c.n}
+                </div>
+                <div className="absolute bottom-5 right-5 z-[2] text-paper/85 text-[0.7rem] uppercase tracking-[0.25em] bg-ink/40 backdrop-blur-sm px-3 py-1.5">
+                  {c.subtitle}
+                </div>
               </div>
             </div>
-          </motion.div>
+          )}
 
-          <motion.div
-            {...motionEnterFromBelow()}
-            viewport={{ once: true, margin: "-12% 0px" }}
-            transition={{
-              type: "spring",
-              stiffness: 58,
-              damping: 22,
-              delay: 0.08,
-            }}
-            className="col-span-12 min-w-0 [direction:ltr] lg:col-span-5"
-          >
-            <div className="mb-5 flex min-w-0 items-center gap-4">
-              <span className="font-display italic text-muted-foreground text-[0.9rem]">
-                Edição /0{i + 1}
-              </span>
-              <span className="h-px flex-1 bg-ink/15" />
+          {desktopLg ? (
+            <motion.div
+              {...motionEnterFromBelow()}
+              viewport={{ once: true, margin: "-12% 0px" }}
+              transition={{
+                type: "spring",
+                stiffness: 58,
+                damping: 22,
+                delay: 0.08,
+              }}
+              className="col-span-12 min-w-0 [direction:ltr] lg:col-span-5"
+            >
+              <div className="mb-5 flex min-w-0 items-center gap-4">
+                <span className="font-display italic text-muted-foreground text-[0.9rem]">
+                  Edição /0{i + 1}
+                </span>
+                <span className="h-px flex-1 bg-ink/15" />
+              </div>
+              <h3 className="display-head hyphens-none mb-3 max-w-full text-ink text-[clamp(1.75rem,5vw+0.35rem,3.6rem)] leading-[1.08] md:leading-none md:text-[clamp(2.2rem,4.4vw,3.6rem)]">
+                {c.name}
+              </h3>
+              <p className="mb-8 max-w-full text-[1.05rem] font-light leading-[1.75] text-ink/75">{c.body}</p>
+              <div className="border-t border-ink/15 pt-6">
+                <p className="eyebrow mb-4 text-muted-foreground">Diretrizes da categoria</p>
+                <ul className="grid grid-cols-1 gap-x-6 gap-y-2.5 sm:grid-cols-2 [&>*]:min-w-0">
+                  {c.notes.map((n) => (
+                    <li key={n} className="flex min-w-0 items-start gap-2.5 text-[0.92rem] text-ink/75">
+                      <span className="size-1.5 shrink-0 rounded-full" style={{ background: c.accent }} />
+                      <span className="min-w-0 break-words">{n}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </motion.div>
+          ) : (
+            <div className="col-span-12 min-w-0 [direction:ltr] lg:col-span-5">
+              <div className="mb-5 flex min-w-0 items-center gap-4">
+                <span className="font-display italic text-muted-foreground text-[0.9rem]">Edição /0{i + 1}</span>
+                <span className="h-px flex-1 bg-ink/15" />
+              </div>
+              <h3 className="display-head hyphens-none mb-3 max-w-full text-ink text-[clamp(1.75rem,5vw+0.35rem,3.6rem)] leading-[1.08] md:leading-none md:text-[clamp(2.2rem,4.4vw,3.6rem)]">
+                {c.name}
+              </h3>
+              <p className="mb-8 max-w-full text-[1.05rem] font-light leading-[1.75] text-ink/75">{c.body}</p>
+              <div className="border-t border-ink/15 pt-6">
+                <p className="eyebrow mb-4 text-muted-foreground">Diretrizes da categoria</p>
+                <ul className="grid grid-cols-1 gap-x-6 gap-y-2.5 sm:grid-cols-2 [&>*]:min-w-0">
+                  {c.notes.map((n) => (
+                    <li key={n} className="flex min-w-0 items-start gap-2.5 text-[0.92rem] text-ink/75">
+                      <span className="size-1.5 shrink-0 rounded-full" style={{ background: c.accent }} />
+                      <span className="min-w-0 break-words">{n}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-            <h3 className="display-head hyphens-none mb-3 max-w-full text-ink text-[clamp(1.75rem,5vw+0.35rem,3.6rem)] leading-[1.08] md:leading-none md:text-[clamp(2.2rem,4.4vw,3.6rem)]">
-              {c.name}
-            </h3>
-            <p className="mb-8 max-w-full text-[1.05rem] font-light leading-[1.75] text-ink/75">
-              {c.body}
-            </p>
-            <div className="border-t border-ink/15 pt-6">
-              <p className="eyebrow mb-4 text-muted-foreground">Diretrizes da categoria</p>
-              <ul className="grid grid-cols-1 gap-x-6 gap-y-2.5 sm:grid-cols-2 [&>*]:min-w-0">
-                {c.notes.map((n) => (
-                  <li key={n} className="flex min-w-0 items-start gap-2.5 text-[0.92rem] text-ink/75">
-                    <span className="size-1.5 shrink-0 rounded-full" style={{ background: c.accent }} />
-                    <span className="min-w-0 break-words">{n}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </motion.div>
+          )}
         </div>
       </div>
     </div>
@@ -210,31 +242,54 @@ export function CultivosSection() {
 
   return (
     <section id="cultivos" className="relative isolate w-full max-w-full min-w-0 overflow-x-visible bg-paper text-ink">
-      <motion.div
-        {...motionEnterFromBelow()}
-        viewport={{ once: true, margin: "-8% 0px" }}
-        transition={{ type: "spring", stiffness: 52, damping: 22 }}
-        className="container min-w-0 pt-16 pb-12 md:pt-20 md:pb-16"
-      >
-        <div className="grid grid-cols-12 items-end gap-8 [&>*]:min-w-0">
-          <div className="col-span-12 min-w-0 pb-1 lg:col-span-7">
-            <p className="eyebrow mb-6 inline-flex max-w-full flex-wrap items-center gap-3">
-              <span className="h-px w-9 shrink-0 bg-forest" />
-              <span className="min-w-0">Capítulo 03 · Produtos</span>
-            </p>
-            <h2 className="display-head hyphens-none max-w-full text-ink text-[clamp(1.65rem,5.2vw+0.35rem,4.25rem)] leading-[1.12] tracking-tight sm:leading-[1.1] md:text-[clamp(2.2rem,5.2vw,4.25rem)] md:leading-[1.14]">
-              Categorias em produção, <em>um padrão</em>
-              <br className="hidden md:block" /> de excelência.
-            </h2>
+      {desktopLg ? (
+        <motion.div
+          {...motionEnterFromBelow()}
+          viewport={{ once: true, margin: "-8% 0px" }}
+          transition={{ type: "spring", stiffness: 52, damping: 22 }}
+          className="container min-w-0 pt-16 pb-12 md:pt-20 md:pb-16"
+        >
+          <div className="grid grid-cols-12 items-end gap-8 [&>*]:min-w-0">
+            <div className="col-span-12 min-w-0 pb-1 lg:col-span-7">
+              <p className="eyebrow mb-6 inline-flex max-w-full flex-wrap items-center gap-3">
+                <span className="h-px w-9 shrink-0 bg-forest" />
+                <span className="min-w-0">Capítulo 03 · Produtos</span>
+              </p>
+              <h2 className="display-head hyphens-none max-w-full text-ink text-[clamp(1.65rem,5.2vw+0.35rem,4.25rem)] leading-[1.12] tracking-tight sm:leading-[1.1] md:text-[clamp(2.2rem,5.2vw,4.25rem)] md:leading-[1.14]">
+                Categorias em produção, <em>um padrão</em>
+                <br className="hidden md:block" /> de excelência.
+              </h2>
+            </div>
+            <div className="col-span-12 min-w-0 pb-2 lg:col-span-4 lg:col-start-9">
+              <p className="text-[1.0625rem] font-light leading-[1.75] text-ink/70">
+                Atendemos restaurantes, mercados e clientes do nosso clube de assinatura. Toda colheita é feita em no
+                máximo 24h antes da entrega.
+              </p>
+            </div>
           </div>
-          <div className="col-span-12 min-w-0 pb-2 lg:col-span-4 lg:col-start-9">
-            <p className="text-[1.0625rem] font-light leading-[1.75] text-ink/70">
-              Atendemos restaurantes, mercados e clientes do nosso clube de assinatura. Toda colheita é feita em no
-              máximo 24h antes da entrega.
-            </p>
+        </motion.div>
+      ) : (
+        <div className="container min-w-0 pt-16 pb-12 md:pt-20 md:pb-16">
+          <div className="grid grid-cols-12 items-end gap-8 [&>*]:min-w-0">
+            <div className="col-span-12 min-w-0 pb-1 lg:col-span-7">
+              <p className="eyebrow mb-6 inline-flex max-w-full flex-wrap items-center gap-3">
+                <span className="h-px w-9 shrink-0 bg-forest" />
+                <span className="min-w-0">Capítulo 03 · Produtos</span>
+              </p>
+              <h2 className="display-head hyphens-none max-w-full text-ink text-[clamp(1.65rem,5.2vw+0.35rem,4.25rem)] leading-[1.12] tracking-tight sm:leading-[1.1] md:text-[clamp(2.2rem,5.2vw,4.25rem)] md:leading-[1.14]">
+                Categorias em produção, <em>um padrão</em>
+                <br className="hidden md:block" /> de excelência.
+              </h2>
+            </div>
+            <div className="col-span-12 min-w-0 pb-2 lg:col-span-4 lg:col-start-9">
+              <p className="text-[1.0625rem] font-light leading-[1.75] text-ink/70">
+                Atendemos restaurantes, mercados e clientes do nosso clube de assinatura. Toda colheita é feita em no
+                máximo 24h antes da entrega.
+              </p>
+            </div>
           </div>
         </div>
-      </motion.div>
+      )}
 
       {cultivos.map((c, i) => (
         <CultivosSpreadRow

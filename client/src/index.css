@@ -250,8 +250,11 @@
     min-width: 0;
     max-width: 100%;
     width: 100%;
-    /* `hidden`: mesmo efeito anti-scroll horizontal que `clip`, sem recorte vertical bugado no WebKit */
-    overflow-x: hidden;
+    /**
+     * Não esconder overflow-x aqui: no iOS empilha com `sticky`/fixed e o recorte parece assimétrico.
+     * O corte horizontal fica só em html / body / #root (uma caixa — previsível).
+     */
+    overflow-x: visible;
   }
 
   /** Evita faixa editorial mais larga que o viewport (comum com grid 12 col + gaps em mobile). */
@@ -461,10 +464,6 @@
   html,
   body,
   #root {
-    overflow-x: hidden;
-  }
-
-  .copy-flow {
     overflow-x: hidden;
   }
 }
