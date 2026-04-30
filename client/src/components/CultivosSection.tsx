@@ -74,8 +74,8 @@ function CultivosSpreadRow({
     target: rowRef,
     offset: ["start end", "end start"],
   });
-  const imgScale = useTransform(scrollYProgress, [0, 0.5, 1], [1.09, 1, 1.04]);
-  const imgY = useTransform(scrollYProgress, [0, 1], ["-7%", "7%"]);
+  /** Sem translateY no desktop: dentro do clip aparecia faixa do fundo ao scroll (como Parcerias). */
+  const imgScale = useTransform(scrollYProgress, [0, 0.5, 1], [1.06, 1.02, 1]);
   const gloss = useTransform(scrollYProgress, [0, 0.55, 1], [0.22, 0.38, 0.28]);
 
   return (
@@ -100,17 +100,17 @@ function CultivosSpreadRow({
             }}
             className="col-span-12 min-w-0 max-w-full [direction:ltr] perspective-none lg:[perspective:1200px] lg:col-span-7"
           >
-            <div className="relative mx-auto aspect-[5/6] w-full max-w-full overflow-hidden rounded-sm bg-ink/30 lg:aspect-[7/8]">
+            <div className="relative mx-auto aspect-[5/6] w-full max-w-full overflow-hidden rounded-sm bg-paper lg:aspect-[7/8]">
               {desktopLg ? (
                 <motion.div
-                  style={{ scale: imgScale, y: imgY }}
+                  style={{ scale: imgScale }}
                   className="absolute inset-0 min-h-0 min-w-0 overflow-hidden will-change-transform"
                 >
                   <img
                     key={c.image}
                     src={c.image}
                     alt={c.name}
-                    className="h-full w-full max-w-none object-cover"
+                    className="pointer-events-none absolute left-0 right-0 top-1/2 z-0 block h-[132%] w-full max-w-none -translate-y-1/2 object-cover object-center select-none"
                     onError={(e) => {
                       const el = e.currentTarget;
                       const chain = cultivosImageFallbackChain[i] ?? [];
@@ -128,7 +128,7 @@ function CultivosSpreadRow({
                     key={c.image}
                     src={c.image}
                     alt={c.name}
-                    className="absolute inset-0 z-0 h-full w-full min-h-full min-w-full max-w-none scale-[1.002] object-cover"
+                    className="pointer-events-none absolute left-0 right-0 top-1/2 z-0 block h-[132%] w-full max-w-none -translate-y-1/2 object-cover object-center select-none"
                     onError={(e) => {
                       const el = e.currentTarget;
                       const chain = cultivosImageFallbackChain[i] ?? [];
