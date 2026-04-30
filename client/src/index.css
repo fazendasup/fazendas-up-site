@@ -458,11 +458,17 @@
     max-width: 100%;
     box-sizing: border-box;
   }
-}
 
-@media (min-width: 1024px) {
-  html,
-  body,
+  /**
+   * Mobile (Chrome Android + Safari): `overflow-x: hidden` em html *e* body *e* #root empilha
+   * caixas de clip com sticky/fixed e o recorte parece assimétrico. Um único clip no #root.
+   */
+  html {
+    overflow-x: visible;
+  }
+  body {
+    overflow-x: visible;
+  }
   #root {
     overflow-x: hidden;
   }
