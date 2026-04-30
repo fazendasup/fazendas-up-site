@@ -1,0 +1,26 @@
+# Build verificável em cada push — ligar artefactos ao Cloudflare Pages ou outro hosting conforme DEPLOY_CLOUDFLARE_PAGES.md
+stages:
+  - build
+
+variables:
+  NODE_VERSION: "20"
+
+build:
+  stage: build
+  image: node:20-bookworm
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - node_modules/
+  before_script:
+    - npm ci
+  script:
+    - npm run check
+    - npm run build
+  artifacts:
+    name: "dist-public-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - dist/public/
+    expire_in: 1 week
