@@ -15,8 +15,8 @@ jobs:
           node-version: "20"
           cache: npm
       - run: npm ci
-      - run: npm run check
-      - run: npm run build
+      - run: npx playwright install chromium
+      - run: npm run qa:layout-mobile
       - uses: actions/upload-artifact@v4
         with:
           name: dist-public

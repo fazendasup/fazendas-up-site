@@ -98,8 +98,8 @@ export function ManifestoSection() {
       )}
 
       <div className="container min-w-0">
-        <div className="mb-20 grid min-w-0 grid-cols-12 gap-10 [&>*]:min-w-0">
-          <div className="col-span-12 min-w-0 lg:col-span-7 lg:col-start-2">
+        <div className="mb-20 grid min-w-0 grid-cols-1 gap-10 lg:grid-cols-12 [&>*]:min-w-0">
+          <div className="col-span-full min-w-0 lg:col-span-7 lg:col-start-2">
             <p className="eyebrow text-paper/65 mb-6 inline-flex max-w-full flex-wrap items-center gap-3">
               <span className="h-px w-9 shrink-0 bg-paper/55" />
               <span className="min-w-0">Sobre a Fazendas Up</span>
@@ -184,12 +184,12 @@ export function ManifestoSection() {
 
             <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[4] pb-2 pt-[94svh] md:pt-[82vh]">
               <div className="container min-w-0">
-                <div className="grid min-w-0 grid-cols-12 gap-8 rounded-sm bg-forest-dark/45 px-4 py-4 [&>*]:min-w-0 md:bg-transparent md:px-0 md:py-0">
+                <div className="grid min-w-0 grid-cols-1 gap-8 rounded-sm bg-forest-dark/45 px-4 py-4 lg:grid-cols-12 [&>*]:min-w-0 md:bg-transparent md:px-0 md:py-0">
                   <motion.div
                     {...motionEnterFromBelow()}
                     viewport={{ once: true, margin: "-10% 0px" }}
                     transition={{ duration: 0.9 }}
-                    className="pointer-events-auto col-span-12 min-w-0 lg:col-span-5 lg:col-start-2"
+                    className="pointer-events-auto col-span-full min-w-0 lg:col-span-5 lg:col-start-2"
                   >
                     <p className="eyebrow mb-4 inline-flex max-w-full flex-wrap items-center gap-3 text-paper/80">
                       <span className="h-px w-9 shrink-0 bg-paper/70" />
@@ -204,7 +204,7 @@ export function ManifestoSection() {
                     {...motionEnterFromBelow()}
                     viewport={{ once: true, margin: "-10% 0px" }}
                     transition={{ duration: 0.9, delay: 0.15 }}
-                    className="pointer-events-auto col-span-12 min-w-0 lg:col-span-4 lg:col-start-8"
+                    className="pointer-events-auto col-span-full min-w-0 lg:col-span-4 lg:col-start-8"
                   >
                     <ul className="space-y-3 text-[0.98rem] font-normal text-paper/92">
                       <li className="flex min-w-0 gap-3 border-t border-paper/30 pt-3">
@@ -299,10 +299,10 @@ export function ManifestoSection() {
 
       <div className="container min-w-0">
         {/* Pillars */}
-        <div className="grid w-full min-w-0 max-w-full grid-cols-12 gap-x-4 gap-y-12 sm:gap-x-8 md:gap-x-10 md:gap-y-14 lg:px-[5%] [&>*]:min-w-0">
+        <div className="grid w-full min-w-0 max-w-full grid-cols-1 gap-x-4 gap-y-12 sm:gap-x-8 md:grid-cols-12 md:gap-x-10 md:gap-y-14 lg:px-[5%] [&>*]:min-w-0">
           {pillars.map((p, i) => {
             const pillarClass =
-              "col-span-12 w-full min-w-0 max-w-full border-t border-paper/20 pt-7 md:col-span-4";
+              "col-span-full w-full min-w-0 max-w-full border-t border-paper/20 pt-7 md:col-span-4";
             const pillarInner = (
               <>
                 <div className="mb-5 flex min-w-0 max-w-full items-center justify-between gap-3">

@@ -71,12 +71,12 @@ export function ImpactSection() {
       </svg>
 
       <div className="container relative min-w-0">
-        <div className="grid grid-cols-12 gap-10 lg:gap-14 [&>*]:min-w-0">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-14 [&>*]:min-w-0">
           {/* Sticky title column — sem motion no &lt;lg: zero transform no DOM em mobile */}
           {desktopLg ? (
             <motion.div
               style={{ y: titleY, scale: titleScale }}
-              className="col-span-12 z-[1] min-w-0 max-w-full origin-top-left self-start overflow-x-hidden will-change-transform lg:sticky lg:top-28 lg:col-span-5 lg:overflow-x-visible"
+              className="col-span-full z-[1] min-w-0 max-w-full origin-top-left self-start overflow-x-hidden will-change-transform lg:sticky lg:top-28 lg:col-span-5 lg:overflow-x-visible"
             >
               <p className="eyebrow mb-7 inline-flex max-w-full flex-wrap items-center gap-3">
                 <span className="h-px w-9 shrink-0 bg-forest" />
@@ -95,7 +95,7 @@ export function ImpactSection() {
               </div>
             </motion.div>
           ) : (
-            <div className="col-span-12 z-[1] min-w-0 max-w-full origin-top-left self-start overflow-visible lg:sticky lg:top-28 lg:col-span-5">
+            <div className="col-span-full z-[1] min-w-0 max-w-full origin-top-left self-start overflow-visible lg:sticky lg:top-28 lg:col-span-5">
               <p className="eyebrow mb-7 inline-flex max-w-full flex-wrap items-center gap-3">
                 <span className="h-px w-9 shrink-0 bg-forest" />
                 <span className="min-w-0">Capítulo 02 · Impacto</span>
@@ -115,7 +115,7 @@ export function ImpactSection() {
           )}
 
           {/* Cards column */}
-          <div className="relative z-0 col-span-12 flex min-w-0 max-w-full flex-col overflow-x-visible overflow-y-visible perspective-none lg:[perspective:1400px] lg:col-span-7 [&>*]:min-w-0">
+          <div className="relative z-0 col-span-full flex min-w-0 max-w-full flex-col overflow-x-visible overflow-y-visible perspective-none lg:[perspective:1400px] lg:col-span-7 [&>*]:min-w-0">
             {stats.map((s, i) => {
               const rowClass = `fu-impact-stat-row relative grid w-full min-w-0 max-w-full grid-cols-1 gap-y-5 overflow-x-visible py-7 lg:grid-cols-12 lg:gap-x-6 lg:gap-y-6 md:py-8 lg:items-start [&>*]:min-w-0 ${
                 i !== stats.length - 1 ? "border-b border-ink/15" : ""

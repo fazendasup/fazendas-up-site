@@ -111,8 +111,8 @@ export function TechnologySection() {
           <p className="mt-5 max-w-full text-[0.95rem] leading-[1.65] text-on-plum-soft md:max-w-xl">
             Quatro principios sustentam cada bandeja produzida pela Fazendas Up.
           </p>
-          <div className="mt-10 grid min-h-0 grid-cols-12 items-center gap-8 lg:mt-6 lg:flex-1 lg:items-stretch lg:gap-10 [&>*]:min-w-0">
-            <div className="col-span-12 min-w-0 lg:col-span-5 lg:flex lg:flex-col lg:justify-center">
+          <div className="mt-10 grid min-h-0 grid-cols-1 items-center gap-8 lg:grid-cols-12 lg:mt-6 lg:flex-1 lg:items-stretch lg:gap-10 [&>*]:min-w-0">
+            <div className="col-span-full min-w-0 lg:col-span-5 lg:flex lg:flex-col lg:justify-center">
               {desktopLg ? (
                 <AnimatePresence mode="wait" custom={direction} initial={false}>
                   <motion.div
@@ -178,7 +178,7 @@ export function TechnologySection() {
               )}
             </div>
 
-            <div className="col-span-12 min-w-0 lg:col-span-7 lg:min-h-0">
+            <div className="col-span-full min-w-0 lg:col-span-7 lg:min-h-0">
               <div className="relative aspect-[4/3] w-full max-w-full overflow-hidden rounded-sm border border-on-plum-soft/25 bg-forest-dark lg:aspect-auto lg:h-full">
                 {desktopLg ? (
                   <AnimatePresence mode="wait" custom={direction} initial={false}>

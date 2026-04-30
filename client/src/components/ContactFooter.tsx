@@ -73,8 +73,8 @@ export function ContactFooter() {
         </svg>
 
         <div className="container relative z-10 min-w-0 lg:flex lg:h-full lg:flex-col lg:justify-center [&>*]:min-w-0">
-          <div className="grid grid-cols-12 gap-8 lg:gap-12 [&>*]:min-w-0">
-            <div className="col-span-12 min-w-0 lg:col-span-7 lg:flex lg:flex-col lg:justify-center">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-12 [&>*]:min-w-0">
+            <div className="col-span-full min-w-0 lg:col-span-7 lg:flex lg:flex-col lg:justify-center">
               <p className="eyebrow text-on-plum-soft mb-6 inline-flex max-w-full flex-wrap items-center gap-3">
                 <span className="h-px w-9 shrink-0 bg-on-plum-soft/70" />
                 <span className="min-w-0">Contato</span>
@@ -90,7 +90,7 @@ export function ContactFooter() {
               </p>
             </div>
 
-            <div className="col-span-12 min-w-0 lg:col-span-5 lg:flex lg:flex-col lg:justify-center lg:pt-2">
+            <div className="col-span-full min-w-0 lg:col-span-5 lg:flex lg:flex-col lg:justify-center lg:pt-2">
               <ul className="divide-y divide-on-plum-soft/30 border-y border-on-plum-soft/30">
                 {channels.map((c) => (
                   <li key={c.label}>
@@ -126,8 +126,8 @@ export function ContactFooter() {
 
       <footer className="isolate w-full max-w-full min-w-0 overflow-x-visible border-t border-on-plum-soft/25 bg-forest text-paper">
         <div className="container min-w-0 py-16">
-          <div className="grid grid-cols-12 gap-10 [&>*]:min-w-0">
-            <div className="col-span-12 min-w-0 lg:col-span-4">
+          <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-12 [&>*]:min-w-0">
+            <div className="col-span-full min-w-0 sm:col-span-2 lg:col-span-4">
               <div className="display-serif text-paper text-[1.9rem] leading-none">Fazendas Up</div>
               <p className="text-paper/65 text-[0.95rem] leading-[1.7] font-light max-w-sm mt-5">
                 Agroindústria sustentável de cultivo vertical. Produzindo alimento limpo
@@ -136,7 +136,7 @@ export function ContactFooter() {
             </div>
 
             {footerCols.map((col) => (
-              <div key={col.title} className="col-span-6 min-w-0 lg:col-span-2">
+              <div key={col.title} className="col-span-full min-w-0 sm:col-span-1 lg:col-span-2">
                 <h4 className="text-paper text-[0.78rem] tracking-[0.12em] uppercase mb-4">
                   {col.title}
                 </h4>

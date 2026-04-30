@@ -110,29 +110,29 @@ export function Bridge() {
         {desktopLg ? (
           <motion.div
             style={{ opacity: deckOpacity }}
-            className="mt-10 grid min-w-0 grid-cols-12 items-end gap-8 md:mt-14 [&>*]:min-w-0"
+            className="mt-10 grid min-w-0 grid-cols-1 items-end gap-8 md:grid-cols-12 md:mt-14 [&>*]:min-w-0"
           >
-            <div className="col-span-12 min-w-0 md:col-span-7 lg:col-span-5 lg:col-start-2">
+            <div className="col-span-full min-w-0 md:col-span-7 lg:col-span-5 lg:col-start-2">
               <p className="text-[1.0625rem] font-light leading-[1.75] text-ink/70">
                 Da semente ao prato, em metros, não em milhares de quilômetros.
                 Conheça os princípios que sustentam nossa operação em Manaus.
               </p>
             </div>
-            <div className="col-span-12 flex min-w-0 md:col-span-5 md:justify-end lg:col-span-3 lg:col-start-9">
+            <div className="col-span-full flex min-w-0 md:col-span-5 md:justify-end lg:col-span-3 lg:col-start-9">
               <span className="font-display text-[0.9rem] italic text-muted-foreground">
                 ↓ Capítulo I: Tecnologia
               </span>
             </div>
           </motion.div>
         ) : (
-          <div className="mt-10 grid min-w-0 grid-cols-12 items-end gap-8 md:mt-14 [&>*]:min-w-0">
-            <div className="col-span-12 min-w-0 md:col-span-7 lg:col-span-5 lg:col-start-2">
+          <div className="mt-10 grid min-w-0 grid-cols-1 items-end gap-8 md:grid-cols-12 md:mt-14 [&>*]:min-w-0">
+            <div className="col-span-full min-w-0 md:col-span-7 lg:col-span-5 lg:col-start-2">
               <p className="text-[1.0625rem] font-light leading-[1.75] text-ink/70">
                 Da semente ao prato, em metros, não em milhares de quilômetros.
                 Conheça os princípios que sustentam nossa operação em Manaus.
               </p>
             </div>
-            <div className="col-span-12 flex min-w-0 md:col-span-5 md:justify-end lg:col-span-3 lg:col-start-9">
+            <div className="col-span-full flex min-w-0 md:col-span-5 md:justify-end lg:col-span-3 lg:col-start-9">
               <span className="font-display text-[0.9rem] italic text-muted-foreground">
                 ↓ Capítulo I: Tecnologia
               </span>

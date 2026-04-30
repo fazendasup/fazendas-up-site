@@ -147,8 +147,8 @@
 @layer base {
   * { @apply border-border outline-ring/50; }
   /**
-   * NUNCA `overflow-x: clip` em html/body/#root: no WebKit o eixo Y também é afetado
-   * (texto/botões “cortados”); parece que o CSS “não mudou nada” em mobile.
+   * Overflow horizontal: UM só plano em `body`. Evita pilha html+#root+body (Safari/Android:
+   * texto cortado assimétrico). `html` e `#root` ficam visíveis no eixo X — o clip é só no body.
    */
   #root {
     position: relative;
@@ -156,13 +156,13 @@
     width: 100%;
     max-width: 100%;
     min-height: 100%;
-    overflow-x: hidden;
+    overflow-x: visible;
     overscroll-behavior-x: none;
   }
   html {
     scroll-behavior: smooth;
     scroll-padding-top: 5.5rem;
-    overflow-x: hidden;
+    overflow-x: visible;
     overscroll-behavior-x: none;
     width: 100%;
     max-width: 100%;
@@ -250,10 +250,7 @@
     min-width: 0;
     max-width: 100%;
     width: 100%;
-    /**
-     * Não esconder overflow-x aqui: no iOS empilha com `sticky`/fixed e o recorte parece assimétrico.
-     * O corte horizontal fica só em html / body / #root (uma caixa — previsível).
-     */
+    /** Overflow horizontal só é cortado em `body` (ver @layer base); aqui mantemos visível para não empilhar clips. */
     overflow-x: visible;
   }
 
@@ -419,9 +416,14 @@
     max-width: 100%;
   }
 
-  /** Safari: `repeat(12, 1fr)` com min de track = auto estoura quando um filho tem min-content largo */
-  .copy-flow main section .grid.grid-cols-12 {
-    grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+  /**
+   * Desktop (`lg+`): 12 colunas editoriais. Só aqui — em `<lg` o bloco `@media (max-width:1023px)`
+   * força 1 track em `.copy-flow` inteiro (inclui `#contato` + `<footer>`, que ficam FORA de `<main>`).
+   */
+  @media (min-width: 1024px) {
+    .copy-flow .grid.grid-cols-12 {
+      grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+    }
   }
 
   .copy-flow main .flex > *:not(.shrink-0),
@@ -468,67 +470,57 @@
     box-sizing: border-box;
   }
 
+  /**
+   * RAIZ DO RECORTE MOBILE: `grid-cols-12` dentro de `.container` (~342px úteis) mantinha 12 tracks;
+   * Chromium/WebKit somavam min-content → scrollWidth ~440px → documentElement ~464px → texto “cortado” na direita.
+   * Cobre também grids em `#contato` / footer — não estão dentro de `<main>`.
+   */
+  .copy-flow .grid.grid-cols-12 {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
   /** Imagens editoriais: largura intrínseca alta + max-w-none já causou ΔscrollWidth em mobile. */
   .copy-flow img {
     max-width: 100%;
   }
 
   /**
-   * Impacto (<lg): métricas grandes cortadas à direita — combinação de overshoot tipográfico + `#root { overflow-x: hidden }`.
-   * Solução estável: `font-size: min(vw, rem)` + caixas `min-width:0` + clip só dentro desta secção (sem tocar no Hero sticky).
+   * Impacto (<lg): NÃO usar overflow-x clip aqui — cortava os próprios glifos (% , ×).
+   * Métrica: caixa `fit-content` + `max-width:100%` + tipografia escalada ao viewport.
    */
-  section#impacto {
-    overflow-x: clip;
-    max-width: 100%;
-  }
-
-  section#impacto article.fu-impact-stat-row {
-    min-width: 0;
-    max-width: 100%;
-    overflow-x: clip;
-  }
-
   section#impacto .fu-impact-mobile-stack {
     min-width: 0;
     max-width: 100%;
-    overflow-x: clip;
   }
 
   section#impacto .fu-impact-stat-value {
     display: block;
-    margin: 0;
+    margin-left: auto;
+    margin-right: 0;
+    margin-top: 0;
+    margin-bottom: 0;
     padding: 0;
+    padding-inline-end: 1px;
     box-sizing: border-box;
-    width: 100%;
+    width: fit-content;
     max-width: 100%;
     min-width: 0;
     font-family: var(--font-sans);
     font-weight: 600;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.045em;
-    line-height: 1;
+    font-variant-numeric: proportional-nums;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
     text-align: right;
-    white-space: nowrap;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: normal;
     color: var(--ink);
-    font-size: min(6.25vw + 0.2rem, 1.42rem);
+    font-size: min(5.35vw + 0.48rem, 1.26rem);
   }
 
   section#impacto .fu-impact-stat-value--zero {
-    font-size: min(5.85vw + 0.25rem, 1.38rem);
+    font-size: min(5vw + 0.45rem, 1.22rem);
   }
 
-  /**
-   * Mobile (Chrome Android + Safari): `overflow-x: hidden` em html *e* body *e* #root empilha
-   * caixas de clip com sticky/fixed e o recorte parece assimétrico. Um único clip no #root.
-   */
-  html {
-    overflow-x: visible;
-  }
-  body {
-    overflow-x: visible;
-  }
-  #root {
-    overflow-x: hidden;
-  }
 }
 

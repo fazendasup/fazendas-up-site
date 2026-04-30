@@ -242,18 +242,20 @@ export default defineConfig({
     port: 3000,
     strictPort: false, // Will find next available port if 3000 is busy
     host: true,
-    allowedHosts: [
-      ".manuspre.computer",
-      ".manus.computer",
-      ".manus-asia.computer",
-      ".manuscomputer.ai",
-      ".manusvm.computer",
-      "localhost",
-      "127.0.0.1",
-    ],
+    /**
+     * `true`: aceita também o IP da máquina na LAN (ex.: 192.168.x.x), necessário para abrir
+     * no telemóvel na mesma Wi‑Fi. Uma lista fixa bloqueava o header `Host` do IP local.
+     */
+    allowedHosts: true,
     fs: {
       strict: true,
       deny: ["**/.*"],
     },
+  },
+  preview: {
+    host: true,
+    port: 4173,
+    strictPort: false,
+    allowedHosts: true,
   },
 });

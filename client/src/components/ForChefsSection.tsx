@@ -92,7 +92,7 @@ export function ForChefsSection() {
       </div>
 
       <div className="container relative min-w-0 lg:flex lg:h-full lg:flex-col lg:justify-center [&>*]:min-w-0">
-        <div className="grid grid-cols-12 items-stretch gap-10 lg:gap-14 [&>*]:min-w-0">
+        <div className="grid grid-cols-1 items-stretch gap-10 lg:grid-cols-12 lg:gap-14 [&>*]:min-w-0">
           {/* Desktop-only foto + legenda */}
           <div className="relative hidden min-h-0 lg:col-span-5 lg:block">
             <div className="relative aspect-[4/5] w-full max-w-full overflow-hidden rounded-sm bg-secondary lg:aspect-auto lg:h-full lg:min-h-[min(100%,560px)]">
@@ -120,7 +120,7 @@ export function ForChefsSection() {
             </div>
           </div>
 
-          <div className="col-span-12 min-w-0 max-w-full lg:col-span-7 lg:flex lg:flex-col lg:justify-center">
+          <div className="col-span-full min-w-0 max-w-full lg:col-span-7 lg:flex lg:flex-col lg:justify-center">
             <p className="eyebrow mb-6 inline-flex max-w-full flex-wrap items-center gap-3">
               <span className="h-px w-9 shrink-0 bg-forest" />
               <span className="min-w-0">Capítulo 05 · Parcerias</span>
