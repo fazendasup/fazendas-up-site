@@ -100,7 +100,7 @@ function CultivosSpreadRow({
             }}
             className="col-span-12 min-w-0 max-w-full [direction:ltr] perspective-none lg:[perspective:1200px] lg:col-span-7"
           >
-            <div className="relative mx-auto aspect-[5/6] w-full max-w-full overflow-hidden rounded-sm lg:aspect-[7/8]">
+            <div className="relative mx-auto aspect-[5/6] w-full max-w-full overflow-hidden rounded-sm bg-ink/30 lg:aspect-[7/8]">
               {desktopLg ? (
                 <motion.div
                   style={{ scale: imgScale, y: imgY }}
@@ -128,7 +128,7 @@ function CultivosSpreadRow({
                     key={c.image}
                     src={c.image}
                     alt={c.name}
-                    className="h-full w-full max-w-none object-cover"
+                    className="absolute inset-0 z-0 h-full w-full min-h-full min-w-full max-w-none scale-[1.002] object-cover"
                     onError={(e) => {
                       const el = e.currentTarget;
                       const chain = cultivosImageFallbackChain[i] ?? [];
@@ -141,17 +141,24 @@ function CultivosSpreadRow({
                   />
                 </div>
               )}
-              <motion.div
-                style={{ opacity: gloss }}
-                className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-ink/25 via-transparent to-paper/20"
-              />
+              {desktopLg ? (
+                <motion.div
+                  style={{ opacity: gloss }}
+                  className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-tr from-ink/25 via-transparent to-paper/20"
+                />
+              ) : (
+                <div
+                  className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-tr from-ink/25 via-transparent to-paper/20 opacity-[0.35]"
+                  aria-hidden
+                />
+              )}
               <div
-                className="absolute top-5 left-5 px-3 py-1.5 text-[0.7rem] tracking-[0.25em] uppercase text-paper"
+                className="absolute top-5 left-5 z-[2] px-3 py-1.5 text-[0.7rem] tracking-[0.25em] uppercase text-paper"
                 style={{ background: c.accent }}
               >
                 Nº {c.n}
               </div>
-              <div className="absolute bottom-5 right-5 text-paper/85 text-[0.7rem] uppercase tracking-[0.25em] bg-ink/40 backdrop-blur-sm px-3 py-1.5">
+              <div className="absolute bottom-5 right-5 z-[2] text-paper/85 text-[0.7rem] uppercase tracking-[0.25em] bg-ink/40 backdrop-blur-sm px-3 py-1.5">
                 {c.subtitle}
               </div>
             </div>

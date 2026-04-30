@@ -55,7 +55,7 @@ export function ForChefsSection() {
         <div className="grid grid-cols-12 items-stretch gap-10 lg:gap-14 [&>*]:min-w-0">
           {/* Image with parallax */}
           <div className="relative col-span-12 min-w-0 lg:col-span-5 lg:min-h-0">
-            <div className="relative aspect-[4/5] w-full max-w-full overflow-hidden rounded-sm lg:aspect-auto lg:h-full">
+            <div className="relative aspect-[4/5] w-full max-w-full overflow-hidden rounded-sm bg-ink/35 lg:aspect-auto lg:h-full">
               {desktopLg ? (
                 <motion.div
                   style={{ y: imgY, scale: imgScale }}
@@ -84,7 +84,7 @@ export function ForChefsSection() {
                   <img
                     src={getSiteImage("forChefs")}
                     alt="Prato com ingredientes frescos da Fazendas Up"
-                    className="absolute inset-0 h-full w-full max-w-none object-cover object-center"
+                    className="absolute inset-0 z-0 h-full w-full min-h-full min-w-full max-w-none scale-[1.002] object-cover object-center"
                     onError={(e) => {
                       const el = e.currentTarget;
                       const step = el.getAttribute("data-for-chefs-fb");
@@ -100,11 +100,18 @@ export function ForChefsSection() {
                   />
                 </div>
               )}
-              <motion.div
-                style={{ opacity: vignette }}
-                className="pointer-events-none absolute inset-0 bg-gradient-to-b from-ink/25 via-transparent to-ink/55"
-              />
-              <div className="absolute top-5 left-5 px-3 py-1.5 bg-paper/90 backdrop-blur-sm text-[0.7rem] uppercase tracking-[0.25em] text-ink">
+              {desktopLg ? (
+                <motion.div
+                  style={{ opacity: vignette }}
+                  className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-ink/25 via-transparent to-ink/55"
+                />
+              ) : (
+                <div
+                  className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-ink/25 via-transparent to-ink/55 opacity-[0.32]"
+                  aria-hidden
+                />
+              )}
+              <div className="absolute top-5 left-5 z-[2] px-3 py-1.5 bg-paper/90 backdrop-blur-sm text-[0.7rem] uppercase tracking-[0.25em] text-ink">
                 Para chefs e negócios
               </div>
             </div>
