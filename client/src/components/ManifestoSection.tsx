@@ -2,8 +2,8 @@
  * Manifesto / Sobre — Sticky parallax photograph with expanding clip-path,
  * institutional pillars revealed sequentially, and a vertical chapter mark.
  */
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { appendImageCacheBust, getSiteImage } from "@/content/siteImages";
 import { useMinLg } from "@/hooks/useMinLg";
 import { motionEnterFromBelow } from "@/lib/motionEntrance";
@@ -48,14 +48,24 @@ export function ManifestoSection() {
   );
   const [manifestoIdx, setManifestoIdx] = useState(0);
   const manifestoSrc = manifestoChain[Math.min(manifestoIdx, manifestoChain.length - 1)] ?? manifestoChain[0];
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"],
-  });
-  /** Zoom muito leve no pin; sem translateY — o parallax vertical fazia o conteúdo seguinte “passar por detrás” da foto. */
-  const imgScale = useTransform(scrollYProgress, [0, 0.55, 1], [1, 1.03, 1.05]);
-  const [trackImgFailed, setTrackImgFailed] = useState(false);
-  const trackSrc = getSiteImage("manifestoTrack");
+  /** Várias origens: deploy pode não ter /uploads; um único `onError` escondia a pista em todo o site. */
+  const trackChain = useMemo(
+    () =>
+      Array.from(
+        new Set([
+          getSiteImage("manifestoTrack"),
+          appendImageCacheBust("/manus-storage/vertical_farm_alt_0fb78d96.jpg"),
+          appendImageCacheBust("/uploads/IMG_6915.jpg"),
+        ])
+      ),
+    []
+  );
+  const [trackIdx, setTrackIdx] = useState(0);
+  const trackSrcActive = trackIdx < trackChain.length ? (trackChain[trackIdx] ?? "") : "";
+  const showTrackLayer = trackIdx < trackChain.length && trackSrcActive.length > 0;
+  const onTrackImgError = () => {
+    setTrackIdx((i) => Math.min(i + 1, trackChain.length));
+  };
   const stickyKind = manifestoStickyKind(manifestoSrc);
   const stickyAlt =
     stickyKind === "aerial"
@@ -65,9 +75,8 @@ export function ManifestoSection() {
 
   useEffect(() => {
     const primary = getSiteImage("manifesto");
-    const track = getSiteImage("manifestoTrack");
     const links: HTMLLinkElement[] = [];
-    for (const href of [primary, track]) {
+    for (const href of [primary, ...trackChain.slice(0, 2)]) {
       const l = document.createElement("link");
       l.rel = "preload";
       l.as = "image";
@@ -80,7 +89,7 @@ export function ManifestoSection() {
         l.parentNode?.removeChild(l);
       }
     };
-  }, []);
+  }, [trackChain]);
 
   return (
     <section
@@ -113,45 +122,33 @@ export function ManifestoSection() {
         <div className="relative z-0 w-full min-w-0 max-w-full overflow-x-visible overflow-y-visible">
           <div className="relative mx-auto mb-24 max-w-full min-w-0 h-[160vh] md:h-[170vh]">
             {/**
-             * Camada das torres: começa abaixo do `sticky top-14/md:top-24` — evita faixa visível entre
-             * cabeçalho e floresta e elimina parallax na pista (antes “subia” com o scroll).
+             * A pista das torres tem de ficar **dentro** do mesmo `sticky` que a Amazónia. Se fica `absolute`
+             * no pai `160vh`, ela rola com o documento enquanto a foto fica colada — parece “subir por detrás”.
              */}
-            <div
-              className="pointer-events-none absolute inset-x-0 top-14 bottom-0 z-0 overflow-hidden bg-forest-dark md:top-24"
-              aria-hidden
-            >
-              {!trackImgFailed && (
-                <>
+            <div className="sticky top-14 z-[1] isolate h-[78vh] min-h-[560px] overflow-hidden bg-forest-dark md:top-24 md:h-[min(88vh,920px)] md:min-h-[72vh]">
+              {showTrackLayer && (
+                <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden>
                   <img
-                    src={trackSrc}
+                    key={trackSrcActive}
+                    src={trackSrcActive}
                     alt=""
-                    className="absolute inset-0 h-full w-full min-h-full object-cover object-[50%_48%] opacity-[0.92] brightness-[0.98] contrast-[1.04] md:hidden"
+                    className="absolute inset-0 h-full w-full min-h-full object-cover object-[50%_50%] opacity-[0.92] brightness-[0.98] contrast-[1.04]"
                     decoding="async"
                     loading="eager"
-                    onError={() => setTrackImgFailed(true)}
+                    onError={onTrackImgError}
                   />
-                  <img
-                    src={trackSrc}
-                    alt=""
-                    className="absolute inset-0 hidden h-full w-full min-h-full object-cover object-[50%_45%] opacity-[0.92] brightness-[0.98] contrast-[1.04] md:block"
-                    decoding="async"
-                    onError={() => setTrackImgFailed(true)}
-                  />
-                </>
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_100%_85%_at_50%_40%,oklch(0.22_0.05_300_/_0.28),transparent_70%)]" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-forest-dark/40 via-forest/20 to-forest-dark" />
+                </div>
               )}
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_100%_85%_at_50%_40%,oklch(0.22_0.05_300_/_0.28),transparent_70%)]" />
-              <div className="absolute inset-0 bg-gradient-to-b from-forest-dark/40 via-forest/20 to-forest-dark" />
-            </div>
-            <div className="sticky top-14 z-[1] h-[78vh] min-h-[560px] overflow-hidden md:top-24 md:h-[min(88vh,920px)] md:min-h-[72vh]">
-              <motion.img
+              <img
                 src={manifestoSrc}
                 alt={stickyAlt}
-                style={{ scale: imgScale }}
                 className={cn(
-                  "absolute inset-0 z-[1] h-full min-h-full w-full max-w-full object-cover will-change-transform",
+                  "absolute inset-0 z-[1] h-full min-h-full w-full max-w-full object-cover",
                   stickyKind === "aerial"
-                    ? "object-[48%_36%] brightness-[1.04] contrast-[1.06] saturate-[1.12] [transform-origin:50%_40%]"
-                    : "object-center brightness-[1.12] contrast-[1.05] [transform-origin:50%_50%]"
+                    ? "object-[48%_36%] brightness-[1.04] contrast-[1.06] saturate-[1.12]"
+                    : "object-center brightness-[1.12] contrast-[1.05]"
                 )}
                 decoding="async"
                 fetchPriority="high"
@@ -239,15 +236,16 @@ export function ManifestoSection() {
               "aspect-[4/5] sm:aspect-[5/6]"
             )}
           >
-            {!trackImgFailed && (
+            {showTrackLayer && (
               <img
-                src={trackSrc}
+                key={trackSrcActive}
+                src={trackSrcActive}
                 alt=""
                 aria-hidden
                 className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover object-[50%_52%] opacity-[0.92] brightness-[0.98] contrast-[1.04]"
                 decoding="async"
                 loading="eager"
-                onError={() => setTrackImgFailed(true)}
+                onError={onTrackImgError}
               />
             )}
             <img
@@ -256,7 +254,7 @@ export function ManifestoSection() {
               className={cn(
                 "absolute inset-0 z-[1] h-full w-full object-cover",
                 stickyKind === "aerial"
-                  ? "object-[48%_36%] brightness-[1.04] contrast-[1.06] saturate-[1.12]"
+                  ? "object-[48%_36%] brightness-[1.04] contrast-[1.06] saturate-[1.12] opacity-[0.94]"
                   : "object-center brightness-[1.12] contrast-[1.05]"
               )}
               decoding="async"
