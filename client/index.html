@@ -13,7 +13,8 @@
   </head>
 
   <body>
-    <div id="root" class="min-h-0 min-w-0 w-full max-w-full overflow-x-hidden"></div>
+    <!-- overflow-x é definido só em index.css (evita classe Tailwind a lutar com media queries / !important) -->
+    <div id="root" class="min-h-0 min-w-0 w-full max-w-full"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

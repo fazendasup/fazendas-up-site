@@ -54,7 +54,9 @@ export function ForChefsSection() {
         <div className="grid grid-cols-12 items-stretch gap-10 lg:gap-14 [&>*]:min-w-0">
           {/* Image with parallax */}
           <div className="relative col-span-12 min-w-0 lg:col-span-5 lg:min-h-0">
-            <div className="relative aspect-[4/5] w-full max-w-full overflow-hidden rounded-sm bg-secondary lg:aspect-auto lg:h-full lg:min-h-[min(100%,560px)]">
+            {/* Mobile: foto edge-to-edge (escapa ao padding do container). Desktop: fu-mobile-breakout-x neutralizado no CSS. */}
+            <div className="fu-mobile-breakout-x">
+              <div className="relative aspect-[4/5] w-full max-w-full overflow-hidden rounded-none bg-secondary lg:aspect-auto lg:h-full lg:min-h-[min(100%,560px)] lg:rounded-sm">
               {desktopLg ? (
                 <motion.div
                   style={{ scale: imgScale }}
@@ -112,6 +114,7 @@ export function ForChefsSection() {
               )}
               <div className="absolute top-5 left-5 z-[2] px-3 py-1.5 bg-paper/90 backdrop-blur-sm text-[0.7rem] uppercase tracking-[0.25em] text-ink">
                 Para chefs e negócios
+              </div>
               </div>
             </div>
             <div className="mt-4 max-w-full text-[0.78rem] italic text-muted-foreground md:max-w-xs">

@@ -445,18 +445,12 @@
 @media (max-width: 1023px) {
   /**
    * Reforço de segurança além de MotionConfig(reducedMotion:always): inline pode usar só parte da string.
+   * NÃO incluir substring `translate`: Framer usa translateX(0)/translateZ(0) só para composição —
+   * casa demais e `transform:none` estraga layers sem resolver overflow real.
    */
-  .copy-flow main [style*="transform"],
-  .copy-flow main [style*="Transform"],
-  .copy-flow main [style*="translate"],
-  .copy-flow main [style*="matrix"],
-  .copy-flow main [style*="scale"],
-  .copy-flow main [style*="rotate"] {
+  .copy-flow main [style*="scale("],
+  .copy-flow main [style*="rotate("] {
     transform: none !important;
-  }
-  main .will-change-transform {
-    transform: none !important;
-    will-change: auto !important;
   }
 
   /**
@@ -475,21 +469,35 @@
   }
 
   /**
-   * Overflow-x empilhado (section/card/article + root) cortava texto/botões mesmo sem scrollWidth real.
-   * Em mobile deixamos o eixo X visível só até lg; desktop mantém hidden nos wrappers do layout.
+   * Breakout seguro para fotografia editorial: escapa só ao padding do `.container`
+   * sem depender de translate (mobile pode remover transforms por hacks antigos).
+   * Usa svw onde existe para reduzir mismatch com barras do browser.
    */
-  html,
-  body,
-  #root {
-    overflow-x: visible !important;
+  .fu-mobile-breakout-x {
+    position: relative;
+    box-sizing: border-box;
+    width: 100svw;
+    max-width: 100svw;
+    margin-left: calc(50% - 50svw);
   }
 
-  .copy-flow {
-    overflow-x: visible !important;
+  @supports not (width: 100svw) {
+    .fu-mobile-breakout-x {
+      width: 100vw;
+      max-width: 100vw;
+      margin-left: calc(50% - 50vw);
+    }
   }
 }
 
 @media (min-width: 1024px) {
+  .fu-mobile-breakout-x {
+    width: auto;
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
   html,
   body,
   #root {

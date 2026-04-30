@@ -21,12 +21,12 @@ export default function Home() {
   const desktopLg = useMinLg();
 
   return (
-    <div className="relative min-h-screen w-full max-w-full min-w-0 overflow-x-visible bg-paper text-ink lg:overflow-x-hidden">
+    <div className="relative min-h-screen w-full max-w-full min-w-0 bg-paper text-ink">
       <SiteHeader />
       <MotionConfig reducedMotion={desktopLg ? "user" : "always"}>
-        <div className="copy-flow min-w-0 w-full max-w-full overflow-x-visible lg:overflow-x-hidden">
+        <div className="copy-flow min-w-0 w-full max-w-full">
           <ScrollProgress />
-          <main className="fu-main-mobile w-full min-w-0 max-w-full touch-pan-y overflow-x-visible">
+          <main className="fu-main-mobile w-full min-w-0 max-w-full touch-pan-y">
             <Hero />
             <div className="relative">
               <Bridge />

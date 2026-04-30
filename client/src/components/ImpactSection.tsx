@@ -129,27 +129,34 @@ export function ImpactSection() {
                   mass: 1.05,
                   delay: i * 0.07,
                 }}
-                className={`relative flex w-full min-w-0 max-w-full flex-col gap-y-5 overflow-x-visible py-7 lg:grid lg:grid-cols-12 lg:gap-x-6 lg:gap-y-6 md:py-8 lg:items-start [&>*]:min-w-0 ${
+                className={`relative grid w-full min-w-0 max-w-full grid-cols-1 gap-y-5 overflow-x-visible py-7 lg:grid-cols-12 lg:gap-x-6 lg:gap-y-6 md:py-8 lg:items-start [&>*]:min-w-0 ${
                   i !== stats.length - 1 ? "border-b border-ink/15" : ""
                 }`}
               >
-                {/* &lt;lg: coluna única */}
-                <div className="col-span-12 space-y-3 lg:col-span-2 lg:space-y-0">
-                  <div className="space-y-3 lg:hidden">
+                {/* Mobile: texto à esquerda (flex-1 min-w-0) + métrica à direita — evita número grande fora do viewport */}
+                <div className="flex w-full min-w-0 max-w-full flex-row items-start gap-3 sm:gap-4 lg:hidden">
+                  <div className="min-w-0 flex-1 space-y-3">
                     <span className="block font-display text-[0.95rem] italic text-muted-foreground tabular-nums">
                       /0{i + 1}
                     </span>
-                    <div
-                      className={`display-head w-full min-w-0 max-w-full text-left break-words leading-none tracking-normal tabular-nums [overflow-wrap:anywhere] ${
-                        s.value === "0"
-                          ? "text-[clamp(1.35rem,5vw,2rem)]"
-                          : "text-[clamp(1.35rem,5vw,2.05rem)]"
-                      }`}
-                    >
-                      {s.value}
-                    </div>
+                    <h3 className="mb-0 min-w-0 text-[1.05rem] font-medium text-ink">{s.label}</h3>
+                    <p className="min-w-0 max-w-full pb-0.5 text-[0.95rem] font-light leading-[1.75] text-ink/65 md:leading-[1.65] md:pb-0">
+                      {s.body}
+                    </p>
                   </div>
-                  <span className="hidden font-display text-[0.95rem] italic text-muted-foreground tabular-nums lg:inline-block">
+                  <div
+                    className={`display-head max-w-[min(40%,11rem)] shrink-0 text-right break-words leading-none tracking-normal tabular-nums text-ink [overflow-wrap:anywhere] ${
+                      s.value === "0"
+                        ? "text-[clamp(1.35rem,min(10vw,4rem),2rem)]"
+                        : "text-[clamp(1.35rem,min(10vw,4rem),2.05rem)]"
+                    }`}
+                  >
+                    {s.value}
+                  </div>
+                </div>
+
+                <div className="hidden space-y-0 lg:col-span-2 lg:block lg:space-y-0">
+                  <span className="inline-block font-display text-[0.95rem] italic text-muted-foreground tabular-nums">
                     /0{i + 1}
                   </span>
                 </div>
@@ -164,11 +171,9 @@ export function ImpactSection() {
                     {s.value}
                   </div>
                 </div>
-                <div className="col-span-12 min-w-0 w-full max-w-full lg:col-span-5 lg:pt-2">
-                  <h3 className="mb-2 min-w-0 text-[1.05rem] font-medium text-ink">
-                    {s.label}
-                  </h3>
-                  <p className="min-w-0 max-w-full overflow-visible pb-0.5 text-[0.95rem] font-light leading-[1.75] text-ink/65 md:leading-[1.65] md:pb-0">
+                <div className="hidden min-w-0 w-full max-w-full lg:col-span-5 lg:block lg:pt-2">
+                  <h3 className="mb-2 min-w-0 text-[1.05rem] font-medium text-ink">{s.label}</h3>
+                  <p className="min-w-0 max-w-full pb-0.5 text-[0.95rem] font-light leading-[1.75] text-ink/65 md:leading-[1.65] md:pb-0">
                     {s.body}
                   </p>
                 </div>
