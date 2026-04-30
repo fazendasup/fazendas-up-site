@@ -25,13 +25,13 @@ export function Hero() {
     <section
       id="top"
       ref={ref}
-      className="relative z-20 isolate w-full max-w-full min-w-0 overflow-x-visible bg-gradient-to-b from-forest-dark via-ink to-ink text-paper min-h-[100svh] max-lg:min-h-[min(64svh,560px)] max-lg:overflow-y-visible lg:h-[100svh] lg:overflow-y-hidden"
+      className="relative z-20 isolate w-full max-w-full min-w-0 overflow-x-visible bg-gradient-to-b from-forest-dark via-ink to-ink text-paper min-h-[100svh] max-lg:overflow-y-visible lg:h-[100svh] lg:overflow-y-hidden"
     >
       {/**
-       * Mobile: altura mais baixa que 100svh + texto alinhado ao topo para não ficar metade do ecrã “vazio”.
-       * Desktop: palco 100svh, headline junto à base (justify-end).
+       * Mobile: foto com foco na fazenda (object-position), overlays mais claros em baixo; texto maior e junto à base.
+       * Desktop: palco 100svh + parallax.
        */}
-      <div className="sticky top-0 z-0 min-h-[100svh] overflow-x-visible max-lg:min-h-[min(64svh,560px)] max-lg:h-auto max-lg:overflow-y-visible lg:h-[100svh] lg:overflow-y-hidden">
+      <div className="sticky top-0 z-0 min-h-[100svh] overflow-x-visible max-lg:h-auto max-lg:overflow-y-visible lg:h-[100svh] lg:overflow-y-hidden">
         {imageFailed && (
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(230,31,147,0.12),transparent_45%),radial-gradient(circle_at_80%_30%,rgba(75,0,79,0.35),transparent_42%),linear-gradient(180deg,#1a0a1c_0%,#110d11_100%)]" />
         )}
@@ -56,7 +56,7 @@ export function Hero() {
               <img
                 src={getSiteImage("hero")}
                 alt="Operação e cultivo vertical da Fazendas Up em Manaus, Amazonas"
-                className="h-full w-full max-w-full object-cover object-center"
+                className="h-full w-full max-w-full object-cover object-center max-lg:object-[52%_72%]"
                 decoding="async"
                 fetchPriority="high"
                 onError={() => setImageFailed(true)}
@@ -72,11 +72,11 @@ export function Hero() {
           />
         ) : (
           <div
-            className="pointer-events-none absolute inset-0 bg-gradient-to-b from-ink/45 via-ink/45 to-ink/92 opacity-95"
+            className="pointer-events-none absolute inset-0 bg-gradient-to-b from-ink/60 via-ink/25 to-ink/55 opacity-100"
             aria-hidden
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-r from-ink/70 via-ink/30 to-transparent pointer-events-none" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-ink/70 via-ink/30 to-transparent max-lg:from-ink/50 max-lg:via-ink/18 max-lg:to-transparent" />
 
         {desktopLg && (
           <div className="absolute right-6 top-0 flex h-full items-center gap-6">
@@ -87,15 +87,15 @@ export function Hero() {
           </div>
         )}
 
-        <div className="relative container flex h-full min-w-0 flex-col max-lg:justify-start max-lg:pt-[calc(5.5rem+env(safe-area-inset-top,0px))] max-lg:pb-12 lg:justify-end lg:pt-24 lg:pb-52">
-          <div className="grid min-w-0 grid-cols-1 items-end gap-8 lg:grid-cols-12 [&>*]:min-w-0">
+        <div className="relative container flex h-full min-w-0 flex-col justify-end pt-[calc(4.5rem+env(safe-area-inset-top,0px))] pb-[max(9rem,14svh)] max-lg:pb-[max(10rem,max(env(safe-area-inset-bottom),2rem)+11svh)] lg:pt-24 lg:pb-52">
+          <div className="grid min-w-0 grid-cols-1 items-end gap-6 max-lg:gap-7 lg:gap-8 lg:grid-cols-12 [&>*]:min-w-0">
             <div className="col-span-full min-w-0 lg:col-span-9 reveal">
-              <p className="eyebrow text-on-plum-strong mb-7 inline-flex max-w-full flex-wrap items-center gap-3">
-                <span className="h-px w-10 shrink-0 bg-on-plum-strong/55" />
+              <p className="eyebrow text-on-plum-strong mb-5 inline-flex max-w-full flex-wrap items-center gap-3 max-lg:mb-6 max-lg:text-[0.82rem] max-lg:tracking-[0.14em] lg:mb-7">
+                <span className="h-px w-10 shrink-0 bg-on-plum-strong/55 max-lg:w-11" />
                 <span className="min-w-0">Fazendas Up · Manaus, Amazonas</span>
               </p>
 
-              <h1 className="display-head hyphens-none text-paper max-w-full text-[clamp(1.65rem,5.5vw+0.35rem,6rem)] leading-[1.06] sm:leading-[1.04] md:leading-none md:text-[clamp(2.6rem,7.2vw,6rem)] lg:max-w-5xl">
+              <h1 className="display-head hyphens-none text-paper max-w-full leading-[1.05] max-lg:text-[clamp(1.92rem,7.4vw+0.5rem,3.45rem)] max-lg:leading-[1.07] lg:max-w-5xl lg:text-[clamp(2.6rem,7.2vw,6rem)] lg:leading-none">
                 Cultivar alimento na cidade <br className="hidden md:block" />
                 para que a <em className="text-brand-rose">floresta</em> siga sendo floresta.
               </h1>
