@@ -5,6 +5,7 @@
 import { Cpu, Droplets, Sprout, Sun } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { getSiteImage, type SiteImageKey } from "@/content/siteImages";
+import { useMinLg } from "@/hooks/useMinLg";
 import { useMemo, useState } from "react";
 
 const technologyImageKeys = [
@@ -58,6 +59,7 @@ const steps = [
 ];
 
 export function TechnologySection() {
+  const desktopLg = useMinLg();
   const [activeStep, setActiveStep] = useState(0);
   const [direction, setDirection] = useState(1);
 
@@ -111,54 +113,105 @@ export function TechnologySection() {
           </p>
           <div className="mt-10 grid min-h-0 grid-cols-12 items-center gap-8 lg:mt-6 lg:flex-1 lg:items-stretch lg:gap-10 [&>*]:min-w-0">
             <div className="col-span-12 min-w-0 lg:col-span-5 lg:flex lg:flex-col lg:justify-center">
-              <AnimatePresence mode="wait" custom={direction} initial={false}>
-                <motion.div
-                  key={`content-${activeStep}`}
-                  custom={direction}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  <div className="flex items-center gap-4 mb-5 lg:mb-4">
+              {desktopLg ? (
+                <AnimatePresence mode="wait" custom={direction} initial={false}>
+                  <motion.div
+                    key={`content-${activeStep}`}
+                    custom={direction}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <div className="mb-5 flex items-center gap-4 lg:mb-4">
+                      <span className="font-display italic text-on-plum-muted text-[1.05rem]">
+                        {current.n} / 04
+                      </span>
+                      <span className="h-px max-w-[120px] flex-1 bg-on-plum-soft/35" />
+                      <span className="flex size-10 items-center justify-center rounded-full border border-on-plum-soft/40">
+                        <current.icon className="size-4 text-on-plum-strong" />
+                      </span>
+                    </div>
+                    <h3 className="display-head mb-4 max-w-full hyphens-none text-paper text-[clamp(1.45rem,4.2vw+0.2rem,2.4rem)] leading-[1.08] md:text-[clamp(1.6rem,3vw,2.4rem)] md:leading-none lg:max-w-md">
+                      {current.title}
+                    </h3>
+                    <p className="max-w-full text-[1rem] font-light leading-[1.65] text-on-plum-strong/95 lg:max-w-md lg:text-[0.98rem]">
+                      {current.body}
+                    </p>
+                    <div className="mt-7 max-w-md border-t border-on-plum-soft/30 pt-5 lg:mt-6">
+                      <div className="mb-1 font-display text-[clamp(2.1rem,5vw,2.7rem)] italic leading-none text-on-plum-strong">
+                        {current.metric}
+                      </div>
+                      <div className="max-w-full min-w-0 text-[0.78rem] uppercase tracking-[0.2em] text-on-plum-muted">
+                        {current.metricLabel}
+                      </div>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+              ) : (
+                <div key={activeStep}>
+                  <div className="mb-5 flex items-center gap-4 lg:mb-4">
                     <span className="font-display italic text-on-plum-muted text-[1.05rem]">
                       {current.n} / 04
                     </span>
-                    <span className="h-px flex-1 bg-on-plum-soft/35 max-w-[120px]" />
-                    <span className="size-10 rounded-full border border-on-plum-soft/40 flex items-center justify-center">
+                    <span className="h-px max-w-[120px] flex-1 bg-on-plum-soft/35" />
+                    <span className="flex size-10 items-center justify-center rounded-full border border-on-plum-soft/40">
                       <current.icon className="size-4 text-on-plum-strong" />
                     </span>
                   </div>
-                  <h3 className="display-head hyphens-none text-paper mb-4 max-w-full text-[clamp(1.45rem,4.2vw+0.2rem,2.4rem)] leading-[1.08] md:leading-none md:text-[clamp(1.6rem,3vw,2.4rem)] lg:max-w-md">
+                  <h3 className="display-head mb-4 max-w-full hyphens-none text-paper text-[clamp(1.45rem,4.2vw+0.2rem,2.4rem)] leading-[1.08] md:text-[clamp(1.6rem,3vw,2.4rem)] md:leading-none lg:max-w-md">
                     {current.title}
                   </h3>
                   <p className="max-w-full text-[1rem] font-light leading-[1.65] text-on-plum-strong/95 lg:max-w-md lg:text-[0.98rem]">
                     {current.body}
                   </p>
-                  <div className="mt-7 lg:mt-6 pt-5 border-t border-on-plum-soft/30 max-w-md">
-                    <div className="font-display italic text-on-plum-strong text-[clamp(2.1rem,5vw,2.7rem)] leading-none mb-1">
+                  <div className="mt-7 max-w-md border-t border-on-plum-soft/30 pt-5 lg:mt-6">
+                    <div className="mb-1 font-display text-[clamp(2.1rem,5vw,2.7rem)] italic leading-none text-on-plum-strong">
                       {current.metric}
                     </div>
                     <div className="max-w-full min-w-0 text-[0.78rem] uppercase tracking-[0.2em] text-on-plum-muted">
                       {current.metricLabel}
                     </div>
                   </div>
-                </motion.div>
-              </AnimatePresence>
+                </div>
+              )}
             </div>
 
             <div className="col-span-12 min-w-0 lg:col-span-7 lg:min-h-0">
               <div className="relative aspect-[4/3] w-full max-w-full overflow-hidden rounded-sm border border-on-plum-soft/25 bg-forest-dark lg:aspect-auto lg:h-full">
-                <AnimatePresence mode="wait" custom={direction} initial={false}>
-                  <motion.img
-                    key={`image-${activeStep}`}
-                    custom={direction}
-                    variants={slideVariants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                {desktopLg ? (
+                  <AnimatePresence mode="wait" custom={direction} initial={false}>
+                    <motion.img
+                      key={`image-${activeStep}`}
+                      custom={direction}
+                      variants={slideVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                      src={getSiteImage(technologyImageKeys[activeStep])}
+                      alt={current.title}
+                      className={
+                        activeStep === 0
+                          ? "absolute inset-0 h-full w-full max-h-none max-w-none object-cover object-[50%_10%] md:object-[50%_6%]"
+                          : activeStep === 1
+                            ? "absolute inset-0 h-full w-full max-h-none max-w-none object-cover object-[50%_58%] md:object-center"
+                            : "absolute inset-0 h-full w-full max-h-none max-w-none object-cover"
+                      }
+                      onError={(e) => {
+                        const el = e.currentTarget;
+                        if (el.getAttribute("data-fallback") === "1") return;
+                        const next = technologyImageFallback[activeStep];
+                        if (!next || el.src.endsWith(next)) return;
+                        el.setAttribute("data-fallback", "1");
+                        el.src = next;
+                      }}
+                    />
+                  </AnimatePresence>
+                ) : (
+                  <img
+                    key={activeStep}
                     src={getSiteImage(technologyImageKeys[activeStep])}
                     alt={current.title}
                     className={
@@ -177,7 +230,7 @@ export function TechnologySection() {
                       el.src = next;
                     }}
                   />
-                </AnimatePresence>
+                )}
                 <div className="absolute inset-0 z-[1] bg-gradient-to-t from-forest-dark/50 via-forest-dark/12 to-transparent pointer-events-none" />
                 <div className="absolute bottom-5 left-5 right-5 z-[2] flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 text-on-plum-strong/95 text-[0.72rem] uppercase tracking-[0.2em]">
                   <span className="min-w-0">FZD-UP / Cultivo</span>

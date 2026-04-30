@@ -255,28 +255,41 @@ export function ManifestoSection() {
       <div className="container min-w-0">
         {/* Pillars */}
         <div className="grid w-full min-w-0 max-w-full grid-cols-12 gap-x-4 gap-y-12 sm:gap-x-8 md:gap-x-10 md:gap-y-14 lg:px-[5%] [&>*]:min-w-0">
-          {pillars.map((p, i) => (
-            <motion.div
-              key={p.t}
-              {...motionEnterFromBelow()}
-              viewport={{ once: true, margin: "-15% 0px" }}
-              transition={{ duration: 0.9, ease: [0.2, 0.7, 0.2, 1], delay: i * 0.12 }}
-              className="col-span-12 w-full min-w-0 max-w-full border-t border-paper/20 pt-7 md:col-span-4"
-            >
-              <div className="mb-5 flex min-w-0 max-w-full items-center justify-between gap-3">
-                <span className="shrink-0 font-display text-[0.95rem] italic text-paper/45">
-                  /0{i + 1}
-                </span>
-                <span className="size-1.5 shrink-0 rounded-full bg-clay" />
+          {pillars.map((p, i) => {
+            const pillarClass =
+              "col-span-12 w-full min-w-0 max-w-full border-t border-paper/20 pt-7 md:col-span-4";
+            const pillarInner = (
+              <>
+                <div className="mb-5 flex min-w-0 max-w-full items-center justify-between gap-3">
+                  <span className="shrink-0 font-display text-[0.95rem] italic text-paper/45">
+                    /0{i + 1}
+                  </span>
+                  <span className="size-1.5 shrink-0 rounded-full bg-clay" />
+                </div>
+                <h3 className="display-head mb-4 max-w-full min-w-0 hyphens-auto text-paper text-[clamp(1.85rem,min(6vw,12vw),2.4rem)] leading-tight [overflow-wrap:anywhere]">
+                  {p.t}
+                </h3>
+                <p className="w-full min-w-0 max-w-full text-[0.97rem] font-light leading-[1.75] text-paper/70 [overflow-wrap:anywhere] [word-break:break-word]">
+                  {p.b}
+                </p>
+              </>
+            );
+            return desktopLg ? (
+              <motion.div
+                key={p.t}
+                {...motionEnterFromBelow()}
+                viewport={{ once: true, margin: "-15% 0px" }}
+                transition={{ duration: 0.9, ease: [0.2, 0.7, 0.2, 1], delay: i * 0.12 }}
+                className={pillarClass}
+              >
+                {pillarInner}
+              </motion.div>
+            ) : (
+              <div key={p.t} className={pillarClass}>
+                {pillarInner}
               </div>
-              <h3 className="display-head mb-4 max-w-full min-w-0 hyphens-auto text-paper text-[clamp(1.85rem,min(6vw,12vw),2.4rem)] leading-tight [overflow-wrap:anywhere]">
-                {p.t}
-              </h3>
-              <p className="w-full min-w-0 max-w-full text-[0.97rem] font-light leading-[1.75] text-paper/70 [overflow-wrap:anywhere] [word-break:break-word]">
-                {p.b}
-              </p>
-            </motion.div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

@@ -1,10 +1,13 @@
 /**
  * For Chefs / Business — Off-axis split with parallax photograph
  * and progressively revealed benefit cards.
+ *
+ * Mobile: foto full-bleed FORA do `.container` (largura = secção, zero vw/breakout).
+ * Desktop: parallax só em lg+ (useMinLg).
  */
 import { ChefHat, Leaf, Truck, ArrowUpRight } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useRef, type SyntheticEvent } from "react";
 import { getSiteImage } from "@/content/siteImages";
 import { useMinLg } from "@/hooks/useMinLg";
 import { motionEnterFromBelow } from "@/lib/motionEntrance";
@@ -27,6 +30,19 @@ const benefits = [
   },
 ];
 
+function chefsPhotoOnError(e: SyntheticEvent<HTMLImageElement>) {
+  const el = e.currentTarget;
+  const step = el.getAttribute("data-for-chefs-fb");
+  if (step === "2") return;
+  if (step === "1") {
+    el.setAttribute("data-for-chefs-fb", "2");
+    el.src = "/manus-storage/vertical_farm_alt_0fb78d96.jpg";
+    return;
+  }
+  el.setAttribute("data-for-chefs-fb", "1");
+  el.src = "/uploads/prato_16.png";
+}
+
 export function ForChefsSection() {
   const ref = useRef<HTMLElement>(null);
   const desktopLg = useMinLg();
@@ -34,92 +50,73 @@ export function ForChefsSection() {
     target: ref,
     offset: ["start end", "end start"],
   });
-  /** Sem translateY no desktop: empurra o clip do overflow e aparece faixa acinzentada por baixo da foto. */
   const imgScale = useTransform(scrollYProgress, [0, 0.5, 1], [1.04, 1.02, 1]);
   const vignette = useTransform(scrollYProgress, [0, 0.45, 1], [0.18, 0.28, 0.38]);
+
+  const benefitCardClass =
+    "min-w-0 max-w-full bg-secondary px-5 pt-6 pb-7 transition-colors group hover:bg-paper sm:p-7";
 
   return (
     <section
       ref={ref}
-      className="relative isolate w-full max-w-full min-w-0 overflow-x-visible overflow-y-visible border-t border-ink/10 bg-secondary pt-24 pb-32 text-ink md:py-30 lg:h-screen lg:py-10"
+      className="relative isolate w-full max-w-full min-w-0 border-t border-ink/10 bg-secondary pt-24 pb-32 text-ink md:py-30 lg:h-screen lg:py-10"
     >
-      {/* Decorativo enorme — em mobile empurra layout/scrollWidth mesmo com overflow; só a partir de md */}
       <div className="pointer-events-none absolute inset-x-0 -top-6 hidden max-w-full justify-end overflow-hidden select-none md:flex md:inset-x-auto md:right-10 md:left-auto md:w-auto">
         <span className="font-display italic text-ink/[0.05] text-[clamp(6rem,42vw,12rem)] leading-none whitespace-nowrap sm:text-[15rem] md:text-[22rem] lg:text-[26rem]">
           B2B
         </span>
       </div>
 
+      {/* ——— Mobile: imagem à largura da secção (sem padding lateral do container) ——— */}
+      <div className="w-full lg:hidden">
+        <div className="relative aspect-[4/5] w-full overflow-hidden bg-secondary">
+          <div className="absolute inset-0 min-h-0 min-w-0 overflow-hidden">
+            <img
+              src={getSiteImage("forChefs")}
+              alt="Prato com ingredientes frescos da Fazendas Up"
+              className="pointer-events-none absolute left-0 right-0 top-1/2 z-0 block h-[132%] w-full max-w-none -translate-y-1/2 object-cover object-center select-none"
+              onError={chefsPhotoOnError}
+            />
+          </div>
+          <div
+            className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-ink/25 via-transparent to-ink/55 opacity-[0.32]"
+            aria-hidden
+          />
+          <div className="absolute top-5 left-5 z-[2] bg-paper/90 px-3 py-1.5 text-[0.7rem] uppercase tracking-[0.25em] text-ink backdrop-blur-sm">
+            Para chefs e negócios
+          </div>
+        </div>
+        <div className="container mx-auto mt-4 max-w-full text-[0.78rem] italic text-muted-foreground md:max-w-xs">
+          Colheita em no máximo 24h antes da entrega, com padrão visual e frescor consistentes.
+        </div>
+      </div>
+
       <div className="container relative min-w-0 lg:flex lg:h-full lg:flex-col lg:justify-center [&>*]:min-w-0">
         <div className="grid grid-cols-12 items-stretch gap-10 lg:gap-14 [&>*]:min-w-0">
-          {/* Image with parallax */}
-          <div className="relative col-span-12 min-w-0 lg:col-span-5 lg:min-h-0">
-            {/* Mobile: foto edge-to-edge (escapa ao padding do container). Desktop: fu-mobile-breakout-x neutralizado no CSS. */}
-            <div className="fu-mobile-breakout-x">
-              <div className="relative aspect-[4/5] w-full max-w-full overflow-hidden rounded-none bg-secondary lg:aspect-auto lg:h-full lg:min-h-[min(100%,560px)] lg:rounded-sm">
-              {desktopLg ? (
-                <motion.div
-                  style={{ scale: imgScale }}
-                  className="absolute inset-0 min-h-0 min-w-0 overflow-hidden will-change-transform"
-                >
-                  <img
-                    src={getSiteImage("forChefs")}
-                    alt="Prato com ingredientes frescos da Fazendas Up"
-                    className="pointer-events-none absolute left-0 right-0 top-1/2 z-0 block h-[132%] w-full max-w-none -translate-y-1/2 object-cover object-center select-none"
-                    onError={(e) => {
-                      const el = e.currentTarget;
-                      const step = el.getAttribute("data-for-chefs-fb");
-                      if (step === "2") return;
-                      if (step === "1") {
-                        el.setAttribute("data-for-chefs-fb", "2");
-                        el.src = "/manus-storage/vertical_farm_alt_0fb78d96.jpg";
-                        return;
-                      }
-                      el.setAttribute("data-for-chefs-fb", "1");
-                      el.src = "/uploads/prato_16.png";
-                    }}
-                  />
-                </motion.div>
-              ) : (
-                <div className="absolute inset-0 min-h-0 min-w-0 overflow-hidden">
-                  <img
-                    src={getSiteImage("forChefs")}
-                    alt="Prato com ingredientes frescos da Fazendas Up"
-                    className="pointer-events-none absolute left-0 right-0 top-1/2 z-0 block h-[132%] w-full max-w-none -translate-y-1/2 object-cover object-center select-none"
-                    onError={(e) => {
-                      const el = e.currentTarget;
-                      const step = el.getAttribute("data-for-chefs-fb");
-                      if (step === "2") return;
-                      if (step === "1") {
-                        el.setAttribute("data-for-chefs-fb", "2");
-                        el.src = "/manus-storage/vertical_farm_alt_0fb78d96.jpg";
-                        return;
-                      }
-                      el.setAttribute("data-for-chefs-fb", "1");
-                      el.src = "/uploads/prato_16.png";
-                    }}
-                  />
-                </div>
-              )}
-              {desktopLg ? (
-                <motion.div
-                  style={{ opacity: vignette }}
-                  className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-ink/25 via-transparent to-ink/55"
+          {/* Desktop-only foto + legenda */}
+          <div className="relative hidden min-h-0 lg:col-span-5 lg:block">
+            <div className="relative aspect-[4/5] w-full max-w-full overflow-hidden rounded-sm bg-secondary lg:aspect-auto lg:h-full lg:min-h-[min(100%,560px)]">
+              <motion.div
+                style={{ scale: imgScale }}
+                className="absolute inset-0 min-h-0 min-w-0 overflow-hidden will-change-transform"
+              >
+                <img
+                  src={getSiteImage("forChefs")}
+                  alt="Prato com ingredientes frescos da Fazendas Up"
+                  className="pointer-events-none absolute left-0 right-0 top-1/2 z-0 block h-[132%] w-full max-w-none -translate-y-1/2 object-cover object-center select-none"
+                  onError={chefsPhotoOnError}
                 />
-              ) : (
-                <div
-                  className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-ink/25 via-transparent to-ink/55 opacity-[0.32]"
-                  aria-hidden
-                />
-              )}
-              <div className="absolute top-5 left-5 z-[2] px-3 py-1.5 bg-paper/90 backdrop-blur-sm text-[0.7rem] uppercase tracking-[0.25em] text-ink">
+              </motion.div>
+              <motion.div
+                style={{ opacity: vignette }}
+                className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-ink/25 via-transparent to-ink/55"
+              />
+              <div className="absolute top-5 left-5 z-[2] bg-paper/90 px-3 py-1.5 text-[0.7rem] uppercase tracking-[0.25em] text-ink backdrop-blur-sm">
                 Para chefs e negócios
-              </div>
               </div>
             </div>
             <div className="mt-4 max-w-full text-[0.78rem] italic text-muted-foreground md:max-w-xs">
-              Colheita em no máximo 24h antes da entrega, com padrão visual e
-              frescor consistentes.
+              Colheita em no máximo 24h antes da entrega, com padrão visual e frescor consistentes.
             </div>
           </div>
 
@@ -132,42 +129,56 @@ export function ForChefsSection() {
               Um parceiro <em>discreto</em> para cozinhas e operações exigentes.
             </h2>
             <p className="mt-6 max-w-full text-[1rem] font-light leading-[1.7] text-ink/75 md:max-w-xl">
-              Trabalhamos lado a lado com restaurantes, hotéis, mercados premium
-              e redes de food service que enxergam ingrediente como matéria-prima
-              estratégica.
+              Trabalhamos lado a lado com restaurantes, hotéis, mercados premium e redes de food service que enxergam
+              ingrediente como matéria-prima estratégica.
             </p>
 
             <div className="mt-9 grid w-full min-w-0 max-w-full rounded-sm border border-ink/10 bg-ink/10 [grid-template-columns:minmax(0,1fr)] md:[grid-template-columns:repeat(3,minmax(0,1fr))] [&>*]:min-w-0">
-              {benefits.map((b, i) => (
-                <motion.div
-                  key={b.title}
-                  {...motionEnterFromBelow()}
-                  viewport={{ once: true, margin: "-12% 0px" }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 64,
-                    damping: 20,
-                    mass: 0.95,
-                    delay: i * 0.09,
-                  }}
-                  className="min-w-0 max-w-full overflow-x-visible overflow-y-visible bg-secondary px-5 pt-6 pb-7 sm:p-7 transition-colors group hover:bg-paper"
-                >
-                  <div className="mb-5 flex min-w-0 items-start justify-between gap-3">
-                    <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-ink/20 transition-colors group-hover:border-forest">
-                      <b.icon className="size-4 text-forest" />
-                    </span>
-                    <span className="shrink-0 text-right font-display text-[0.85rem] italic text-muted-foreground tabular-nums">
-                      /0{i + 1}
-                    </span>
+              {benefits.map((b, i) =>
+                desktopLg ? (
+                  <motion.div
+                    key={b.title}
+                    {...motionEnterFromBelow()}
+                    viewport={{ once: true, margin: "-12% 0px" }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 64,
+                      damping: 20,
+                      mass: 0.95,
+                      delay: i * 0.09,
+                    }}
+                    className={benefitCardClass}
+                  >
+                    <div className="mb-5 flex min-w-0 items-start justify-between gap-3">
+                      <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-ink/20 transition-colors group-hover:border-forest">
+                        <b.icon className="size-4 text-forest" />
+                      </span>
+                      <span className="shrink-0 text-right font-display text-[0.85rem] italic text-muted-foreground tabular-nums">
+                        /0{i + 1}
+                      </span>
+                    </div>
+                    <h3 className="mb-3.5 min-w-0 text-[1.05rem] font-medium leading-snug text-ink">{b.title}</h3>
+                    <p className="min-w-0 text-[0.9rem] font-light leading-[1.78] text-ink/65 [overflow-wrap:anywhere] [word-break:break-word] md:leading-[1.72] max-md:pb-0.5">
+                      {b.body}
+                    </p>
+                  </motion.div>
+                ) : (
+                  <div key={b.title} className={benefitCardClass}>
+                    <div className="mb-5 flex min-w-0 items-start justify-between gap-3">
+                      <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-ink/20 transition-colors group-hover:border-forest">
+                        <b.icon className="size-4 text-forest" />
+                      </span>
+                      <span className="shrink-0 text-right font-display text-[0.85rem] italic text-muted-foreground tabular-nums">
+                        /0{i + 1}
+                      </span>
+                    </div>
+                    <h3 className="mb-3.5 min-w-0 text-[1.05rem] font-medium leading-snug text-ink">{b.title}</h3>
+                    <p className="min-w-0 text-[0.9rem] font-light leading-[1.78] text-ink/65 [overflow-wrap:anywhere] [word-break:break-word] md:leading-[1.72] max-md:pb-0.5">
+                      {b.body}
+                    </p>
                   </div>
-                  <h3 className="mb-3.5 min-w-0 text-[1.05rem] font-medium leading-snug text-ink">
-                    {b.title}
-                  </h3>
-                  <p className="min-w-0 text-[0.9rem] font-light leading-[1.78] text-ink/65 md:leading-[1.72] [overflow-wrap:anywhere] [word-break:break-word] max-md:pb-0.5">
-                    {b.body}
-                  </p>
-                </motion.div>
-              ))}
+                )
+              )}
             </div>
 
             <div className="mt-10 flex w-full min-w-0 max-w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5 max-lg:pb-1">
@@ -178,9 +189,7 @@ export function ForChefsSection() {
                 Solicitar proposta comercial
                 <ArrowUpRight className="size-4 shrink-0" />
               </a>
-              <span className="min-w-0 text-[0.85rem] text-muted-foreground">
-                Entrega em até 48h úteis
-              </span>
+              <span className="min-w-0 text-[0.85rem] text-muted-foreground">Entrega em até 48h úteis</span>
             </div>
           </div>
         </div>

@@ -437,22 +437,10 @@
 }
 
 /**
- * Framer Motion (parallax scale/translate): no Safari o scrollWidth fica maior que o viewport
- * e o texto/botões parecem cortados com overflow-x hidden — mesmo quando o React já desligou
- * o parallax via `narrow`, restos de transform ou um frame inicial ainda estragam o layout.
- * `transform: none !important` ganha ao inline do Framer só nesta propriedade; opacity mantém-se.
+ * Mobile: sem hacks globais em `[style*=…]` — geravam falsos positivos e lutavam com Framer.
+ * `<lg` o JSX não deve aplicar scale/translate parallax (useMinLg + markup estático).
  */
 @media (max-width: 1023px) {
-  /**
-   * Reforço de segurança além de MotionConfig(reducedMotion:always): inline pode usar só parte da string.
-   * NÃO incluir substring `translate`: Framer usa translateX(0)/translateZ(0) só para composição —
-   * casa demais e `transform:none` estraga layers sem resolver overflow real.
-   */
-  .copy-flow main [style*="scale("],
-  .copy-flow main [style*="rotate("] {
-    transform: none !important;
-  }
-
   /**
    * `hyphens-none` (Tailwind) impede hifenização — em PT linhas longas parecem “cortadas”
    * junto com overflow-x nos pais; em mobile preferimos hifenização onde o browser suportar.
@@ -467,37 +455,9 @@
     max-width: 100%;
     box-sizing: border-box;
   }
-
-  /**
-   * Breakout seguro para fotografia editorial: escapa só ao padding do `.container`
-   * sem depender de translate (mobile pode remover transforms por hacks antigos).
-   * Usa svw onde existe para reduzir mismatch com barras do browser.
-   */
-  .fu-mobile-breakout-x {
-    position: relative;
-    box-sizing: border-box;
-    width: 100svw;
-    max-width: 100svw;
-    margin-left: calc(50% - 50svw);
-  }
-
-  @supports not (width: 100svw) {
-    .fu-mobile-breakout-x {
-      width: 100vw;
-      max-width: 100vw;
-      margin-left: calc(50% - 50vw);
-    }
-  }
 }
 
 @media (min-width: 1024px) {
-  .fu-mobile-breakout-x {
-    width: auto;
-    max-width: none;
-    margin-left: 0;
-    margin-right: 0;
-  }
-
   html,
   body,
   #root {

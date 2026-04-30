@@ -65,11 +65,18 @@ export function Hero() {
             </div>
           ))}
 
-        {/* Animated overlay */}
-        <motion.div
-          style={{ opacity: overlay }}
-          className="absolute inset-0 bg-gradient-to-b from-ink/40 via-ink/40 to-ink/95 pointer-events-none"
-        />
+        {/* Overlay: só desktop anima com scroll; mobile usa opacidade fixa (sem inline transform no Safari). */}
+        {desktopLg ? (
+          <motion.div
+            style={{ opacity: overlay }}
+            className="pointer-events-none absolute inset-0 bg-gradient-to-b from-ink/40 via-ink/40 to-ink/95"
+          />
+        ) : (
+          <div
+            className="pointer-events-none absolute inset-0 bg-gradient-to-b from-ink/45 via-ink/45 to-ink/92 opacity-95"
+            aria-hidden
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-r from-ink/70 via-ink/30 to-transparent pointer-events-none" />
 
         {desktopLg && (

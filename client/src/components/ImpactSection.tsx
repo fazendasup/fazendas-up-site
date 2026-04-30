@@ -116,69 +116,80 @@ export function ImpactSection() {
 
           {/* Cards column */}
           <div className="relative z-0 col-span-12 flex min-w-0 max-w-full flex-col overflow-x-visible overflow-y-visible perspective-none lg:[perspective:1400px] lg:col-span-7 [&>*]:min-w-0">
-            {stats.map((s, i) => (
-              <motion.article
-                key={s.label}
-                layout={false}
-                {...motionEnterFromBelow()}
-                viewport={{ once: true, margin: "-14% 0px" }}
-                transition={{
-                  type: "spring",
-                  stiffness: 62,
-                  damping: 22,
-                  mass: 1.05,
-                  delay: i * 0.07,
-                }}
-                className={`relative grid w-full min-w-0 max-w-full grid-cols-1 gap-y-5 overflow-x-visible py-7 lg:grid-cols-12 lg:gap-x-6 lg:gap-y-6 md:py-8 lg:items-start [&>*]:min-w-0 ${
-                  i !== stats.length - 1 ? "border-b border-ink/15" : ""
-                }`}
-              >
-                {/* Mobile: texto à esquerda (flex-1 min-w-0) + métrica à direita — evita número grande fora do viewport */}
-                <div className="flex w-full min-w-0 max-w-full flex-row items-start gap-3 sm:gap-4 lg:hidden">
-                  <div className="min-w-0 flex-1 space-y-3">
-                    <span className="block font-display text-[0.95rem] italic text-muted-foreground tabular-nums">
+            {stats.map((s, i) => {
+              const rowClass = `relative grid w-full min-w-0 max-w-full grid-cols-1 gap-y-5 overflow-x-visible py-7 lg:grid-cols-12 lg:gap-x-6 lg:gap-y-6 md:py-8 lg:items-start [&>*]:min-w-0 ${
+                i !== stats.length - 1 ? "border-b border-ink/15" : ""
+              }`;
+              const inner = (
+                <>
+                  <div className="flex w-full min-w-0 max-w-full flex-row items-start gap-3 sm:gap-4 lg:hidden">
+                    <div className="min-w-0 flex-1 space-y-3">
+                      <span className="block font-display text-[0.95rem] italic text-muted-foreground tabular-nums">
+                        /0{i + 1}
+                      </span>
+                      <h3 className="mb-0 min-w-0 text-[1.05rem] font-medium text-ink">{s.label}</h3>
+                      <p className="min-w-0 max-w-full pb-0.5 text-[0.95rem] font-light leading-[1.75] text-ink/65 md:leading-[1.65] md:pb-0">
+                        {s.body}
+                      </p>
+                    </div>
+                    <div
+                      className={`display-head max-w-[min(40%,11rem)] shrink-0 text-right break-words leading-none tracking-normal tabular-nums text-ink [overflow-wrap:anywhere] ${
+                        s.value === "0"
+                          ? "text-[clamp(1.35rem,min(10vw,4rem),2rem)]"
+                          : "text-[clamp(1.35rem,min(10vw,4rem),2.05rem)]"
+                      }`}
+                    >
+                      {s.value}
+                    </div>
+                  </div>
+
+                  <div className="hidden space-y-0 lg:col-span-2 lg:block lg:space-y-0">
+                    <span className="inline-block font-display text-[0.95rem] italic text-muted-foreground tabular-nums">
                       /0{i + 1}
                     </span>
-                    <h3 className="mb-0 min-w-0 text-[1.05rem] font-medium text-ink">{s.label}</h3>
+                  </div>
+                  <div className="hidden min-w-0 lg:col-span-5 lg:block">
+                    <div
+                      className={`display-head max-w-full break-words text-ink leading-none ${
+                        s.value === "0"
+                          ? "text-[clamp(2rem,3.4vw,2.85rem)]"
+                          : "text-[clamp(2.2rem,4.8vw,3.75rem)]"
+                      }`}
+                    >
+                      {s.value}
+                    </div>
+                  </div>
+                  <div className="hidden min-w-0 w-full max-w-full lg:col-span-5 lg:block lg:pt-2">
+                    <h3 className="mb-2 min-w-0 text-[1.05rem] font-medium text-ink">{s.label}</h3>
                     <p className="min-w-0 max-w-full pb-0.5 text-[0.95rem] font-light leading-[1.75] text-ink/65 md:leading-[1.65] md:pb-0">
                       {s.body}
                     </p>
                   </div>
-                  <div
-                    className={`display-head max-w-[min(40%,11rem)] shrink-0 text-right break-words leading-none tracking-normal tabular-nums text-ink [overflow-wrap:anywhere] ${
-                      s.value === "0"
-                        ? "text-[clamp(1.35rem,min(10vw,4rem),2rem)]"
-                        : "text-[clamp(1.35rem,min(10vw,4rem),2.05rem)]"
-                    }`}
-                  >
-                    {s.value}
-                  </div>
-                </div>
-
-                <div className="hidden space-y-0 lg:col-span-2 lg:block lg:space-y-0">
-                  <span className="inline-block font-display text-[0.95rem] italic text-muted-foreground tabular-nums">
-                    /0{i + 1}
-                  </span>
-                </div>
-                <div className="hidden min-w-0 lg:col-span-5 lg:block">
-                  <div
-                    className={`display-head max-w-full break-words text-ink leading-none ${
-                      s.value === "0"
-                        ? "text-[clamp(2rem,3.4vw,2.85rem)]"
-                        : "text-[clamp(2.2rem,4.8vw,3.75rem)]"
-                    }`}
-                  >
-                    {s.value}
-                  </div>
-                </div>
-                <div className="hidden min-w-0 w-full max-w-full lg:col-span-5 lg:block lg:pt-2">
-                  <h3 className="mb-2 min-w-0 text-[1.05rem] font-medium text-ink">{s.label}</h3>
-                  <p className="min-w-0 max-w-full pb-0.5 text-[0.95rem] font-light leading-[1.75] text-ink/65 md:leading-[1.65] md:pb-0">
-                    {s.body}
-                  </p>
-                </div>
-              </motion.article>
-            ))}
+                </>
+              );
+              return desktopLg ? (
+                <motion.article
+                  key={s.label}
+                  layout={false}
+                  {...motionEnterFromBelow()}
+                  viewport={{ once: true, margin: "-14% 0px" }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 62,
+                    damping: 22,
+                    mass: 1.05,
+                    delay: i * 0.07,
+                  }}
+                  className={rowClass}
+                >
+                  {inner}
+                </motion.article>
+              ) : (
+                <article key={s.label} className={rowClass}>
+                  {inner}
+                </article>
+              );
+            })}
           </div>
         </div>
       </div>
