@@ -20,11 +20,14 @@ import {
   Wrench,
 } from "lucide-react";
 import { Link } from "wouter";
+import { getSiteImage } from "@/content/siteImages";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { motionEnterFromBelow } from "@/lib/motionEntrance";
 
 const APP_URL = "https://app.fazendasup.com.br/";
+/** Foto institucional já usada no site (sem gradientes radiais artificiais no hero). */
+const OPERACAO_HERO_PHOTO = getSiteImage("technologyStep3");
 
 const pillars = [
   {
@@ -136,49 +139,52 @@ export default function OperacaoPage() {
       <SiteHeader variant="subpage" />
       <div className="copy-flow min-w-0 w-full max-w-full">
         <main className="fu-main-mobile w-full min-w-0 max-w-full">
-          <section className="relative isolate min-h-[min(88dvh,46rem)] w-full overflow-hidden bg-forest-dark pb-16 pt-24 text-paper md:min-h-[min(88dvh,50rem)] md:pb-20 md:pt-28">
-            {/* Ameixa da marca + calor: rosa, violeta suave e âmbar (evita “roxo gelado” chapado). */}
-            <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+          <section className="relative isolate min-h-[min(92dvh,44rem)] w-full overflow-hidden bg-ink pb-16 pt-24 text-paper md:min-h-[min(88dvh,48rem)] md:pb-20 md:pt-28">
+            {/* Operação real: foto do acervo + só degradês lineares (leitura à esquerda, direita mais clara). */}
+            <div className="pointer-events-none absolute inset-0" aria-hidden>
+              <img
+                src={OPERACAO_HERO_PHOTO}
+                alt=""
+                width={1600}
+                height={1067}
+                fetchPriority="high"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover object-[center_40%] md:object-[center_35%]"
+              />
               <div
-                className="absolute inset-0 opacity-[0.95]"
+                className="absolute inset-0"
                 style={{
-                  backgroundImage: `
-                    radial-gradient(circle at 18% 24%, rgba(230,31,147,0.42), transparent 46%),
-                    radial-gradient(circle at 88% 14%, rgba(140,80,195,0.32), transparent 44%),
-                    radial-gradient(circle at 72% 78%, rgba(245,158,120,0.14), transparent 48%),
-                    radial-gradient(circle at 12% 72%, rgba(190,120,200,0.12), transparent 42%),
-                    radial-gradient(ellipse 130% 70% at 50% -10%, rgba(120,60,180,0.22), transparent 52%)
-                  `,
+                  background:
+                    "linear-gradient(105deg, rgba(12,10,14,0.92) 0%, rgba(12,10,14,0.55) 44%, rgba(12,10,14,0.18) 72%, transparent 100%)",
                 }}
               />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/25" />
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_85%_65%_at_50%_45%,transparent_0%,rgba(30,8,36,0.35)_100%)]" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/25 md:from-black/40 md:to-transparent" />
             </div>
 
-            <div className="container relative z-10 mx-auto flex min-h-[min(72dvh,34rem)] max-w-full items-center px-4 py-10 md:min-h-[min(68dvh,38rem)] md:py-14">
-              <div className="w-full max-w-3xl rounded-2xl border border-white/20 bg-black/25 px-5 py-7 shadow-[0_24px_80px_-24px_rgba(0,0,0,0.55)] ring-1 ring-white/[0.07] backdrop-blur-md supports-[backdrop-filter]:bg-black/20 md:px-9 md:py-9">
-                <p className="eyebrow mb-5 inline-flex max-w-full flex-wrap items-center gap-3 text-paper/90">
-                  <span className="h-px w-10 shrink-0 bg-paper/50" />
+            <div className="container relative z-10 mx-auto flex min-h-[min(72dvh,32rem)] max-w-full items-center px-4 py-10 md:min-h-[min(68dvh,36rem)] md:py-14">
+              <div className="w-full max-w-3xl md:max-w-2xl">
+                <p className="eyebrow mb-5 inline-flex max-w-full flex-wrap items-center gap-3 text-paper/95">
+                  <span className="h-px w-10 shrink-0 bg-paper/55" />
                   <span className="min-w-0 font-medium tracking-wide">Painel de operação, Fazendas Up</span>
                 </p>
-                <h1 className="display-head hyphens-none mb-6 max-w-full text-paper text-[clamp(1.75rem,min(4.5vw+0.5rem,6.5vw),3.15rem)] leading-[1.08] md:text-[clamp(2rem,3.6vw,3.35rem)] [text-shadow:0_2px_24px_rgba(0,0,0,0.45)]">
+                <h1 className="display-head hyphens-none mb-6 max-w-full text-paper text-[clamp(1.75rem,min(4.5vw+0.5rem,6.5vw),3.15rem)] leading-[1.08] md:text-[clamp(2rem,3.6vw,3.35rem)]">
                   O supervisório que transforma <em className="text-brand-rose not-italic">o cultivo em painel</em> e painel
                   em decisão.
                 </h1>
-                <p className="mb-6 max-w-full text-[1.02rem] font-light leading-[1.78] text-paper/90 md:text-[1.08rem]">
+                <p className="mb-6 max-w-full text-[1.02rem] font-light leading-[1.78] text-paper/92 md:text-[1.08rem]">
                   Você produz hidroponia em formatos diferentes: torre, bancada, microverdes ou outro arranjo que a unidade
                   use. O painel junta o que importa no turno: leituras da solução, tarefas, lotes e histórico do cultivo.
                   Quem está na operação deixa de espalhar informação em papéis e grupos soltos; quem decide enxerga o
                   mesmo recorte.
                 </p>
-                <p className="mb-8 max-w-full text-[0.96rem] leading-[1.75] text-paper/85 md:text-[1.01rem]">
+                <p className="mb-8 max-w-full text-[0.96rem] leading-[1.75] text-paper/88 md:text-[1.01rem]">
                   A rotina da operação roda em{" "}
                   <strong className="font-semibold text-paper">app.fazendasup.com.br</strong>. Este site apresenta a
                   Fazendas Up. Na app a equipe registra irrigação, lotes e encerramento do dia.
                 </p>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
                   <LoginCta />
-                  <p className="text-[0.78rem] font-medium uppercase tracking-[0.18em] text-paper/65">
+                  <p className="text-[0.78rem] font-medium uppercase tracking-[0.18em] text-paper/70">
                     Acesso com conta segura
                   </p>
                 </div>
