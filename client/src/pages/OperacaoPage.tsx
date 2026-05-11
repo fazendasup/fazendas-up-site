@@ -29,33 +29,33 @@ const APP_URL = "https://app.fazendasup.com.br/";
 const pillars = [
   {
     icon: Layers3,
-    title: "Cultivo desenhado na tela",
-    body: "Torre, mesa ou furos na bandeja. O arranjo físico fica registrado para toda a equipe ver do mesmo jeito, sem ficar adivinhando no corredor.",
+    title: "O desenho do cultivo na tela",
+    body: "Torre, bancada ou fileira de microverdes vira mapa na tela, com posições e lotes. Quem está na mão na massa e quem coordena passam a falar a mesma língua.",
   },
   {
     icon: Droplets,
-    title: "Água e solução com histórico",
-    body: "EC, pH, irrigação e anotações com data e hora. Fica guardado o que a planta recebeu, para lembrar o que deu certo e ajustar com segurança.",
+    title: "Solução e irrigação com histórico",
+    body: "EC, pH, irrigação e anotações com data e hora. Ajuda a corrigir na hora, a lembrar o que deu certo e a mostrar o rastro do que a planta recebeu quando precisar conferir.",
   },
   {
     icon: ClipboardList,
-    title: "Tarefas e agenda do dia",
-    body: "Organiza o operacional: o que entra hoje, quem faz o quê e em qual contexto. Menos papel solto, mais ritmo no turno.",
+    title: "Tarefas que saem do vácuo",
+    body: "O que precisa ser feito hoje, por quem e em qual área. Menos combinado solto no corredor, mais registro do que já foi executado.",
   },
   {
     icon: Sprout,
-    title: "Germinação até a colheita",
-    body: "Da semente à colheita contínua: planejamento, lotes, bandejas prontas para colheita e números do dia a dia. A história da produção em um só lugar.",
+    title: "Da germinação à colheita",
+    body: "Planejamento de lotes, bandejas em fase e colheita contínua no mesmo fluxo. Produção, venda e laboratório enxergam o mesmo calendário de cultivo.",
   },
   {
     icon: ShieldCheck,
-    title: "Cada produtor no seu espaço",
-    body: "Cada produtor ou unidade vê só o seu cultivo e os seus dados, sem misturar informação com outro cliente.",
+    title: "Seus dados só seus",
+    body: "Cada produtor ou unidade vê só o próprio cultivo e os próprios números. Cliente diferente, ambiente separado.",
   },
   {
     icon: RefreshCw,
-    title: "Acompanha seu crescimento",
-    body: "Novidades chegam de forma ordenada. O que já funcionava no seu dia a dia tende a se manter estável, sem sustos na estufa.",
+    title: "Evolução sem quebrar o turno",
+    body: "Novidades chegam organizadas. O que a equipe já domina tende a seguir familiar, sem jogar o dia a dia da estufa no ar.",
   },
 ];
 
@@ -66,52 +66,52 @@ const mainScreens: {
 }[] = [
   {
     title: "Início",
-    body: "Depois de entrar, você vê o retrato da unidade: atalhos para onde está o cultivo, o que precisa de atenção e o resumo do dia.",
+    body: "Tela de chegada: resumo da unidade, atalhos para o que está crítico e leituras recentes. Serve para alinhar quem acabou de entrar no turno.",
     icon: LayoutDashboard,
   },
   {
     title: "Hoje",
-    body: "O que é prioridade agora, compromissos da equipe e alertas num só olhar, sem precisar perguntar para todo mundo.",
+    body: "O que não pode esperar, combinados da equipe e alertas. Quem está na bancada ou na casa de máquinas vê o foco do dia sem depender de correr atrás de mensagem.",
     icon: CalendarClock,
   },
   {
     title: "Cultivo em estrutura",
-    body: "Cada posto hidropônico (coluna, mesa ou linha de microverdes) com a sua ficha: desenho da estrutura, lotes e anotações da operação.",
+    body: "Ficha de cada posto hidropônico (coluna, mesa ou linha de microverdes): desenho, lotes ativos e observação de campo. É onde o físico encontra o registrado.",
     icon: Building2,
   },
   {
     title: "Germinação",
-    body: "Bandejas novas, variedades e estados. Controle do material vivo até integrar no resto da produção.",
+    body: "Bandejas, variedades e fase do material vivo até esse material entrar no fluxo principal de produção.",
     icon: Sprout,
   },
   {
     title: "Tarefas",
-    body: "Lista de trabalhos da equipe, com quem faz o quê. Ajuda a fechar pendências com registro, sem depender só de mensagem solta.",
+    body: "Fila de serviço com responsável e andamento. Fecha pendência com registro, não só com conversa.",
     icon: ListChecks,
   },
   {
     title: "Planejamento",
-    body: "Calendário de colheitas, lotes e prazos para alinhar produção com vendas ou laboratório, sem planilha perdida.",
+    body: "Calendário de colheitas e lotes para encaixar produção em venda ou laboratório, com menos planilha solta.",
     icon: CalendarDays,
   },
   {
     title: "Estoque",
-    body: "Quando esta parte está ligada ao seu projeto, você vê entradas e saídas de insumos: substrato, nutrientes e o que mais cadastrarem.",
+    body: "Entradas e saídas de insumos quando o módulo estiver ativo no projeto, somando substrato, nutrientes e o mais que vocês cadastrarem.",
     icon: Package,
   },
   {
     title: "Manutenção",
-    body: "Avarias, revisões e o histórico do que já foi feito. Ajuda a explicar paradas e não repetir o mesmo diagnóstico.",
+    body: "Quebra, preventiva e o que já foi mexido. Ajuda a justificar parada e a não repetir o mesmo diagnóstico.",
     icon: Wrench,
   },
   {
     title: "Inteligência e visão",
-    body: "Números e sugestões. Quando há câmera ou sensores, dá para acompanhar o ambiente do cultivo sem abrir portas à toa.",
+    body: "Indicadores e alertas. Com câmera ou sensores, dá para vistoriar o ambiente do cultivo sem abrir toda hora a porta da estufa.",
     icon: Brain,
   },
   {
     title: "Automação",
-    body: "Rotinas que poupam trabalho repetido, com a equipe decidindo o que é importante.",
+    body: "Rotinas repetitivas que o sistema pode assumir, com a equipe definindo regra e prioridade.",
     icon: SlidersHorizontal,
   },
 ];
@@ -154,14 +154,15 @@ export default function OperacaoPage() {
                 em decisão.
               </h1>
               <p className="mb-8 max-w-full text-[1.05rem] font-light leading-[1.75] text-paper/85 md:max-w-2xl md:text-[1.12rem]">
-                Plataforma na internet para acompanhar sua operação hidropônica em vários formatos, como fazenda vertical,
-                bancadas tradicionais, microverdes ou o que a administração da unidade tiver ligado. Medições da solução,
-                tarefas da equipe e rastreamento do cultivo em um só lugar. Feita para quem vive entre bandejas e celular,
-                sem perder o fio da meada.
+                Você produz hidroponia em formatos diferentes: torre, bancada, microverdes ou outro arranjo que a unidade
+                use. O painel junta o que importa no turno: leituras da solução, tarefas, lotes e histórico do cultivo. Quem
+                está na operação deixa de espalhar informação em papéis e grupos soltos; quem decide enxerga o mesmo
+                recorte.
               </p>
               <p className="mb-10 max-w-full text-[0.98rem] leading-[1.72] text-paper/75 md:max-w-2xl">
-                O dia a dia roda em <strong className="font-medium text-paper">app.fazendasup.com.br</strong>. Este site
-                apresenta a marca e o contexto. Na app você registra irrigação, anotações e encerra o turno.
+                A rotina da operação roda em{" "}
+                <strong className="font-medium text-paper">app.fazendasup.com.br</strong>. Este site apresenta a Fazendas
+                Up. Na app a equipe registra irrigação, lotes e encerramento do dia.
               </p>
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
                 <LoginCta />
@@ -180,8 +181,8 @@ export default function OperacaoPage() {
                 </h2>
                 <p className="text-[1.05rem] leading-[1.75] text-ink/75 md:text-[1.1rem]">
                   Acompanha e gerencia o dia a dia da unidade: onde está o cultivo, ciclos da solução, tarefas da equipe,
-                  manutenção, planejamento e números. Tudo num painel pensado para quem alterna entre luvas e celular ou
-                  computador.
+                  manutenção, planejamento e números. Tudo num painel pensado para quem alterna entre mão na massa e
+                  gestão.
                 </p>
               </div>
             </div>
@@ -195,8 +196,12 @@ export default function OperacaoPage() {
                   Módulos e capacidades
                 </p>
                 <h2 className="display-head text-[clamp(1.5rem,3.2vw,2.25rem)] leading-tight text-ink">
-                  Precisão de laboratório, ritmo de fazenda
+                  Do que acontece na estufa ao que aparece na tela
                 </h2>
+                <p className="mt-4 max-w-2xl text-[1.02rem] leading-[1.72] text-ink/70">
+                  A seguir, o que o sistema reforça para segurar operação e gestão juntas: mapa do cultivo, registro da
+                  solução, tarefas com dono, fluxo até a colheita e dados separados por cliente.
+                </p>
               </div>
               <div className="grid min-w-0 grid-cols-1 gap-10 md:grid-cols-2 md:gap-x-12 md:gap-y-12 lg:gap-x-16">
                 {pillars.map((p, i) => {
@@ -233,11 +238,11 @@ export default function OperacaoPage() {
                   Dentro da aplicação
                 </p>
                 <h2 className="display-head text-[clamp(1.5rem,3.2vw,2.25rem)] leading-tight text-ink">
-                  Principais telas e o que cada uma resolve
+                  O que você encontra ao abrir a app
                 </h2>
                 <p className="mt-4 text-[1.02rem] leading-[1.72] text-ink/70">
-                  A lista espelha as partes principais do supervisório. Alguns itens só aparecem se a administração da
-                  unidade tiver ligado o módulo ou se o seu login tiver permissão.
+                  Cada bloco descreve uma área comum do menu. Nem todo módulo fica visível para todo mundo: depende do que
+                  a administração liberou e do tipo de acesso da sua conta.
                 </p>
               </div>
 
@@ -265,9 +270,8 @@ export default function OperacaoPage() {
               </div>
 
               <p className="mt-12 max-w-3xl text-[0.92rem] leading-[1.7] text-ink/60">
-                Existem também áreas só para quem administra o sistema por dentro, como ciclos, configurações, capacidade,
-                relatórios e quem pode entrar no painel, sempre com permissão própria, para não expor dados sensíveis para
-                toda a equipe.
+                Também existem telas restritas para quem configura ciclos, capacidade, relatórios e quem pode acessar o
+                sistema, sempre com permissão própria, para não expor informação sensível a quem não precisa ver.
               </p>
             </div>
           </section>
