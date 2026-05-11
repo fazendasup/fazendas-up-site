@@ -149,46 +149,39 @@ export default function OperacaoPage() {
                 height={1067}
                 fetchPriority="high"
                 decoding="async"
-                className="absolute inset-0 h-full w-full object-cover object-[center_38%] md:object-[center_32%]"
+                className="absolute inset-0 h-full w-full object-cover object-[center_42%] md:object-[center_36%]"
               />
-              {/* Escurece só a parte inferior (cinema / editorial): o topo da foto fica quase limpo. */}
-              <div className="absolute inset-x-0 bottom-0 h-[58%] bg-gradient-to-t from-black/78 via-black/35 to-transparent md:h-[52%] md:from-black/72 md:via-black/28" />
-              {/* Reforço discreto no canto inferior esquerdo, onde está o texto (estreito). */}
-              <div
-                className="absolute bottom-0 left-0 h-[52%] w-[min(100%,34rem)] bg-gradient-to-tr from-black/50 to-transparent md:h-[48%] md:w-[min(100%,30rem)]"
-                aria-hidden
-              />
-              {/* Topo: leve vinheta para o header não “flutuar” em claridade máxima (bem suave). */}
-              <div className="absolute inset-x-0 top-0 h-[28%] bg-gradient-to-b from-black/25 to-transparent md:h-[22%] md:from-black/20" />
+              {/* Véu único na base: escurece só perto do rodapé; ~60% da altura do hero continua com foto quase pura. */}
+              <div className="absolute inset-x-0 bottom-0 h-[46%] bg-gradient-to-t from-black/50 via-black/18 to-transparent md:h-[40%] md:from-black/44 md:via-black/12" />
             </div>
 
             <div className="container relative z-10 mx-auto flex min-h-[min(78dvh,34rem)] max-w-full flex-col justify-end px-4 pb-10 pt-6 md:min-h-[min(82dvh,44rem)] md:justify-end md:pb-14 md:pt-8">
-              {/* Coluna estreita + vidro leve: não cobre a largura da tela; a foto respira à direita e acima. */}
-              <div className="w-full max-w-[min(100%,26.5rem)] rounded-xl border border-white/12 bg-black/28 px-5 py-6 shadow-lg shadow-black/20 ring-1 ring-white/[0.06] backdrop-blur-[14px] supports-[backdrop-filter]:bg-black/22 sm:max-w-xl sm:px-7 sm:py-7 md:max-w-[28rem] md:px-8 md:py-8">
-                <p className="eyebrow mb-5 inline-flex max-w-full flex-wrap items-center gap-3 text-paper">
+              {/* Vidro bem transparente + sombra no texto: máximo da foto visível atrás. */}
+              <div className="w-full max-w-xl rounded-xl border border-white/[0.14] bg-black/12 px-5 py-6 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.35)] ring-1 ring-black/15 backdrop-blur-[6px] supports-[backdrop-filter]:bg-black/10 sm:max-w-2xl sm:px-7 sm:py-7 md:max-w-2xl md:px-9 md:py-9">
+                <p className="eyebrow mb-5 inline-flex max-w-full flex-wrap items-center gap-3 text-paper [text-shadow:0_1px_8px_rgba(0,0,0,0.75)]">
                   <span className="h-px w-10 shrink-0 bg-paper/60" />
                   <span className="min-w-0 font-medium tracking-wide">Painel de operação, Fazendas Up</span>
                 </p>
-                <h1 className="display-head hyphens-none mb-6 max-w-full text-paper text-[clamp(1.75rem,min(4.5vw+0.5rem,6.5vw),3.15rem)] leading-[1.08] md:text-[clamp(2rem,3.6vw,3.35rem)] [text-shadow:0_1px_2px_rgba(0,0,0,0.85)]">
+                <h1 className="display-head hyphens-none mb-6 max-w-full text-paper text-[clamp(1.75rem,min(4.5vw+0.5rem,6.5vw),3.15rem)] leading-[1.08] md:text-[clamp(2rem,3.6vw,3.35rem)] [text-shadow:0_2px_16px_rgba(0,0,0,0.88),0_1px_4px_rgba(0,0,0,0.95)]">
                   O supervisório que transforma <em className="text-brand-rose not-italic">o cultivo em painel</em> e painel
                   em decisão.
                 </h1>
-                <p className="mb-6 max-w-full text-[1.02rem] font-light leading-[1.78] text-paper md:text-[1.08rem] [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
+                <p className="mb-6 max-w-full text-[1.02rem] font-light leading-[1.78] text-paper md:text-[1.08rem] [text-shadow:0_2px_14px_rgba(0,0,0,0.88),0_1px_3px_rgba(0,0,0,0.95)]">
                   Você produz hidroponia em formatos diferentes: torre, bancada, microverdes ou outro arranjo que a unidade
                   use. O painel junta o que importa no turno: leituras da solução, tarefas, lotes e histórico do cultivo.
                   Quem está na operação deixa de espalhar informação em papéis e grupos soltos; quem decide enxerga o
                   mesmo recorte.
                 </p>
-                <p className="mb-8 max-w-full text-[0.96rem] leading-[1.75] text-paper/95 md:text-[1.01rem] [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
+                <p className="mb-8 max-w-full text-[0.96rem] leading-[1.75] text-paper md:text-[1.01rem] [text-shadow:0_2px_12px_rgba(0,0,0,0.85),0_1px_3px_rgba(0,0,0,0.92)]">
                   A rotina da operação roda em{" "}
-                  <strong className="rounded px-1.5 py-0.5 font-semibold text-white tabular-nums ring-1 ring-white/15 [text-shadow:none] bg-white/10">
+                  <strong className="rounded px-1.5 py-0.5 font-semibold text-white tabular-nums ring-1 ring-white/20 [text-shadow:none] bg-black/35">
                     app.fazendasup.com.br
                   </strong>
                   . Este site apresenta a Fazendas Up. Na app a equipe registra irrigação, lotes e encerramento do dia.
                 </p>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
                   <LoginCta />
-                  <p className="text-[0.78rem] font-medium uppercase tracking-[0.18em] text-paper/80 [text-shadow:0_1px_2px_rgba(0,0,0,0.85)]">
+                  <p className="text-[0.78rem] font-medium uppercase tracking-[0.18em] text-paper/85 [text-shadow:0_1px_10px_rgba(0,0,0,0.8)]">
                     Acesso com conta segura
                   </p>
                 </div>
