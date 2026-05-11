@@ -137,40 +137,48 @@ export default function OperacaoPage() {
       <SiteHeader variant="subpage" />
       <div className="copy-flow min-w-0 w-full max-w-full">
         <main className="fu-main-mobile w-full min-w-0 max-w-full">
-          <section className="relative isolate w-full overflow-x-hidden bg-neutral-950 pb-12 pt-24 text-paper md:pt-28 md:pb-16">
-            <div className="container relative z-0 px-4 pb-8 md:pb-12">
-              <OperacaoDashboardPreview />
-
-              <div className="relative z-[2] mx-auto mt-8 max-w-3xl">
-                <div className="rounded-2xl border border-white/15 bg-black/60 px-5 py-6 shadow-2xl ring-1 ring-black/40 backdrop-blur-md supports-[backdrop-filter]:bg-black/50 md:px-8 md:py-8">
-                    <p className="eyebrow mb-5 inline-flex max-w-full flex-wrap items-center gap-3 text-paper/95 [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
-                      <span className="h-px w-10 shrink-0 bg-paper/55" />
-                      <span className="min-w-0 font-medium tracking-wide">Painel de operação, Fazendas Up</span>
-                    </p>
-                    <h1 className="display-head hyphens-none mb-6 max-w-full text-paper text-[clamp(1.75rem,min(4.5vw+0.5rem,6.5vw),3.15rem)] leading-[1.08] md:text-[clamp(2rem,3.6vw,3.35rem)] [text-shadow:0_2px_28px_rgba(0,0,0,0.92)]">
-                      O supervisório que transforma <em className="text-brand-rose not-italic">o cultivo em painel</em> e
-                      painel em decisão.
-                    </h1>
-                    <p className="mb-6 max-w-full text-[1.02rem] font-light leading-[1.78] text-paper/95 md:text-[1.08rem] [text-shadow:0_1px_4px_rgba(0,0,0,0.95)]">
-                      Você produz hidroponia em formatos diferentes: torre, bancada, microverdes ou outro arranjo que a
-                      unidade use. O painel junta o que importa no turno: leituras da solução, tarefas, lotes e histórico do
-                      cultivo. Quem está na operação deixa de espalhar informação em papéis e grupos soltos; quem decide
-                      enxerga o mesmo recorte.
-                    </p>
-                    <p className="mb-8 max-w-full text-[0.96rem] leading-[1.75] text-paper/92 md:text-[1.01rem] [text-shadow:0_1px_4px_rgba(0,0,0,0.95)]">
-                      A rotina da operação roda em{" "}
-                      <strong className="font-semibold text-paper">app.fazendasup.com.br</strong>. Este site apresenta a
-                      Fazendas Up. Na app a equipe registra irrigação, lotes e encerramento do dia.
-                    </p>
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
-                      <LoginCta />
-                      <p className="text-[0.78rem] font-medium uppercase tracking-[0.18em] text-paper/80 [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
-                        Acesso com conta segura
-                      </p>
-                    </div>
-                  </div>
+          <section className="relative isolate min-h-[min(92dvh,52rem)] w-full overflow-hidden bg-neutral-950 pb-16 pt-24 text-paper md:min-h-[min(88dvh,56rem)] md:pt-28 md:pb-20">
+            {/* Painel como fundo + degradês legíveis por cima do texto */}
+            <div className="pointer-events-none absolute inset-0 select-none overflow-hidden" aria-hidden>
+              <div className="absolute inset-x-[-12%] top-0 flex justify-center md:inset-x-0 md:top-[-2%]">
+                <div className="w-[min(72rem,190vw)] origin-top scale-[0.52] opacity-[0.38] sm:w-[min(80rem,165vw)] sm:scale-[0.62] sm:opacity-40 md:w-[min(88rem,145vw)] md:scale-[0.74] md:opacity-[0.36] lg:scale-[0.82] lg:opacity-[0.34]">
+                  <OperacaoDashboardPreview contained={false} showFootnote={false} className="min-w-[56rem]" />
                 </div>
               </div>
+              <div className="absolute inset-0 bg-gradient-to-br from-neutral-950/97 via-neutral-950/90 to-black/96" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_90%_55%_at_50%_18%,rgba(0,0,0,0.12)_0%,rgba(0,0,0,0.55)_72%,rgba(0,0,0,0.82)_100%)]" />
+            </div>
+
+            <div className="container relative z-10 mx-auto flex min-h-[min(68dvh,38rem)] max-w-full items-center px-4 py-12 md:min-h-[min(62dvh,42rem)] md:py-16">
+              <div className="w-full max-w-3xl rounded-2xl border border-white/15 bg-black/55 px-5 py-7 shadow-2xl ring-1 ring-black/35 backdrop-blur-md supports-[backdrop-filter]:bg-black/45 md:px-9 md:py-9">
+                <p className="eyebrow mb-5 inline-flex max-w-full flex-wrap items-center gap-3 text-paper/95 [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
+                  <span className="h-px w-10 shrink-0 bg-paper/55" />
+                  <span className="min-w-0 font-medium tracking-wide">Painel de operação, Fazendas Up</span>
+                </p>
+                <h1 className="display-head hyphens-none mb-6 max-w-full text-paper text-[clamp(1.75rem,min(4.5vw+0.5rem,6.5vw),3.15rem)] leading-[1.08] md:text-[clamp(2rem,3.6vw,3.35rem)] [text-shadow:0_2px_28px_rgba(0,0,0,0.92)]">
+                  O supervisório que transforma <em className="text-brand-rose not-italic">o cultivo em painel</em> e painel
+                  em decisão.
+                </h1>
+                <p className="mb-6 max-w-full text-[1.02rem] font-light leading-[1.78] text-paper/95 md:text-[1.08rem] [text-shadow:0_1px_4px_rgba(0,0,0,0.95)]">
+                  Você produz hidroponia em formatos diferentes: torre, bancada, microverdes ou outro arranjo que a unidade
+                  use. O painel junta o que importa no turno: leituras da solução, tarefas, lotes e histórico do cultivo.
+                  Quem está na operação deixa de espalhar informação em papéis e grupos soltos; quem decide enxerga o
+                  mesmo recorte.
+                </p>
+                <p className="mb-8 max-w-full text-[0.96rem] leading-[1.75] text-paper/92 md:text-[1.01rem] [text-shadow:0_1px_4px_rgba(0,0,0,0.95)]">
+                  A rotina da operação roda em{" "}
+                  <strong className="font-semibold text-paper">app.fazendasup.com.br</strong>. Este site apresenta a
+                  Fazendas Up. Na app a equipe registra irrigação, lotes e encerramento do dia.
+                </p>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+                  <LoginCta />
+                  <p className="text-[0.78rem] font-medium uppercase tracking-[0.18em] text-paper/80 [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
+                    Acesso com conta segura
+                  </p>
+                </div>
+              </div>
+            </div>
           </section>
 
           <section className="border-b border-ink/10 py-16 md:py-20">

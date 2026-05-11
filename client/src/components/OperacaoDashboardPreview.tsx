@@ -4,6 +4,7 @@
  * grid e padrões de cartão; valores de exemplo como no painel vazio).
  */
 import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 import {
   AlertTriangle,
   BarChart3,
@@ -96,10 +97,26 @@ const FASES_PREVIEW = [
   },
 ];
 
-export function OperacaoDashboardPreview() {
+export type OperacaoDashboardPreviewProps = {
+  className?: string;
+  /** Texto pequeno no rodapé do mock (desligar quando for só fundo decorativo). */
+  showFootnote?: boolean;
+  /** Largura máxima padrão; desligar quando o pai controla escala/overflow. */
+  contained?: boolean;
+};
+
+export function OperacaoDashboardPreview({
+  className,
+  showFootnote = true,
+  contained = true,
+}: OperacaoDashboardPreviewProps) {
   return (
     <div
-      className="fu-operacao-dashboard-preview mx-auto w-full max-w-6xl text-zinc-100 dark"
+      className={cn(
+        "fu-operacao-dashboard-preview w-full text-zinc-100 dark",
+        contained && "mx-auto max-w-6xl",
+        className,
+      )}
       aria-label="Pré-visualização do painel de operação (layout semelhante à app)"
     >
       <div className="space-y-6 rounded-xl border border-zinc-700/60 bg-zinc-950 p-4 sm:p-5">
@@ -249,9 +266,11 @@ export function OperacaoDashboardPreview() {
           </SurfacePanel>
         </section>
 
-        <p className="text-center text-[10px] text-zinc-500">
-          Ilustração estática para o site. Na app os números refletem os dados reais do projeto.
-        </p>
+        {showFootnote ? (
+          <p className="text-center text-[10px] text-zinc-500">
+            Ilustração estática para o site. Na app os números refletem os dados reais do projeto.
+          </p>
+        ) : null}
       </div>
     </div>
   );
