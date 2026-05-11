@@ -26,6 +26,9 @@ import { motionEnterFromBelow } from "@/lib/motionEntrance";
 
 const APP_URL = "https://app.fazendasup.com.br/";
 
+/** Capa do hero: screenshot do painel (estufa + UI). */
+const OPERACAO_HERO_IMAGE = "/uploads/operacao-hero-dashboard.png";
+
 const pillars = [
   {
     icon: Layers3,
@@ -136,39 +139,54 @@ export default function OperacaoPage() {
       <SiteHeader variant="subpage" />
       <div className="copy-flow min-w-0 w-full max-w-full">
         <main className="fu-main-mobile w-full min-w-0 max-w-full">
-          <section className="relative isolate overflow-hidden bg-forest-dark pb-16 pt-28 text-paper md:pb-20 md:pt-32">
+          <section className="relative isolate min-h-[min(100dvh,52rem)] w-full overflow-hidden pt-24 pb-14 text-paper md:min-h-[min(100dvh,56rem)] md:pt-28 md:pb-20">
             <div
-              className="pointer-events-none absolute inset-0 opacity-[0.14]"
-              style={{
-                backgroundImage:
-                  "radial-gradient(circle at 20% 20%, rgba(230,31,147,0.35), transparent 42%), radial-gradient(circle at 85% 10%, rgba(120,60,180,0.25), transparent 40%)",
-              }}
+              className="pointer-events-none absolute inset-0 min-h-[min(100dvh,52rem)] md:min-h-[min(100dvh,56rem)]"
+              aria-hidden
+            >
+              <img
+                src={OPERACAO_HERO_IMAGE}
+                alt=""
+                width={1920}
+                height={1080}
+                fetchPriority="high"
+                decoding="async"
+                className="h-full min-h-full w-full object-cover object-[center_22%] md:object-center"
+              />
+            </div>
+            <div
+              className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/55 via-black/65 to-black/80 md:from-black/45 md:via-black/60 md:to-black/85"
+              aria-hidden
             />
-            <div className="container relative min-w-0">
-              <p className="eyebrow mb-6 inline-flex max-w-full flex-wrap items-center gap-3 text-paper/70">
-                <span className="h-px w-10 shrink-0 bg-paper/45" />
-                <span className="min-w-0">Painel de operação, Fazendas Up</span>
-              </p>
-              <h1 className="display-head hyphens-none mb-6 max-w-full text-paper text-[clamp(1.85rem,min(5vw+0.6rem,7vw),3.4rem)] leading-[1.08] md:max-w-4xl md:text-[clamp(2.2rem,4vw,3.75rem)]">
-                O supervisório que transforma <em className="text-brand-rose not-italic">o cultivo em painel</em> e painel
-                em decisão.
-              </h1>
-              <p className="mb-8 max-w-full text-[1.05rem] font-light leading-[1.75] text-paper/85 md:max-w-2xl md:text-[1.12rem]">
-                Você produz hidroponia em formatos diferentes: torre, bancada, microverdes ou outro arranjo que a unidade
-                use. O painel junta o que importa no turno: leituras da solução, tarefas, lotes e histórico do cultivo. Quem
-                está na operação deixa de espalhar informação em papéis e grupos soltos; quem decide enxerga o mesmo
-                recorte.
-              </p>
-              <p className="mb-10 max-w-full text-[0.98rem] leading-[1.72] text-paper/75 md:max-w-2xl">
-                A rotina da operação roda em{" "}
-                <strong className="font-medium text-paper">app.fazendasup.com.br</strong>. Este site apresenta a Fazendas
-                Up. Na app a equipe registra irrigação, lotes e encerramento do dia.
-              </p>
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
-                <LoginCta />
-                <p className="text-[0.78rem] uppercase tracking-[0.2em] text-paper/50">
-                  Acesso com conta segura
+            <div className="pointer-events-none absolute inset-0 bg-forest-dark/35" aria-hidden />
+
+            <div className="container relative z-10 flex min-h-0 min-w-0 flex-1 items-center py-6 md:py-10">
+              <div className="max-w-3xl rounded-2xl border border-white/15 bg-black/55 px-5 py-7 shadow-2xl ring-1 ring-black/30 backdrop-blur-md supports-[backdrop-filter]:bg-black/45 md:px-9 md:py-9">
+                <p className="eyebrow mb-5 inline-flex max-w-full flex-wrap items-center gap-3 text-paper/95 [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
+                  <span className="h-px w-10 shrink-0 bg-paper/55" />
+                  <span className="min-w-0 font-medium tracking-wide">Painel de operação, Fazendas Up</span>
                 </p>
+                <h1 className="display-head hyphens-none mb-6 max-w-full text-paper text-[clamp(1.75rem,min(4.5vw+0.5rem,6.5vw),3.15rem)] leading-[1.08] md:text-[clamp(2rem,3.6vw,3.35rem)] [text-shadow:0_2px_28px_rgba(0,0,0,0.92)]">
+                  O supervisório que transforma <em className="text-brand-rose not-italic">o cultivo em painel</em> e painel
+                  em decisão.
+                </h1>
+                <p className="mb-6 max-w-full text-[1.02rem] font-light leading-[1.78] text-paper/95 md:text-[1.08rem] [text-shadow:0_1px_4px_rgba(0,0,0,0.95)]">
+                  Você produz hidroponia em formatos diferentes: torre, bancada, microverdes ou outro arranjo que a unidade
+                  use. O painel junta o que importa no turno: leituras da solução, tarefas, lotes e histórico do cultivo. Quem
+                  está na operação deixa de espalhar informação em papéis e grupos soltos; quem decide enxerga o mesmo
+                  recorte.
+                </p>
+                <p className="mb-8 max-w-full text-[0.96rem] leading-[1.75] text-paper/92 md:text-[1.01rem] [text-shadow:0_1px_4px_rgba(0,0,0,0.95)]">
+                  A rotina da operação roda em{" "}
+                  <strong className="font-semibold text-paper">app.fazendasup.com.br</strong>. Este site apresenta a
+                  Fazendas Up. Na app a equipe registra irrigação, lotes e encerramento do dia.
+                </p>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+                  <LoginCta />
+                  <p className="text-[0.78rem] font-medium uppercase tracking-[0.18em] text-paper/80 [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
+                    Acesso com conta segura
+                  </p>
+                </div>
               </div>
             </div>
           </section>
