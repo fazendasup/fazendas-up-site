@@ -1,20 +1,27 @@
 /**
- * Página institucional do supervisório: pilares (capacidades) + grelha de capturas da app.
+ * Página institucional do supervisório: pilares (capacidades) + itens da app em texto.
  */
 import { motion } from "framer-motion";
 import {
+  Brain,
+  Building2,
+  CalendarClock,
+  CalendarDays,
   ClipboardList,
   Droplets,
   Layers3,
+  LayoutDashboard,
+  ListChecks,
+  Package,
   RefreshCw,
   ShieldCheck,
+  SlidersHorizontal,
   Sprout,
+  Wrench,
 } from "lucide-react";
 import { Link } from "wouter";
-import { OperacaoScreenCard } from "@/components/OperacaoScreenCard";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
-import { operacaoAppScreens } from "@/content/operacaoAppScreens";
 import { motionEnterFromBelow } from "@/lib/motionEntrance";
 
 const APP_URL = "https://app.fazendasup.com.br/";
@@ -22,33 +29,90 @@ const APP_URL = "https://app.fazendasup.com.br/";
 const pillars = [
   {
     icon: Layers3,
-    title: "Cultivo desenhado no ecrã",
-    body: "Torre, mesa ou covas na bandeja: o arranjo físico fica registado para toda a equipa ver da mesma forma, sem adivinhar no corredor.",
+    title: "Cultivo desenhado na tela",
+    body: "Torre, mesa ou furos na bandeja. O arranjo físico fica registrado para toda a equipe ver do mesmo jeito, sem ficar adivinhando no corredor.",
   },
   {
     icon: Droplets,
     title: "Água e solução com histórico",
-    body: "EC, pH, regas e notas ligadas à data: fica guardado o que a planta recebeu, para lembrar o que correu bem e ajustar com segurança.",
+    body: "EC, pH, irrigação e anotações com data e hora. Fica guardado o que a planta recebeu, para lembrar o que deu certo e ajustar com segurança.",
   },
   {
     icon: ClipboardList,
     title: "Tarefas e agenda do dia",
-    body: "Organiza o operacional: o que entra hoje, quem faz o quê e em que contexto — menos papel solto, mais ritmo no turno.",
+    body: "Organiza o operacional: o que entra hoje, quem faz o quê e em qual contexto. Menos papel solto, mais ritmo no turno.",
   },
   {
     icon: Sprout,
-    title: "Germinação ao prato",
-    body: "Da semente à colheita contínua: planejamento, lotes, prontas para colheita e números do dia a dia — a história da produção num só lugar.",
+    title: "Germinação até a colheita",
+    body: "Da semente à colheita contínua: planejamento, lotes, bandejas prontas para colheita e números do dia a dia. A história da produção em um só lugar.",
   },
   {
     icon: ShieldCheck,
-    title: "Cada um com o seu espaço",
+    title: "Cada produtor no seu espaço",
     body: "Cada produtor ou unidade vê só o seu cultivo e os seus dados, sem misturar informação com outro cliente.",
   },
   {
     icon: RefreshCw,
-    title: "Acompanha o teu crescimento",
-    body: "Novidades chegam de forma ordenada; o que já funcionava no teu dia a dia tende a manter-se estável, sem sobressaltos na estufa.",
+    title: "Acompanha seu crescimento",
+    body: "Novidades chegam de forma ordenada. O que já funcionava no seu dia a dia tende a se manter estável, sem sustos na estufa.",
+  },
+];
+
+const mainScreens: {
+  title: string;
+  body: string;
+  icon: typeof LayoutDashboard;
+}[] = [
+  {
+    title: "Início",
+    body: "Depois de entrar, você vê o retrato da unidade: atalhos para onde está o cultivo, o que precisa de atenção e o resumo do dia.",
+    icon: LayoutDashboard,
+  },
+  {
+    title: "Hoje",
+    body: "O que é prioridade agora, compromissos da equipe e alertas num só olhar, sem precisar perguntar para todo mundo.",
+    icon: CalendarClock,
+  },
+  {
+    title: "Cultivo em estrutura",
+    body: "Cada posto hidropônico (coluna, mesa ou linha de microverdes) com a sua ficha: desenho da estrutura, lotes e anotações da operação.",
+    icon: Building2,
+  },
+  {
+    title: "Germinação",
+    body: "Bandejas novas, variedades e estados. Controle do material vivo até integrar no resto da produção.",
+    icon: Sprout,
+  },
+  {
+    title: "Tarefas",
+    body: "Lista de trabalhos da equipe, com quem faz o quê. Ajuda a fechar pendências com registro, sem depender só de mensagem solta.",
+    icon: ListChecks,
+  },
+  {
+    title: "Planejamento",
+    body: "Calendário de colheitas, lotes e prazos para alinhar produção com vendas ou laboratório, sem planilha perdida.",
+    icon: CalendarDays,
+  },
+  {
+    title: "Estoque",
+    body: "Quando esta parte está ligada ao seu projeto, você vê entradas e saídas de insumos: substrato, nutrientes e o que mais cadastrarem.",
+    icon: Package,
+  },
+  {
+    title: "Manutenção",
+    body: "Avarias, revisões e o histórico do que já foi feito. Ajuda a explicar paradas e não repetir o mesmo diagnóstico.",
+    icon: Wrench,
+  },
+  {
+    title: "Inteligência e visão",
+    body: "Números e sugestões. Quando há câmera ou sensores, dá para acompanhar o ambiente do cultivo sem abrir portas à toa.",
+    icon: Brain,
+  },
+  {
+    title: "Automação",
+    body: "Rotinas que poupam trabalho repetido, com a equipe decidindo o que é importante.",
+    icon: SlidersHorizontal,
   },
 ];
 
@@ -90,15 +154,14 @@ export default function OperacaoPage() {
                 decisão.
               </h1>
               <p className="mb-8 max-w-full text-[1.05rem] font-light leading-[1.75] text-paper/85 md:max-w-2xl md:text-[1.12rem]">
-                Plataforma na internet para acompanhar a tua operação hidropónica em vários formatos — fazenda vertical,
-                bancadas tradicionais, microverdes ou o que a gestão da unidade tiver ligado: medições da solução, tarefas
-                da equipa e rastreio do cultivo num só sítio. Feita para quem vive entre bandejas e telemóvel, sem perder o
-                fio à meada.
+                Plataforma na internet para acompanhar sua operação hidropônica em vários formatos, como fazenda vertical,
+                bancadas tradicionais, microverdes ou o que a administração da unidade tiver ligado. Medições da solução,
+                tarefas da equipe e rastreamento do cultivo em um só lugar. Feita para quem vive entre bandejas e celular,
+                sem perder o fio da meada.
               </p>
               <p className="mb-10 max-w-full text-[0.98rem] leading-[1.72] text-paper/75 md:max-w-2xl">
-                O dia a dia corre em{" "}
-                <strong className="font-medium text-paper">app.fazendasup.com.br</strong>. Este site apresenta a marca e o
-                contexto; na app é que se rega, se aponta e se fecha o turno.
+                O dia a dia roda em <strong className="font-medium text-paper">app.fazendasup.com.br</strong>. Este site
+                apresenta a marca e o contexto. Na app você registra irrigação, anotações e encerra o turno.
               </p>
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
                 <LoginCta />
@@ -116,8 +179,8 @@ export default function OperacaoPage() {
                   O que faz, em uma frase
                 </h2>
                 <p className="text-[1.05rem] leading-[1.75] text-ink/75 md:text-[1.1rem]">
-                  Acompanha e gere o dia a dia da unidade — onde está o cultivo, ciclos da solução, tarefas da equipa,
-                  manutenção, planeamento e números — num painel pensado para quem alterna entre luvas e telemóvel ou
+                  Acompanha e gerencia o dia a dia da unidade: onde está o cultivo, ciclos da solução, tarefas da equipe,
+                  manutenção, planejamento e números. Tudo num painel pensado para quem alterna entre luvas e celular ou
                   computador.
                 </p>
               </div>
@@ -170,30 +233,41 @@ export default function OperacaoPage() {
                   Dentro da aplicação
                 </p>
                 <h2 className="display-head text-[clamp(1.5rem,3.2vw,2.25rem)] leading-tight text-ink">
-                  Como a app se vê na prática
+                  Principais telas e o que cada uma resolve
                 </h2>
                 <p className="mt-4 text-[1.02rem] leading-[1.72] text-ink/70">
-                  Cada cartão pode trazer uma imagem do painel. O que aparece no teu ecrã depende do que a unidade ligou e
-                  do tipo de acesso que tens — nem todas as áreas ficam visíveis para toda a gente.
+                  A lista espelha as partes principais do supervisório. Alguns itens só aparecem se a administração da
+                  unidade tiver ligado o módulo ou se o seu login tiver permissão.
                 </p>
               </div>
 
-              <div className="grid min-w-0 grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
-                {operacaoAppScreens.map((s, i) => (
-                  <motion.div
-                    key={s.slug}
-                    {...motionEnterFromBelow()}
-                    viewport={{ once: true, margin: "-6% 0px" }}
-                    transition={{ duration: 0.65, delay: i * 0.04 }}
-                  >
-                    <OperacaoScreenCard slug={s.slug} title={s.title} caption={s.caption} />
-                  </motion.div>
-                ))}
+              <div className="grid min-w-0 grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-3">
+                {mainScreens.map((s, i) => {
+                  const Icon = s.icon;
+                  return (
+                    <motion.article
+                      key={s.title}
+                      {...motionEnterFromBelow()}
+                      viewport={{ once: true, margin: "-6% 0px" }}
+                      transition={{ duration: 0.65, delay: i * 0.04 }}
+                      className="flex min-w-0 flex-col rounded-sm border border-ink/10 bg-secondary/30 p-6 shadow-sm"
+                    >
+                      <div className="mb-4 flex items-start justify-between gap-3">
+                        <span className="flex size-10 shrink-0 items-center justify-center rounded-sm border border-ink/10 bg-paper text-forest">
+                          <Icon className="size-5" aria-hidden />
+                        </span>
+                      </div>
+                      <h3 className="mb-2 font-medium text-ink text-[1.08rem] leading-snug">{s.title}</h3>
+                      <p className="text-[0.95rem] leading-[1.72] text-ink/72">{s.body}</p>
+                    </motion.article>
+                  );
+                })}
               </div>
 
               <p className="mt-12 max-w-3xl text-[0.92rem] leading-[1.7] text-ink/60">
-                Existem também áreas só para quem gere o sistema por dentro — ciclos, configurações, capacidade, relatórios
-                e quem pode entrar no painel — com permissão própria, para não expor dados sensíveis a toda a equipa.
+                Existem também áreas só para quem administra o sistema por dentro, como ciclos, configurações, capacidade,
+                relatórios e quem pode entrar no painel, sempre com permissão própria, para não expor dados sensíveis para
+                toda a equipe.
               </p>
             </div>
           </section>
