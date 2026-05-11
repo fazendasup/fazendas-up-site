@@ -155,36 +155,43 @@ export default function OperacaoPage() {
                 className="absolute inset-0"
                 style={{
                   background:
-                    "linear-gradient(105deg, rgba(12,10,14,0.92) 0%, rgba(12,10,14,0.55) 44%, rgba(12,10,14,0.18) 72%, transparent 100%)",
+                    "linear-gradient(100deg, rgba(8,7,12,0.97) 0%, rgba(8,7,12,0.82) 28%, rgba(8,7,12,0.42) 52%, rgba(8,7,12,0.12) 78%, transparent 100%)",
                 }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/25 md:from-black/40 md:to-transparent" />
+              {/* Faixa extra só atrás da coluna de texto (mobile: cobre mais largura). */}
+              <div
+                className="absolute inset-y-0 left-0 w-[min(100%,42rem)] bg-gradient-to-r from-black/55 via-black/35 to-transparent md:w-[min(100%,36rem)] md:from-black/45 md:via-black/20"
+                aria-hidden
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/35 md:from-black/50 md:to-black/20" />
             </div>
 
             <div className="container relative z-10 mx-auto flex min-h-[min(72dvh,32rem)] max-w-full items-center px-4 py-10 md:min-h-[min(68dvh,36rem)] md:py-14">
-              <div className="w-full max-w-3xl md:max-w-2xl">
-                <p className="eyebrow mb-5 inline-flex max-w-full flex-wrap items-center gap-3 text-paper/95">
-                  <span className="h-px w-10 shrink-0 bg-paper/55" />
+              <div className="w-full max-w-3xl md:max-w-2xl rounded-2xl border border-white/12 bg-black/45 px-5 py-7 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.65)] ring-1 ring-black/40 backdrop-blur-[10px] supports-[backdrop-filter]:bg-black/35 sm:px-7 sm:py-8 md:px-9 md:py-9">
+                <p className="eyebrow mb-5 inline-flex max-w-full flex-wrap items-center gap-3 text-paper">
+                  <span className="h-px w-10 shrink-0 bg-paper/60" />
                   <span className="min-w-0 font-medium tracking-wide">Painel de operação, Fazendas Up</span>
                 </p>
-                <h1 className="display-head hyphens-none mb-6 max-w-full text-paper text-[clamp(1.75rem,min(4.5vw+0.5rem,6.5vw),3.15rem)] leading-[1.08] md:text-[clamp(2rem,3.6vw,3.35rem)]">
+                <h1 className="display-head hyphens-none mb-6 max-w-full text-paper text-[clamp(1.75rem,min(4.5vw+0.5rem,6.5vw),3.15rem)] leading-[1.08] md:text-[clamp(2rem,3.6vw,3.35rem)] [text-shadow:0_1px_2px_rgba(0,0,0,0.85)]">
                   O supervisório que transforma <em className="text-brand-rose not-italic">o cultivo em painel</em> e painel
                   em decisão.
                 </h1>
-                <p className="mb-6 max-w-full text-[1.02rem] font-light leading-[1.78] text-paper/92 md:text-[1.08rem]">
+                <p className="mb-6 max-w-full text-[1.02rem] font-light leading-[1.78] text-paper md:text-[1.08rem] [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
                   Você produz hidroponia em formatos diferentes: torre, bancada, microverdes ou outro arranjo que a unidade
                   use. O painel junta o que importa no turno: leituras da solução, tarefas, lotes e histórico do cultivo.
                   Quem está na operação deixa de espalhar informação em papéis e grupos soltos; quem decide enxerga o
                   mesmo recorte.
                 </p>
-                <p className="mb-8 max-w-full text-[0.96rem] leading-[1.75] text-paper/88 md:text-[1.01rem]">
+                <p className="mb-8 max-w-full text-[0.96rem] leading-[1.75] text-paper/95 md:text-[1.01rem] [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
                   A rotina da operação roda em{" "}
-                  <strong className="font-semibold text-paper">app.fazendasup.com.br</strong>. Este site apresenta a
-                  Fazendas Up. Na app a equipe registra irrigação, lotes e encerramento do dia.
+                  <strong className="rounded px-1.5 py-0.5 font-semibold text-white tabular-nums ring-1 ring-white/15 [text-shadow:none] bg-white/10">
+                    app.fazendasup.com.br
+                  </strong>
+                  . Este site apresenta a Fazendas Up. Na app a equipe registra irrigação, lotes e encerramento do dia.
                 </p>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
                   <LoginCta />
-                  <p className="text-[0.78rem] font-medium uppercase tracking-[0.18em] text-paper/70">
+                  <p className="text-[0.78rem] font-medium uppercase tracking-[0.18em] text-paper/80 [text-shadow:0_1px_2px_rgba(0,0,0,0.85)]">
                     Acesso com conta segura
                   </p>
                 </div>
