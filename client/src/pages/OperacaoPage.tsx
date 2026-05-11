@@ -4,9 +4,9 @@
 import { motion } from "framer-motion";
 import {
   ClipboardList,
-  Cpu,
   Droplets,
   Layers3,
+  RefreshCw,
   ShieldCheck,
   Sprout,
 } from "lucide-react";
@@ -22,33 +22,33 @@ const APP_URL = "https://app.fazendasup.com.br/";
 const pillars = [
   {
     icon: Layers3,
-    title: "Estruturas de cultivo e geometria",
-    body: "Cada formato de projeto mapeado no software: postos de cultivo, bancadas, furos e módulos — o desenho físico em dados que a equipa consulta sem adivinhar.",
+    title: "Cultivo desenhado no ecrã",
+    body: "Torre, mesa ou covas na bandeja: o arranjo físico fica registado para toda a equipa ver da mesma forma, sem adivinhar no corredor.",
   },
   {
     icon: Droplets,
-    title: "Ciclo hidropónico com memória",
-    body: "EC, pH, irrigação e registos ligados ao tempo: histórico do que a planta recebeu, para auditar decisões e repetir o que funcionou.",
+    title: "Água e solução com histórico",
+    body: "EC, pH, regas e notas ligadas à data: fica guardado o que a planta recebeu, para lembrar o que correu bem e ajustar com segurança.",
   },
   {
     icon: ClipboardList,
     title: "Tarefas e agenda do dia",
-    body: "O supervisório organiza o operacional: o que entra hoje, quem faz o quê e em que contexto — menos post-it, mais fluxo.",
+    body: "Organiza o operacional: o que entra hoje, quem faz o quê e em que contexto — menos papel solto, mais ritmo no turno.",
   },
   {
     icon: Sprout,
     title: "Germinação ao prato",
-    body: "Da semente à colheita contínua: planejamento, lotes, prontas para colheita e indicadores — a narrativa da produção num só lugar.",
+    body: "Da semente à colheita contínua: planejamento, lotes, prontas para colheita e números do dia a dia — a história da produção num só lugar.",
   },
   {
     icon: ShieldCheck,
-    title: "Multi-projeto, isolado",
-    body: "Autenticação, papéis e isolamento por projeto: cada cliente ou unidade vê só o seu universo — regra de ouro para SaaS e conformidade.",
+    title: "Cada um com o seu espaço",
+    body: "Cada produtor ou unidade vê só o seu cultivo e os seus dados, sem misturar informação com outro cliente.",
   },
   {
-    icon: Cpu,
-    title: "Stack que escala com a equipa",
-    body: "React, tRPC e API tipada sobre base relacional (Drizzle): menos surpresas em produção, mais velocidade para evoluir funcionalidades sem quebrar o que já roda.",
+    icon: RefreshCw,
+    title: "Acompanha o teu crescimento",
+    body: "Novidades chegam de forma ordenada; o que já funcionava no teu dia a dia tende a manter-se estável, sem sobressaltos na estufa.",
   },
 ];
 
@@ -83,26 +83,27 @@ export default function OperacaoPage() {
             <div className="container relative min-w-0">
               <p className="eyebrow mb-6 inline-flex max-w-full flex-wrap items-center gap-3 text-paper/70">
                 <span className="h-px w-10 shrink-0 bg-paper/45" />
-                <span className="min-w-0">Software de operação, Fazendas Up</span>
+                <span className="min-w-0">Painel de operação, Fazendas Up</span>
               </p>
               <h1 className="display-head hyphens-none mb-6 max-w-full text-paper text-[clamp(1.85rem,min(5vw+0.6rem,7vw),3.4rem)] leading-[1.08] md:max-w-4xl md:text-[clamp(2.2rem,4vw,3.75rem)]">
                 O supervisório que passa <em className="text-brand-rose not-italic">o cultivo em painel</em> e painel em
                 decisão.
               </h1>
               <p className="mb-8 max-w-full text-[1.05rem] font-light leading-[1.75] text-paper/85 md:max-w-2xl md:text-[1.12rem]">
-                Plataforma web para acompanhar operações hidropónicas em vários formatos de projeto (fazenda vertical,
-                bancadas tradicionais, microverdes e o que o administrador configurar): medições, tarefas e rastreabilidade
-                num só sítio. Pensámos para equipas que vivem entre bandejas e ecrã, sem perder o fio à meada.
+                Plataforma na internet para acompanhar a tua operação hidropónica em vários formatos — fazenda vertical,
+                bancadas tradicionais, microverdes ou o que a gestão da unidade tiver ligado: medições da solução, tarefas
+                da equipa e rastreio do cultivo num só sítio. Feita para quem vive entre bandejas e telemóvel, sem perder o
+                fio à meada.
               </p>
               <p className="mb-10 max-w-full text-[0.98rem] leading-[1.72] text-paper/75 md:max-w-2xl">
-                Tudo isto vive em{" "}
-                <strong className="font-medium text-paper">app.fazendasup.com.br</strong>. O site institucional explica a
-                marca e o contexto. A app é onde a operação corre.
+                O dia a dia corre em{" "}
+                <strong className="font-medium text-paper">app.fazendasup.com.br</strong>. Este site apresenta a marca e o
+                contexto; na app é que se rega, se aponta e se fecha o turno.
               </p>
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
                 <LoginCta />
                 <p className="text-[0.78rem] uppercase tracking-[0.2em] text-paper/50">
-                  Login seguro (mesmo domínio da produção)
+                  Acesso com conta segura
                 </p>
               </div>
             </div>
@@ -115,8 +116,9 @@ export default function OperacaoPage() {
                   O que faz, em uma frase
                 </h2>
                 <p className="text-[1.05rem] leading-[1.75] text-ink/75 md:text-[1.1rem]">
-                  Monitoriza e gere a operação da unidade — postos de cultivo, ciclos, tarefas, manutenções, planejamento e
-                  indicadores — com software pensado para quem trabalha de luvas e de teclado ao mesmo tempo.
+                  Acompanha e gere o dia a dia da unidade — onde está o cultivo, ciclos da solução, tarefas da equipa,
+                  manutenção, planeamento e números — num painel pensado para quem alterna entre luvas e telemóvel ou
+                  computador.
                 </p>
               </div>
             </div>
@@ -168,11 +170,11 @@ export default function OperacaoPage() {
                   Dentro da aplicação
                 </p>
                 <h2 className="display-head text-[clamp(1.5rem,3.2vw,2.25rem)] leading-tight text-ink">
-                  Telas reais da plataforma
+                  Como a app se vê na prática
                 </h2>
                 <p className="mt-4 text-[1.02rem] leading-[1.72] text-ink/70">
-                  Cada cartão pode mostrar uma captura do supervisório. Os caminhos são os da app em produção; alguns
-                  módulos só aparecem se o administrador os ativar ou se o teu utilizador tiver perfil adequado.
+                  Cada cartão pode trazer uma imagem do painel. O que aparece no teu ecrã depende do que a unidade ligou e
+                  do tipo de acesso que tens — nem todas as áreas ficam visíveis para toda a gente.
                 </p>
               </div>
 
@@ -184,25 +186,14 @@ export default function OperacaoPage() {
                     viewport={{ once: true, margin: "-6% 0px" }}
                     transition={{ duration: 0.65, delay: i * 0.04 }}
                   >
-                    <OperacaoScreenCard
-                      slug={s.slug}
-                      title={s.title}
-                      path={s.path}
-                      caption={s.caption}
-                    />
+                    <OperacaoScreenCard slug={s.slug} title={s.title} caption={s.caption} />
                   </motion.div>
                 ))}
               </div>
 
               <p className="mt-12 max-w-3xl text-[0.92rem] leading-[1.7] text-ink/60">
-                Há ainda ecrãs de administração interna, como{" "}
-                <code className="rounded bg-ink/5 px-1 py-0.5 text-[0.8rem] text-ink/80">/ciclos</code>,{" "}
-                <code className="rounded bg-ink/5 px-1 py-0.5 text-[0.8rem] text-ink/80">/config</code>,{" "}
-                <code className="rounded bg-ink/5 px-1 py-0.5 text-[0.8rem] text-ink/80">/capacidade</code>,{" "}
-                <code className="rounded bg-ink/5 px-1 py-0.5 text-[0.8rem] text-ink/80">/analytics</code>,{" "}
-                <code className="rounded bg-ink/5 px-1 py-0.5 text-[0.8rem] text-ink/80">/usuarios</code> e{" "}
-                <code className="rounded bg-ink/5 px-1 py-0.5 text-[0.8rem] text-ink/80">/projetos</code>, reservados a
-                perfis com permissão explícita.
+                Existem também áreas só para quem gere o sistema por dentro — ciclos, configurações, capacidade, relatórios
+                e quem pode entrar no painel — com permissão própria, para não expor dados sensíveis a toda a equipa.
               </p>
             </div>
           </section>

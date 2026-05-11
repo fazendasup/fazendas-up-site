@@ -1,69 +1,61 @@
 /**
  * Telas da app na página /operacao.
- * Capturas: ficheiros `client/public/uploads/operacao/{slug}.webp` ou `.png`
- * (mesmo `slug` que abaixo). Proporção sugerida ~16:10, recorte superior para ver UI.
+ * Capturas: `client/public/uploads/operacao/{slug}.webp` ou `.png` (~16:10, recorte superior).
  */
 export const operacaoAppScreens = [
   {
     slug: "inicio",
     title: "Início",
-    path: "/",
     caption:
-      "Retrato da unidade depois do login: atalhos para postos de cultivo, resumo e alertas sem abrir dez separadores.",
+      "Depois de entrar, vê logo o retrato da unidade: atalhos para onde está o cultivo, o que precisa de atenção e o resumo do dia.",
   },
   {
     slug: "hoje",
     title: "Hoje",
-    path: "/hoje",
-    caption: "Prioridades e compromissos do turno numa só leitura, para ninguém correr a perguntar o que é urgente.",
+    caption:
+      "O que é prioridade agora, compromissos da equipa e alertas — num só olhar, sem correr a perguntar a toda a gente.",
   },
   {
     slug: "estrutura",
     title: "Cultivo em estrutura",
-    path: "/torre/:id, /bancada/:id",
     caption:
-      "Ficha de cada posto hidropónico (coluna, mesa ou linha de microverdes): geometria, lotes e notas. As rotas /torre e /bancada seguem o tipo de projeto.",
+      "Cada posto hidropónico (coluna, mesa ou linha de microverdes) com a sua ficha: desenho da estrutura, lotes e apontamentos da operação.",
   },
   {
     slug: "germinacao",
     title: "Germinação",
-    path: "/germinacao",
-    caption: "Entrada do material vivo: bandejas, variedades e estados até integrarem o fluxo com registo.",
+    caption: "Bandejas novas, variedades e estados — controlo do material vivo até integrar no resto da produção.",
   },
   {
     slug: "tarefas",
     title: "Tarefas",
-    path: "/tarefas",
-    caption: "Trabalho aberto, responsáveis e estados: fila com registo em vez de fio de mensagens soltas.",
+    caption:
+      "Lista de trabalhos da equipa, com quem faz o quê — para fechar pendências com registo, sem depender só de mensagens soltas.",
   },
   {
     slug: "planejamento",
     title: "Planejamento",
-    path: "/planejamento",
-    caption: "Calendário de colheita contínua, lotes e encaixe no tempo para alinhar produção com vendas ou laboratório.",
+    caption: "Calendário de colheitas, lotes e prazos — alinhar produção com vendas ou laboratório, sem folha perdida.",
   },
   {
     slug: "estoque",
     title: "Estoque",
-    path: "/estoque",
-    caption: "Insumos e movimentos quando o módulo está ligado ao projeto: ver para onde foi cada saco ou nutriente.",
+    caption: "Quando esta área está ligada ao teu projeto, vês entradas e saídas de insumos: substrato, nutrientes, etc.",
   },
   {
     slug: "manutencao",
     title: "Manutenção",
-    path: "/manutencao",
-    caption: "Avarias, preventivas e histórico: menos diagnósticos repetidos, mais justificação de paragens.",
+    caption: "Avarias, revisões e o histórico do que já se fez — útil para explicar paradas e não repetir o mesmo diagnóstico.",
   },
   {
     slug: "inteligencia",
     title: "Inteligência e visão",
-    path: "/inteligencia, /visao",
-    caption: "Dados e sugestões; visão do cultivo com câmara e sensores quando existem, sem abrir todas as portas.",
+    caption:
+      "Números e sugestões; quando há câmara ou sensores, dá para acompanhar o ambiente do cultivo sem abrir portas à toa.",
   },
   {
     slug: "automacao",
     title: "Automação",
-    path: "/automacao",
-    caption: "Rotinas que aliviam cliques repetitivos, com humano no comando do que é estratégico.",
+    caption: "Rotinas que poupam trabalho repetido, com a equipa a decidir o que é importante.",
   },
 ] as const;
