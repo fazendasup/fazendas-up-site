@@ -139,56 +139,61 @@ export default function OperacaoPage() {
       <SiteHeader variant="subpage" />
       <div className="copy-flow min-w-0 w-full max-w-full">
         <main className="fu-main-mobile w-full min-w-0 max-w-full">
-          <section className="relative isolate min-h-[min(100dvh,52rem)] w-full overflow-hidden pt-24 pb-14 text-paper md:min-h-[min(100dvh,56rem)] md:pt-28 md:pb-20">
-            <div
-              className="pointer-events-none absolute inset-0 min-h-[min(100dvh,52rem)] md:min-h-[min(100dvh,56rem)]"
-              aria-hidden
-            >
-              <img
-                src={OPERACAO_HERO_IMAGE}
-                alt=""
-                width={1920}
-                height={1080}
-                fetchPriority="high"
-                decoding="async"
-                className="h-full min-h-full w-full object-cover object-[center_22%] md:object-center"
-              />
-            </div>
-            <div
-              className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/55 via-black/65 to-black/80 md:from-black/45 md:via-black/60 md:to-black/85"
-              aria-hidden
-            />
-            <div className="pointer-events-none absolute inset-0 bg-forest-dark/35" aria-hidden />
-
-            <div className="container relative z-10 flex min-h-0 min-w-0 flex-1 items-center py-6 md:py-10">
-              <div className="max-w-3xl rounded-2xl border border-white/15 bg-black/55 px-5 py-7 shadow-2xl ring-1 ring-black/30 backdrop-blur-md supports-[backdrop-filter]:bg-black/45 md:px-9 md:py-9">
-                <p className="eyebrow mb-5 inline-flex max-w-full flex-wrap items-center gap-3 text-paper/95 [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
-                  <span className="h-px w-10 shrink-0 bg-paper/55" />
-                  <span className="min-w-0 font-medium tracking-wide">Painel de operação, Fazendas Up</span>
-                </p>
-                <h1 className="display-head hyphens-none mb-6 max-w-full text-paper text-[clamp(1.75rem,min(4.5vw+0.5rem,6.5vw),3.15rem)] leading-[1.08] md:text-[clamp(2rem,3.6vw,3.35rem)] [text-shadow:0_2px_28px_rgba(0,0,0,0.92)]">
-                  O supervisório que transforma <em className="text-brand-rose not-italic">o cultivo em painel</em> e painel
-                  em decisão.
-                </h1>
-                <p className="mb-6 max-w-full text-[1.02rem] font-light leading-[1.78] text-paper/95 md:text-[1.08rem] [text-shadow:0_1px_4px_rgba(0,0,0,0.95)]">
-                  Você produz hidroponia em formatos diferentes: torre, bancada, microverdes ou outro arranjo que a unidade
-                  use. O painel junta o que importa no turno: leituras da solução, tarefas, lotes e histórico do cultivo. Quem
-                  está na operação deixa de espalhar informação em papéis e grupos soltos; quem decide enxerga o mesmo
-                  recorte.
-                </p>
-                <p className="mb-8 max-w-full text-[0.96rem] leading-[1.75] text-paper/92 md:text-[1.01rem] [text-shadow:0_1px_4px_rgba(0,0,0,0.95)]">
-                  A rotina da operação roda em{" "}
-                  <strong className="font-semibold text-paper">app.fazendasup.com.br</strong>. Este site apresenta a
-                  Fazendas Up. Na app a equipe registra irrigação, lotes e encerramento do dia.
-                </p>
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
-                  <LoginCta />
-                  <p className="text-[0.78rem] font-medium uppercase tracking-[0.18em] text-paper/80 [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
-                    Acesso com conta segura
-                  </p>
+          <section className="relative isolate w-full overflow-x-hidden bg-neutral-950 pb-12 pt-24 text-paper md:pt-28 md:pb-16">
+            {/* Imagem no tamanho natural (16:9), sem esticar: limita altura e deixa a largura acompanhar. */}
+            <div className="container relative z-0 px-4 pb-8 md:pb-52">
+              <div className="mx-auto w-fit max-w-full">
+                <div className="relative">
+                  <img
+                    src={OPERACAO_HERO_IMAGE}
+                    alt=""
+                    width={1920}
+                    height={1080}
+                    fetchPriority="high"
+                    decoding="async"
+                    className="relative z-0 block h-auto max-h-[min(58dvh,520px)] w-auto max-w-full rounded-lg border border-white/10 object-contain shadow-2xl sm:max-h-[min(62dvh,600px)] md:max-h-[min(68dvh,720px)]"
+                  />
+                  <div
+                    className="pointer-events-none absolute inset-0 z-[1] rounded-lg bg-gradient-to-t from-black/88 via-black/45 to-black/15"
+                    aria-hidden
+                  />
+                  <div
+                    className="pointer-events-none absolute inset-0 z-[1] rounded-lg bg-forest-dark/20"
+                    aria-hidden
+                  />
                 </div>
               </div>
-            </div>
+
+              <div className="relative z-[2] mx-auto mt-6 max-w-3xl md:absolute md:bottom-8 md:left-1/2 md:mt-0 md:w-[min(100%-2rem,48rem)] md:-translate-x-1/2">
+                <div className="rounded-2xl border border-white/15 bg-black/60 px-5 py-6 shadow-2xl ring-1 ring-black/40 backdrop-blur-md supports-[backdrop-filter]:bg-black/50 md:px-8 md:py-8">
+                    <p className="eyebrow mb-5 inline-flex max-w-full flex-wrap items-center gap-3 text-paper/95 [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
+                      <span className="h-px w-10 shrink-0 bg-paper/55" />
+                      <span className="min-w-0 font-medium tracking-wide">Painel de operação, Fazendas Up</span>
+                    </p>
+                    <h1 className="display-head hyphens-none mb-6 max-w-full text-paper text-[clamp(1.75rem,min(4.5vw+0.5rem,6.5vw),3.15rem)] leading-[1.08] md:text-[clamp(2rem,3.6vw,3.35rem)] [text-shadow:0_2px_28px_rgba(0,0,0,0.92)]">
+                      O supervisório que transforma <em className="text-brand-rose not-italic">o cultivo em painel</em> e
+                      painel em decisão.
+                    </h1>
+                    <p className="mb-6 max-w-full text-[1.02rem] font-light leading-[1.78] text-paper/95 md:text-[1.08rem] [text-shadow:0_1px_4px_rgba(0,0,0,0.95)]">
+                      Você produz hidroponia em formatos diferentes: torre, bancada, microverdes ou outro arranjo que a
+                      unidade use. O painel junta o que importa no turno: leituras da solução, tarefas, lotes e histórico do
+                      cultivo. Quem está na operação deixa de espalhar informação em papéis e grupos soltos; quem decide
+                      enxerga o mesmo recorte.
+                    </p>
+                    <p className="mb-8 max-w-full text-[0.96rem] leading-[1.75] text-paper/92 md:text-[1.01rem] [text-shadow:0_1px_4px_rgba(0,0,0,0.95)]">
+                      A rotina da operação roda em{" "}
+                      <strong className="font-semibold text-paper">app.fazendasup.com.br</strong>. Este site apresenta a
+                      Fazendas Up. Na app a equipe registra irrigação, lotes e encerramento do dia.
+                    </p>
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+                      <LoginCta />
+                      <p className="text-[0.78rem] font-medium uppercase tracking-[0.18em] text-paper/80 [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
+                        Acesso com conta segura
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
           </section>
 
           <section className="border-b border-ink/10 py-16 md:py-20">
