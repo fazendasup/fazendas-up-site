@@ -26,8 +26,8 @@ import { Button } from "@/components/ui/button";
 import { motionEnterFromBelow } from "@/lib/motionEntrance";
 
 const APP_URL = "https://app.fazendasup.com.br/";
-/** Foto institucional já usada no site (sem gradientes radiais artificiais no hero). */
-const OPERACAO_HERO_PHOTO = getSiteImage("technologyStep3");
+/** Hero /operacao: DSC_9912 (upload em client/public/uploads). */
+const OPERACAO_HERO_PHOTO = getSiteImage("technologyStep4");
 
 const pillars = [
   {
