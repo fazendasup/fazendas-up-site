@@ -20,7 +20,6 @@ import {
   Wrench,
 } from "lucide-react";
 import { Link } from "wouter";
-import { OperacaoDashboardPreview } from "@/components/OperacaoDashboardPreview";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { motionEnterFromBelow } from "@/lib/motionEntrance";
@@ -137,47 +136,49 @@ export default function OperacaoPage() {
       <SiteHeader variant="subpage" />
       <div className="copy-flow min-w-0 w-full max-w-full">
         <main className="fu-main-mobile w-full min-w-0 max-w-full">
-          <section className="relative isolate min-h-[min(92dvh,52rem)] w-full overflow-hidden bg-neutral-950 pb-16 pt-24 text-paper md:min-h-[min(88dvh,56rem)] md:pt-28 md:pb-20">
-            {/* Painel como fundo: degradês leves para não tapar o mock (evitar camadas ~95% opacas em cima de tudo). */}
-            <div
-              className="pointer-events-none absolute inset-0 min-h-[28rem] select-none overflow-hidden md:min-h-[32rem] dark"
-              aria-hidden
-            >
-              <div className="absolute inset-x-0 top-0 flex min-h-[24rem] justify-center pt-2 md:min-h-[28rem] md:-top-4 md:pt-0">
-                <div className="w-[min(90rem,220vw)] origin-top scale-[0.48] opacity-[0.72] sm:w-[min(96rem,200vw)] sm:scale-[0.58] sm:opacity-[0.68] md:w-[min(100rem,170vw)] md:scale-[0.72] md:opacity-[0.62] lg:scale-[0.78] lg:opacity-[0.58]">
-                  <OperacaoDashboardPreview contained={false} showFootnote={false} className="min-w-[52rem] sm:min-w-[56rem]" />
-                </div>
-              </div>
-              {/* Vinheta suave: centro mais claro para os KPIs aparecerem; bordas escuras */}
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_95%_75%_at_50%_28%,transparent_0%,rgba(10,10,12,0.35)_45%,rgba(10,10,12,0.72)_100%)]" />
-              {/* Reforço só na base para ancorar o bloco escuro da página */}
-              <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
+          <section className="relative isolate min-h-[min(88dvh,46rem)] w-full overflow-hidden bg-forest-dark pb-16 pt-24 text-paper md:min-h-[min(88dvh,50rem)] md:pb-20 md:pt-28">
+            {/* Ameixa da marca + calor: rosa, violeta suave e âmbar (evita “roxo gelado” chapado). */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+              <div
+                className="absolute inset-0 opacity-[0.95]"
+                style={{
+                  backgroundImage: `
+                    radial-gradient(circle at 18% 24%, rgba(230,31,147,0.42), transparent 46%),
+                    radial-gradient(circle at 88% 14%, rgba(140,80,195,0.32), transparent 44%),
+                    radial-gradient(circle at 72% 78%, rgba(245,158,120,0.14), transparent 48%),
+                    radial-gradient(circle at 12% 72%, rgba(190,120,200,0.12), transparent 42%),
+                    radial-gradient(ellipse 130% 70% at 50% -10%, rgba(120,60,180,0.22), transparent 52%)
+                  `,
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/25" />
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_85%_65%_at_50%_45%,transparent_0%,rgba(30,8,36,0.35)_100%)]" />
             </div>
 
-            <div className="container relative z-10 mx-auto flex min-h-[min(68dvh,38rem)] max-w-full items-center px-4 py-12 md:min-h-[min(62dvh,42rem)] md:py-16">
-              <div className="w-full max-w-3xl rounded-2xl border border-white/15 bg-black/55 px-5 py-7 shadow-2xl ring-1 ring-black/35 backdrop-blur-md supports-[backdrop-filter]:bg-black/45 md:px-9 md:py-9">
-                <p className="eyebrow mb-5 inline-flex max-w-full flex-wrap items-center gap-3 text-paper/95 [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
-                  <span className="h-px w-10 shrink-0 bg-paper/55" />
+            <div className="container relative z-10 mx-auto flex min-h-[min(72dvh,34rem)] max-w-full items-center px-4 py-10 md:min-h-[min(68dvh,38rem)] md:py-14">
+              <div className="w-full max-w-3xl rounded-2xl border border-white/20 bg-black/25 px-5 py-7 shadow-[0_24px_80px_-24px_rgba(0,0,0,0.55)] ring-1 ring-white/[0.07] backdrop-blur-md supports-[backdrop-filter]:bg-black/20 md:px-9 md:py-9">
+                <p className="eyebrow mb-5 inline-flex max-w-full flex-wrap items-center gap-3 text-paper/90">
+                  <span className="h-px w-10 shrink-0 bg-paper/50" />
                   <span className="min-w-0 font-medium tracking-wide">Painel de operação, Fazendas Up</span>
                 </p>
-                <h1 className="display-head hyphens-none mb-6 max-w-full text-paper text-[clamp(1.75rem,min(4.5vw+0.5rem,6.5vw),3.15rem)] leading-[1.08] md:text-[clamp(2rem,3.6vw,3.35rem)] [text-shadow:0_2px_28px_rgba(0,0,0,0.92)]">
+                <h1 className="display-head hyphens-none mb-6 max-w-full text-paper text-[clamp(1.75rem,min(4.5vw+0.5rem,6.5vw),3.15rem)] leading-[1.08] md:text-[clamp(2rem,3.6vw,3.35rem)] [text-shadow:0_2px_24px_rgba(0,0,0,0.45)]">
                   O supervisório que transforma <em className="text-brand-rose not-italic">o cultivo em painel</em> e painel
                   em decisão.
                 </h1>
-                <p className="mb-6 max-w-full text-[1.02rem] font-light leading-[1.78] text-paper/95 md:text-[1.08rem] [text-shadow:0_1px_4px_rgba(0,0,0,0.95)]">
+                <p className="mb-6 max-w-full text-[1.02rem] font-light leading-[1.78] text-paper/90 md:text-[1.08rem]">
                   Você produz hidroponia em formatos diferentes: torre, bancada, microverdes ou outro arranjo que a unidade
                   use. O painel junta o que importa no turno: leituras da solução, tarefas, lotes e histórico do cultivo.
                   Quem está na operação deixa de espalhar informação em papéis e grupos soltos; quem decide enxerga o
                   mesmo recorte.
                 </p>
-                <p className="mb-8 max-w-full text-[0.96rem] leading-[1.75] text-paper/92 md:text-[1.01rem] [text-shadow:0_1px_4px_rgba(0,0,0,0.95)]">
+                <p className="mb-8 max-w-full text-[0.96rem] leading-[1.75] text-paper/85 md:text-[1.01rem]">
                   A rotina da operação roda em{" "}
                   <strong className="font-semibold text-paper">app.fazendasup.com.br</strong>. Este site apresenta a
                   Fazendas Up. Na app a equipe registra irrigação, lotes e encerramento do dia.
                 </p>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
                   <LoginCta />
-                  <p className="text-[0.78rem] font-medium uppercase tracking-[0.18em] text-paper/80 [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
+                  <p className="text-[0.78rem] font-medium uppercase tracking-[0.18em] text-paper/65">
                     Acesso com conta segura
                   </p>
                 </div>
