@@ -113,7 +113,7 @@ export function OperacaoDashboardPreview({
   return (
     <div
       className={cn(
-        "fu-operacao-dashboard-preview w-full text-zinc-100 dark",
+        "fu-operacao-dashboard-preview w-full text-zinc-100",
         contained && "mx-auto max-w-6xl",
         className,
       )}

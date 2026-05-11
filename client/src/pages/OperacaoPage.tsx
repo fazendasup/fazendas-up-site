@@ -138,16 +138,20 @@ export default function OperacaoPage() {
       <div className="copy-flow min-w-0 w-full max-w-full">
         <main className="fu-main-mobile w-full min-w-0 max-w-full">
           <section className="relative isolate min-h-[min(92dvh,52rem)] w-full overflow-hidden bg-neutral-950 pb-16 pt-24 text-paper md:min-h-[min(88dvh,56rem)] md:pt-28 md:pb-20">
-            {/* Painel como fundo + degradês legíveis por cima do texto */}
-            <div className="pointer-events-none absolute inset-0 select-none overflow-hidden" aria-hidden>
-              <div className="absolute inset-x-[-12%] top-0 flex justify-center md:inset-x-0 md:top-[-2%]">
-                <div className="w-[min(72rem,190vw)] origin-top scale-[0.52] opacity-[0.38] sm:w-[min(80rem,165vw)] sm:scale-[0.62] sm:opacity-40 md:w-[min(88rem,145vw)] md:scale-[0.74] md:opacity-[0.36] lg:scale-[0.82] lg:opacity-[0.34]">
-                  <OperacaoDashboardPreview contained={false} showFootnote={false} className="min-w-[56rem]" />
+            {/* Painel como fundo: degradês leves para não tapar o mock (evitar camadas ~95% opacas em cima de tudo). */}
+            <div
+              className="pointer-events-none absolute inset-0 min-h-[28rem] select-none overflow-hidden md:min-h-[32rem] dark"
+              aria-hidden
+            >
+              <div className="absolute inset-x-0 top-0 flex min-h-[24rem] justify-center pt-2 md:min-h-[28rem] md:-top-4 md:pt-0">
+                <div className="w-[min(90rem,220vw)] origin-top scale-[0.48] opacity-[0.72] sm:w-[min(96rem,200vw)] sm:scale-[0.58] sm:opacity-[0.68] md:w-[min(100rem,170vw)] md:scale-[0.72] md:opacity-[0.62] lg:scale-[0.78] lg:opacity-[0.58]">
+                  <OperacaoDashboardPreview contained={false} showFootnote={false} className="min-w-[52rem] sm:min-w-[56rem]" />
                 </div>
               </div>
-              <div className="absolute inset-0 bg-gradient-to-br from-neutral-950/97 via-neutral-950/90 to-black/96" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_90%_55%_at_50%_18%,rgba(0,0,0,0.12)_0%,rgba(0,0,0,0.55)_72%,rgba(0,0,0,0.82)_100%)]" />
+              {/* Vinheta suave: centro mais claro para os KPIs aparecerem; bordas escuras */}
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_95%_75%_at_50%_28%,transparent_0%,rgba(10,10,12,0.35)_45%,rgba(10,10,12,0.72)_100%)]" />
+              {/* Reforço só na base para ancorar o bloco escuro da página */}
+              <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
             </div>
 
             <div className="container relative z-10 mx-auto flex min-h-[min(68dvh,38rem)] max-w-full items-center px-4 py-12 md:min-h-[min(62dvh,42rem)] md:py-16">
