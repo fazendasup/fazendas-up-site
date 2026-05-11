@@ -15,6 +15,7 @@ const footerCols = [
     title: "Empresa",
     links: [
       { label: "Sobre", href: "#sobre" },
+      { label: "Plataforma de operação", href: "/operacao" },
       { label: "Tecnologia", href: "#tecnologia" },
       { label: "Sustentabilidade", href: "#impacto" },
       { label: "Trabalhe conosco", href: "https://www.linkedin.com/company/fazendasup" },
@@ -141,10 +142,13 @@ export function ContactFooter() {
                   {col.title}
                 </h4>
                 <ul className="space-y-2.5">
-                  {col.links.map((l) => (
+                  {col.links.map((l) => {
+                    const resolvedHref =
+                      l.href.startsWith("http") || l.href.startsWith("/") ? l.href : `/${l.href}`;
+                    return (
                     <li key={l.label}>
                       <a
-                        href={l.href}
+                        href={resolvedHref}
                         target={l.href.startsWith("http") ? "_blank" : undefined}
                         rel={l.href.startsWith("http") ? "noreferrer" : undefined}
                         className="break-words text-paper/65 text-[0.875rem] transition-colors hover:text-paper"
@@ -152,7 +156,8 @@ export function ContactFooter() {
                         {l.label}
                       </a>
                     </li>
-                  ))}
+                  );
+                  })}
                 </ul>
               </div>
             ))}

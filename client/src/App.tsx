@@ -6,11 +6,12 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { OverflowProbe } from "./components/OverflowProbe";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
-
+import OperacaoPage from "./pages/OperacaoPage";
 
 function Router() {
   return (
     <Switch>
+      <Route path="/operacao" component={OperacaoPage} />
       <Route path={"/"} component={Home} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
