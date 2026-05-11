@@ -20,14 +20,12 @@ import {
   Wrench,
 } from "lucide-react";
 import { Link } from "wouter";
+import { OperacaoDashboardPreview } from "@/components/OperacaoDashboardPreview";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { motionEnterFromBelow } from "@/lib/motionEntrance";
 
 const APP_URL = "https://app.fazendasup.com.br/";
-
-/** Capa do hero: painel escuro com KPIs (imagem gerada no estilo do dashboard de operação). */
-const OPERACAO_HERO_IMAGE = "/uploads/operacao-hero-dashboard-kpis.png";
 
 const pillars = [
   {
@@ -140,31 +138,10 @@ export default function OperacaoPage() {
       <div className="copy-flow min-w-0 w-full max-w-full">
         <main className="fu-main-mobile w-full min-w-0 max-w-full">
           <section className="relative isolate w-full overflow-x-hidden bg-neutral-950 pb-12 pt-24 text-paper md:pt-28 md:pb-16">
-            {/* Imagem no tamanho natural (16:9), sem esticar: limita altura e deixa a largura acompanhar. */}
-            <div className="container relative z-0 px-4 pb-8 md:pb-52">
-              <div className="mx-auto w-fit max-w-full">
-                <div className="relative">
-                  <img
-                    src={OPERACAO_HERO_IMAGE}
-                    alt=""
-                    width={1920}
-                    height={1080}
-                    fetchPriority="high"
-                    decoding="async"
-                    className="relative z-0 block h-auto max-h-[min(58dvh,520px)] w-auto max-w-full rounded-lg border border-white/10 object-contain shadow-2xl sm:max-h-[min(62dvh,600px)] md:max-h-[min(68dvh,720px)]"
-                  />
-                  <div
-                    className="pointer-events-none absolute inset-0 z-[1] rounded-lg bg-gradient-to-t from-black/88 via-black/45 to-black/15"
-                    aria-hidden
-                  />
-                  <div
-                    className="pointer-events-none absolute inset-0 z-[1] rounded-lg bg-forest-dark/20"
-                    aria-hidden
-                  />
-                </div>
-              </div>
+            <div className="container relative z-0 px-4 pb-8 md:pb-12">
+              <OperacaoDashboardPreview />
 
-              <div className="relative z-[2] mx-auto mt-6 max-w-3xl md:absolute md:bottom-8 md:left-1/2 md:mt-0 md:w-[min(100%-2rem,48rem)] md:-translate-x-1/2">
+              <div className="relative z-[2] mx-auto mt-8 max-w-3xl">
                 <div className="rounded-2xl border border-white/15 bg-black/60 px-5 py-6 shadow-2xl ring-1 ring-black/40 backdrop-blur-md supports-[backdrop-filter]:bg-black/50 md:px-8 md:py-8">
                     <p className="eyebrow mb-5 inline-flex max-w-full flex-wrap items-center gap-3 text-paper/95 [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
                       <span className="h-px w-10 shrink-0 bg-paper/55" />
