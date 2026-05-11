@@ -139,8 +139,8 @@ export default function OperacaoPage() {
       <SiteHeader variant="subpage" />
       <div className="copy-flow min-w-0 w-full max-w-full">
         <main className="fu-main-mobile w-full min-w-0 max-w-full">
-          <section className="relative isolate min-h-[min(92dvh,44rem)] w-full overflow-hidden bg-ink pb-16 pt-24 text-paper md:min-h-[min(88dvh,48rem)] md:pb-20 md:pt-28">
-            {/* Operação real: foto do acervo + só degradês lineares (leitura à esquerda, direita mais clara). */}
+          <section className="relative isolate min-h-[min(92dvh,46rem)] w-full overflow-hidden bg-ink pb-12 pt-24 text-paper md:min-h-[min(90dvh,52rem)] md:pb-16 md:pt-28">
+            {/* Foto em destaque: véu só na base + leve sombra à esquerda (sem caixa largura total). */}
             <div className="pointer-events-none absolute inset-0" aria-hidden>
               <img
                 src={OPERACAO_HERO_PHOTO}
@@ -149,25 +149,22 @@ export default function OperacaoPage() {
                 height={1067}
                 fetchPriority="high"
                 decoding="async"
-                className="absolute inset-0 h-full w-full object-cover object-[center_40%] md:object-[center_35%]"
+                className="absolute inset-0 h-full w-full object-cover object-[center_38%] md:object-[center_32%]"
               />
+              {/* Escurece só a parte inferior (cinema / editorial): o topo da foto fica quase limpo. */}
+              <div className="absolute inset-x-0 bottom-0 h-[58%] bg-gradient-to-t from-black/78 via-black/35 to-transparent md:h-[52%] md:from-black/72 md:via-black/28" />
+              {/* Reforço discreto no canto inferior esquerdo, onde está o texto (estreito). */}
               <div
-                className="absolute inset-0"
-                style={{
-                  background:
-                    "linear-gradient(100deg, rgba(8,7,12,0.97) 0%, rgba(8,7,12,0.82) 28%, rgba(8,7,12,0.42) 52%, rgba(8,7,12,0.12) 78%, transparent 100%)",
-                }}
-              />
-              {/* Faixa extra só atrás da coluna de texto (mobile: cobre mais largura). */}
-              <div
-                className="absolute inset-y-0 left-0 w-[min(100%,42rem)] bg-gradient-to-r from-black/55 via-black/35 to-transparent md:w-[min(100%,36rem)] md:from-black/45 md:via-black/20"
+                className="absolute bottom-0 left-0 h-[52%] w-[min(100%,34rem)] bg-gradient-to-tr from-black/50 to-transparent md:h-[48%] md:w-[min(100%,30rem)]"
                 aria-hidden
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/35 md:from-black/50 md:to-black/20" />
+              {/* Topo: leve vinheta para o header não “flutuar” em claridade máxima (bem suave). */}
+              <div className="absolute inset-x-0 top-0 h-[28%] bg-gradient-to-b from-black/25 to-transparent md:h-[22%] md:from-black/20" />
             </div>
 
-            <div className="container relative z-10 mx-auto flex min-h-[min(72dvh,32rem)] max-w-full items-center px-4 py-10 md:min-h-[min(68dvh,36rem)] md:py-14">
-              <div className="w-full max-w-3xl md:max-w-2xl rounded-2xl border border-white/12 bg-black/45 px-5 py-7 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.65)] ring-1 ring-black/40 backdrop-blur-[10px] supports-[backdrop-filter]:bg-black/35 sm:px-7 sm:py-8 md:px-9 md:py-9">
+            <div className="container relative z-10 mx-auto flex min-h-[min(78dvh,34rem)] max-w-full flex-col justify-end px-4 pb-10 pt-6 md:min-h-[min(82dvh,44rem)] md:justify-end md:pb-14 md:pt-8">
+              {/* Coluna estreita + vidro leve: não cobre a largura da tela; a foto respira à direita e acima. */}
+              <div className="w-full max-w-[min(100%,26.5rem)] rounded-xl border border-white/12 bg-black/28 px-5 py-6 shadow-lg shadow-black/20 ring-1 ring-white/[0.06] backdrop-blur-[14px] supports-[backdrop-filter]:bg-black/22 sm:max-w-xl sm:px-7 sm:py-7 md:max-w-[28rem] md:px-8 md:py-8">
                 <p className="eyebrow mb-5 inline-flex max-w-full flex-wrap items-center gap-3 text-paper">
                   <span className="h-px w-10 shrink-0 bg-paper/60" />
                   <span className="min-w-0 font-medium tracking-wide">Painel de operação, Fazendas Up</span>
