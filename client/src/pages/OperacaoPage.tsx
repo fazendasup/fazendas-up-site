@@ -150,8 +150,8 @@ export default function OperacaoPage() {
                 <span className="min-w-0">Painel de operação, Fazendas Up</span>
               </p>
               <h1 className="display-head hyphens-none mb-6 max-w-full text-paper text-[clamp(1.85rem,min(5vw+0.6rem,7vw),3.4rem)] leading-[1.08] md:max-w-4xl md:text-[clamp(2.2rem,4vw,3.75rem)]">
-                O supervisório que passa <em className="text-brand-rose not-italic">o cultivo em painel</em> e painel em
-                decisão.
+                O supervisório que transforma <em className="text-brand-rose not-italic">o cultivo em painel</em> e painel
+                em decisão.
               </h1>
               <p className="mb-8 max-w-full text-[1.05rem] font-light leading-[1.75] text-paper/85 md:max-w-2xl md:text-[1.12rem]">
                 Plataforma na internet para acompanhar sua operação hidropônica em vários formatos, como fazenda vertical,
