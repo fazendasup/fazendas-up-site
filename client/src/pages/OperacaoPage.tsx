@@ -26,8 +26,8 @@ import { motionEnterFromBelow } from "@/lib/motionEntrance";
 
 const APP_URL = "https://app.fazendasup.com.br/";
 
-/** Capa do hero: screenshot do painel (estufa + UI). */
-const OPERACAO_HERO_IMAGE = "/uploads/operacao-hero-dashboard.png";
+/** Capa do hero: painel escuro com KPIs (imagem gerada no estilo do dashboard de operação). */
+const OPERACAO_HERO_IMAGE = "/uploads/operacao-hero-dashboard-kpis.png";
 
 const pillars = [
   {
