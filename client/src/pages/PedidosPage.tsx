@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import {
   portalApi,
   PortalError,
+  type CadastroEmpresa,
   type ClienteSessao,
   type EquipeSessao,
   type PedidoCliente,
@@ -12,119 +13,133 @@ import {
   type ProdutoLoja,
   type TituloCliente,
 } from "@/lib/pedidos/api";
-import { formatCnpj, formatLongDate } from "@/lib/pedidos/rules";
+import { formatCnpj, formatLongDate, isValidCnpj } from "@/lib/pedidos/rules";
 
-type Aba = "produtos" | "pedidos" | "financeiro" | "conta" | "equipe";
+type Vista = "loja" | "pedidos" | "pagamentos" | "conta" | "equipe" | "cadastro";
+
+const ORDEM_GRUPOS = ["Folhas", "Microverdes", "Ervas", "Saladas", "Flores", "Legumes", "Processados", "Molhos", "Planos", "Da fazenda"];
+
+const cadastroVazio: CadastroEmpresa = {
+  nome: "",
+  nomeFantasia: "",
+  cnpj: "",
+  email: "",
+  telefone: "",
+  contato: "",
+  cep: "",
+  logradouro: "",
+  numero: "",
+  complemento: "",
+  bairro: "",
+  cidade: "Manaus",
+  estado: "AM",
+  inscricaoEstadual: "",
+};
 
 function reais(valor: number) {
   return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-function textoCliente(texto: string) {
-  if (/conta azul/i.test(texto) && /não respondeu|nao respondeu/i.test(texto)) {
-    return "Os pagamentos não carregaram agora. Tente de novo em instantes.";
-  }
-  if (/conta azul/i.test(texto)) {
-    return "Esta conta ainda não está pronta para pedidos. Fale com a fazenda.";
-  }
+function mensagem(error: unknown) {
+  const texto = error instanceof PortalError ? error.message : "Não foi possível concluir agora.";
+  if (/conta azul/i.test(texto)) return "Não foi possível concluir agora. Tente de novo em instantes.";
   return texto;
 }
 
-function mensagem(error: unknown) {
-  const texto = error instanceof PortalError ? error.message : "Não foi possível concluir agora.";
-  return textoCliente(texto);
-}
-
 function statusPedido(status: string) {
-  if (status === "PENDENTE") return "Recebido";
+  if (status === "PENDENTE") return "Aguardando aprovação";
   if (status === "PRONTO") return "Separado";
   if (status === "ENTREGUE") return "Entregue";
   if (status === "CANCELADO") return "Cancelado";
   return "Em andamento";
 }
 
-function statusPagamento(status: string) {
-  const chave = status.toUpperCase();
-  if (chave.includes("ATRAS")) return "Em atraso";
-  if (chave.includes("RECEB") || chave.includes("PAGO") || chave.includes("QUIT")) return "Pago";
-  if (chave.includes("CANCEL")) return "Cancelado";
-  if (chave.includes("ABERTO") || chave.includes("PEND")) return "Em aberto";
-  return "";
+function lerCarrinho(): Record<string, number> {
+  try {
+    const salvo = JSON.parse(localStorage.getItem("fazendas.pedido") ?? "{}") as Record<string, number>;
+    return salvo && typeof salvo === "object" ? salvo : {};
+  } catch {
+    return {};
+  }
 }
-
 
 export default function PedidosPage() {
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
   const convite = params.get("convite") ?? "";
-  const [aba, setAba] = useState<Aba>("produtos");
-  const [carregando, setCarregando] = useState(true);
   const [cliente, setCliente] = useState<ClienteSessao | null>(null);
   const [equipe, setEquipe] = useState<EquipeSessao | null>(null);
-  const [email, setEmail] = useState("");
+  const [catalogo, setCatalogo] = useState<ProdutoLoja[]>([]);
+  const [pedidos, setPedidos] = useState<PedidoCliente[]>([]);
+  const [titulos, setTitulos] = useState<TituloCliente[]>([]);
+  const [totais, setTotais] = useState({ recebido: 0, emAberto: 0, emAtraso: 0 });
+  const [carrinho, setCarrinho] = useState<Record<string, number>>(lerCarrinho);
+  const [grupo, setGrupo] = useState("Tudo");
+  const [vista, setVista] = useState<Vista>(params.get("acesso") === "equipe" ? "equipe" : "loja");
+  const [modoEquipe, setModoEquipe] = useState(params.get("acesso") === "equipe");
+  const [datas, setDatas] = useState<string[]>([]);
+  const [dataEntrega, setDataEntrega] = useState("");
+  const [observacoes, setObservacoes] = useState("");
+  const [minimo, setMinimo] = useState(300);
   const [cnpj, setCnpj] = useState("");
+  const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [senha2, setSenha2] = useState("");
   const [senhaAtual, setSenhaAtual] = useState("");
   const [senhaNova, setSenhaNova] = useState("");
-  const [modoEquipe, setModoEquipe] = useState(params.get("acesso") === "equipe");
-  const [datas, setDatas] = useState<string[]>([]);
-  const [minimo, setMinimo] = useState(300);
-  const [dataEntrega, setDataEntrega] = useState("");
-  const [observacoes, setObservacoes] = useState("");
-  const [catalogo, setCatalogo] = useState<ProdutoLoja[]>([]);
-  const [carrinho, setCarrinho] = useState<Record<string, number>>({});
-  const [pedidos, setPedidos] = useState<PedidoCliente[]>([]);
-  const [titulos, setTitulos] = useState<TituloCliente[]>([]);
-  const [totais, setTotais] = useState({ recebido: 0, emAberto: 0, emAtraso: 0 });
-  const [avisoFinanceiro, setAvisoFinanceiro] = useState("");
-  const [produtosEquipe, setProdutosEquipe] = useState<ProdutoEquipe[]>([]);
-  const [convites, setConvites] = useState<Array<{ nome: string; email: string; link: string }>>([]);
+  const [empresa, setEmpresa] = useState<CadastroEmpresa>(cadastroVazio);
+  const [carregando, setCarregando] = useState(true);
   const [enviando, setEnviando] = useState(false);
+  const [produtosEquipe, setProdutosEquipe] = useState<ProdutoEquipe[]>([]);
+  const [cadastros, setCadastros] = useState<Array<{ id: string; nome: string; cnpj: string; email: string; cidade: string; estado: string; status: string; erro: string | null }>>([]);
+  const [emAtraso, setEmAtraso] = useState(false);
 
   const total = catalogo.reduce((soma, produto) => soma + produto.preco * (carrinho[produto.id] ?? 0), 0);
-  const emAtraso = totais.emAtraso > 0;
+  const grupos = ORDEM_GRUPOS.filter((item) => catalogo.some((produto) => produto.grupo === item));
+  const visiveis = catalogo.filter((produto) => grupo === "Tudo" || produto.grupo === grupo);
 
-  async function carregarLoja() {
-    const [lista, agenda, historico, financeiro] = await Promise.all([
-      portalApi.catalogo(),
-      portalApi.regras(),
-      portalApi.pedidos(),
-      portalApi.financeiro(),
-    ]);
-    setCatalogo(lista.itens);
-    setDatas(agenda.datas);
-    setMinimo(agenda.minimoReais);
-    setDataEntrega((atual) => atual || agenda.datas[0] || "");
+  useEffect(() => {
+    localStorage.setItem("fazendas.pedido", JSON.stringify(carrinho));
+  }, [carrinho]);
+
+  const carregarVitrine = async () => {
+    const loja = await portalApi.vitrine();
+    setCatalogo(loja.itens);
+    setDatas(loja.datas);
+    setMinimo(loja.minimoReais);
+    setDataEntrega((atual) => atual || loja.datas[0] || "");
+  };
+
+  const carregarConta = async () => {
+    const [historico, financeiro] = await Promise.all([portalApi.pedidos(), portalApi.financeiro()]);
     setPedidos(historico.pedidos);
     setTitulos(financeiro.titulos);
     setTotais(financeiro.totais);
-    setAvisoFinanceiro(financeiro.aviso ?? "");
-  }
+    setEmAtraso(financeiro.totais.emAtraso > 0);
+  };
 
   useEffect(() => {
     let ativo = true;
     (async () => {
       try {
+        await carregarVitrine();
+      } catch (error) {
+        if (ativo) toast.error(mensagem(error));
+      }
+      try {
         const sessao = await portalApi.sessao();
         if (!ativo) return;
         setCliente(sessao.cliente);
         setEquipe(sessao.equipe);
+        if (sessao.cliente) await carregarConta();
         if (sessao.equipe && !sessao.cliente) {
-          setAba("equipe");
-          const lista = await portalApi.equipeProdutos();
+          setVista("equipe");
+          const [lista, recebidos] = await Promise.all([portalApi.equipeProdutos(), portalApi.cadastros()]);
           if (!ativo) return;
           setProdutosEquipe(lista.produtos);
+          setCadastros(recebidos.cadastros);
         }
-        if (sessao.cliente) await carregarLoja();
-        else {
-          const regras = await portalApi.regras();
-          if (!ativo) return;
-          setDatas(regras.datas);
-          setMinimo(regras.minimoReais);
-          setDataEntrega(regras.datas[0] ?? "");
-        }
-      } catch (error) {
-        if (ativo) toast.error(mensagem(error));
+      } catch {
+        /* a vitrine abre sem sessão */
       } finally {
         if (ativo) setCarregando(false);
       }
@@ -134,11 +149,12 @@ export default function PedidosPage() {
     };
   }, []);
 
-  const definirQtd = (id: string, qtd: number) => {
+  const definirQtd = (produto: ProdutoLoja, qtd: number) => {
+    const teto = produto.estoque == null ? 9999 : produto.estoque;
     setCarrinho((atual) => {
       const proximo = { ...atual };
-      if (qtd <= 0) delete proximo[id];
-      else proximo[id] = Math.min(9999, qtd);
+      if (qtd <= 0) delete proximo[produto.id];
+      else proximo[produto.id] = Math.min(teto, qtd);
       return proximo;
     });
   };
@@ -149,16 +165,16 @@ export default function PedidosPage() {
       if (modoEquipe) {
         const resposta = await portalApi.equipeEntrar(email, senha);
         setEquipe(resposta.equipe);
-        setAba("equipe");
-        const lista = await portalApi.equipeProdutos();
+        setVista("equipe");
+        const [lista, recebidos] = await Promise.all([portalApi.equipeProdutos(), portalApi.cadastros()]);
         setProdutosEquipe(lista.produtos);
-        toast.success("Acesso da equipe aberto.");
+        setCadastros(recebidos.cadastros);
       } else {
         const resposta = await portalApi.entrar(cnpj, senha);
         setCliente(resposta.cliente);
         setSenha("");
-        await carregarLoja();
-        toast.success("Entrada confirmada.");
+        setVista("loja");
+        await Promise.all([carregarVitrine(), carregarConta()]);
       }
     } catch (error) {
       toast.error(mensagem(error));
@@ -168,12 +184,8 @@ export default function PedidosPage() {
   };
 
   const criarSenha = async () => {
-    if (senha.length < 10) {
-      toast.error("A senha precisa ter pelo menos 10 caracteres.");
-      return;
-    }
-    if (senha !== senha2) {
-      toast.error("As duas senhas precisam ser iguais.");
+    if (senha.length < 10 || senha !== senha2) {
+      toast.error("A senha precisa ter pelo menos 10 caracteres e as duas precisam ser iguais.");
       return;
     }
     setEnviando(true);
@@ -183,8 +195,8 @@ export default function PedidosPage() {
       setSenha("");
       setSenha2("");
       window.history.replaceState({}, "", "/pedidos");
-      await carregarLoja();
-      toast.success("Senha criada. Esta conta é só da sua empresa.");
+      setVista("loja");
+      await Promise.all([carregarVitrine(), carregarConta()]);
     } catch (error) {
       toast.error(mensagem(error));
     } finally {
@@ -193,6 +205,11 @@ export default function PedidosPage() {
   };
 
   const lancar = async () => {
+    if (!cliente) {
+      setVista("loja");
+      document.getElementById("enviar-pedido")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     const itens = Object.entries(carrinho)
       .filter(([, quantidade]) => quantidade > 0)
       .map(([produtoId, quantidade]) => ({ produtoId, quantidade }));
@@ -209,9 +226,9 @@ export default function PedidosPage() {
       await portalApi.criarPedido({ dataEntrega, observacoes, itens });
       setCarrinho({});
       setObservacoes("");
-      await carregarLoja();
-      setAba("pedidos");
-      toast.success("Pedido enviado.");
+      await Promise.all([carregarVitrine(), carregarConta()]);
+      setVista("pedidos");
+      toast.success("Pedido enviado para aprovação.");
     } catch (error) {
       toast.error(mensagem(error));
     } finally {
@@ -219,39 +236,24 @@ export default function PedidosPage() {
     }
   };
 
-  const abrirEquipe = async () => {
-    setAba("equipe");
-    if (produtosEquipe.length > 0) return;
-    try {
-      const lista = await portalApi.equipeProdutos();
-      setProdutosEquipe(lista.produtos);
-    } catch (error) {
-      toast.error(mensagem(error));
+  const enviarCadastro = async () => {
+    if (!isValidCnpj(empresa.cnpj)) {
+      toast.error("Confira o CNPJ.");
+      return;
     }
-  };
-
-  const salvarProduto = async (produto: ProdutoEquipe, patch: { naLoja?: boolean; preco?: number; imagemUrl?: string | null }) => {
-    try {
-      const salvo = await portalApi.salvarProduto(produto.id, patch);
-      setProdutosEquipe((atual) =>
-        atual.map((item) => (item.id === produto.id ? { ...item, ...salvo } : item)),
-      );
-      toast.success("Produto atualizado.");
-    } catch (error) {
-      toast.error(mensagem(error));
-    }
-  };
-
-  const gerarConvites = async () => {
     setEnviando(true);
     try {
-      const resposta = await portalApi.convites();
-      setConvites(resposta.criados);
-      toast.success(
-        resposta.criados.length
-          ? `${resposta.criados.length} convites prontos. Copie e envie a cada cliente. O link aparece só agora.`
-          : "Nenhum convite novo. Quem já tem senha não entra de novo nesta lista.",
-      );
+      const resposta = await portalApi.cadastrar({
+        ...empresa,
+        cnpj: empresa.cnpj.replace(/\D/g, ""),
+        estado: empresa.estado.toUpperCase(),
+      });
+      toast.success(resposta.mensagem);
+      if (!resposta.pendente) {
+        setCnpj(empresa.cnpj);
+        setVista("loja");
+        setModoEquipe(false);
+      }
     } catch (error) {
       toast.error(mensagem(error));
     } finally {
@@ -259,37 +261,91 @@ export default function PedidosPage() {
     }
   };
 
-  const abas: Array<[Aba, string]> = [
-    ["produtos", "Produtos"],
-    ["pedidos", "Meus pedidos"],
-    ["financeiro", "Pagamentos"],
-    ["conta", "Conta"],
-  ];
+  const salvarProduto = async (
+    produto: ProdutoEquipe,
+    patch: { naLoja?: boolean; preco?: number; imagemUrl?: string | null; descricao?: string; aplicacao?: string; estoque?: number | null },
+  ) => {
+    try {
+      const salvo = await portalApi.salvarProduto(produto.id, patch);
+      setProdutosEquipe((atual) => atual.map((item) => (item.id === produto.id ? { ...item, ...salvo, descricao: salvo.descricao ?? item.descricao, aplicacao: salvo.aplicacao ?? item.aplicacao } : item)));
+      toast.success("Produto atualizado.");
+      void carregarVitrine();
+    } catch (error) {
+      toast.error(mensagem(error));
+    }
+  };
 
   return (
     <div className="min-h-screen bg-paper text-ink">
       <SiteHeader variant="subpage" />
-      <main className="container pb-20 pt-28">
-        {!cliente && !equipe ? (
-          <>
-            <h1 className="display-head max-w-xl text-[clamp(2.4rem,5vw,3.6rem)] leading-[1.02] text-ink">
-              {modoEquipe ? "Acesso da equipe" : <>Peça para a <em>sua</em> empresa.</>}
-            </h1>
-            {modoEquipe ? null : (
-              <p className="mt-4 max-w-md text-[1.05rem] leading-relaxed text-ink/70">
-                Entre com o CNPJ. Você vê só os produtos, os preços e os pedidos desta conta.
-              </p>
-            )}
-          </>
-        ) : (
-          <h1 className="display-head max-w-3xl text-[clamp(2rem,4vw,3rem)] leading-[1.05] text-ink">
-            {cliente?.nome ?? "Loja"}
+      <main className="container pb-24 pt-28">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <h1 className="display-head max-w-3xl text-[clamp(2.4rem,5vw,3.8rem)] leading-[1.02]">
+            Da fazenda para a <em>cozinha</em>.
           </h1>
-        )}
+          {cliente ? (
+            <div className="flex flex-wrap items-center gap-3 text-sm">
+              <span className="text-ink/70">{cliente.nome}</span>
+              <button type="button" className={vista === "pedidos" ? "text-forest" : "text-ink/70"} onClick={() => setVista("pedidos")}>Meus pedidos</button>
+              <button type="button" className={vista === "pagamentos" ? "text-forest" : "text-ink/70"} onClick={() => setVista("pagamentos")}>Pagamentos</button>
+              <button type="button" className={vista === "conta" ? "text-forest" : "text-ink/70"} onClick={() => setVista("conta")}>Conta</button>
+              {equipe ? <button type="button" className="text-ink/70" onClick={() => setVista("equipe")}>Loja</button> : null}
+              <button
+                type="button"
+                className="text-ink/70"
+                onClick={() => {
+                  void portalApi.sair().finally(() => {
+                    setCliente(null);
+                    setPedidos([]);
+                    setTitulos([]);
+                    setVista("loja");
+                    void carregarVitrine();
+                  });
+                }}
+              >
+                Sair
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-4 text-sm">
+              <button type="button" className="text-ink/70" onClick={() => { setVista("loja"); setModoEquipe(false); }}>Entrar</button>
+              <button type="button" className="text-forest" onClick={() => setVista("cadastro")}>Cadastrar empresa</button>
+            </div>
+          )}
+        </div>
 
-        {carregando ? <p className="mt-8 text-ink/60">Carregando a conta...</p> : null}
+        {carregando ? <p className="mt-8 text-ink/60">Carregando os produtos...</p> : null}
 
-        {!carregando && !cliente && convite ? (
+        {vista === "cadastro" && !cliente ? (
+          <form
+            className="mt-8 grid max-w-3xl gap-4 rounded-sm border border-ink/10 bg-white p-6 sm:grid-cols-2"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void enviarCadastro();
+            }}
+          >
+            <h2 className="display-head text-2xl sm:col-span-2">Cadastro da empresa</h2>
+            <Campo label="Razão social" value={empresa.nome} onChange={(nome) => setEmpresa({ ...empresa, nome })} />
+            <Campo label="Nome fantasia" value={empresa.nomeFantasia ?? ""} onChange={(nomeFantasia) => setEmpresa({ ...empresa, nomeFantasia })} />
+            <Campo label="CNPJ" value={formatCnpj(empresa.cnpj)} onChange={(valor) => setEmpresa({ ...empresa, cnpj: valor })} inputMode="numeric" />
+            <Campo label="Inscrição estadual" value={empresa.inscricaoEstadual ?? ""} onChange={(inscricaoEstadual) => setEmpresa({ ...empresa, inscricaoEstadual })} />
+            <Campo label="E-mail" value={empresa.email} onChange={(valor) => setEmpresa({ ...empresa, email: valor })} type="email" />
+            <Campo label="Telefone" value={empresa.telefone} onChange={(telefone) => setEmpresa({ ...empresa, telefone })} inputMode="tel" />
+            <Campo label="Pessoa de contato" value={empresa.contato} onChange={(contato) => setEmpresa({ ...empresa, contato })} />
+            <Campo label="CEP" value={empresa.cep} onChange={(cep) => setEmpresa({ ...empresa, cep })} inputMode="numeric" />
+            <Campo label="Logradouro" value={empresa.logradouro} onChange={(logradouro) => setEmpresa({ ...empresa, logradouro })} />
+            <Campo label="Número" value={empresa.numero} onChange={(numero) => setEmpresa({ ...empresa, numero })} />
+            <Campo label="Complemento" value={empresa.complemento ?? ""} onChange={(complemento) => setEmpresa({ ...empresa, complemento })} />
+            <Campo label="Bairro" value={empresa.bairro} onChange={(bairro) => setEmpresa({ ...empresa, bairro })} />
+            <Campo label="Cidade" value={empresa.cidade} onChange={(cidade) => setEmpresa({ ...empresa, cidade })} />
+            <Campo label="Estado" value={empresa.estado} onChange={(estado) => setEmpresa({ ...empresa, estado: estado.slice(0, 2).toUpperCase() })} />
+            <div className="sm:col-span-2">
+              <Button type="submit" disabled={enviando}>Enviar cadastro</Button>
+            </div>
+          </form>
+        ) : null}
+
+        {!cliente && convite ? (
           <form
             className="mt-8 max-w-md space-y-4 rounded-sm border border-ink/10 bg-white p-6"
             onSubmit={(event) => {
@@ -298,216 +354,13 @@ export default function PedidosPage() {
             }}
           >
             <h2 className="text-xl">Crie a senha da sua empresa</h2>
-            <p className="text-sm text-ink/65">
-              O cadastro já existe. Esta senha vale só para este convite e não abre a conta de outro cliente.
-            </p>
-            <label className="block text-sm">
-              Senha
-              <input
-                type="password"
-                autoComplete="new-password"
-                value={senha}
-                onChange={(event) => setSenha(event.target.value)}
-                className="mt-1 w-full border border-ink/15 px-3 py-2"
-              />
-            </label>
-            <label className="block text-sm">
-              Repita a senha
-              <input
-                type="password"
-                autoComplete="new-password"
-                value={senha2}
-                onChange={(event) => setSenha2(event.target.value)}
-                className="mt-1 w-full border border-ink/15 px-3 py-2"
-              />
-            </label>
-            <Button type="submit" disabled={enviando}>
-              Criar senha e entrar
-            </Button>
+            <CampoSenha label="Senha" value={senha} onChange={setSenha} autoComplete="new-password" />
+            <CampoSenha label="Repita a senha" value={senha2} onChange={setSenha2} autoComplete="new-password" />
+            <Button type="submit" disabled={enviando}>Criar senha e entrar</Button>
           </form>
         ) : null}
 
-        {!carregando && !cliente && !convite && !equipe ? (
-          <form
-            className="mt-8 max-w-md space-y-4 rounded-sm border border-ink/10 bg-white p-6"
-            onSubmit={(event) => {
-              event.preventDefault();
-              void entrar();
-            }}
-          >
-            <label className="block text-sm">
-              {modoEquipe ? "E-mail" : "CNPJ"}
-              <input
-                type={modoEquipe ? "email" : "text"}
-                inputMode={modoEquipe ? "email" : "numeric"}
-                autoComplete="username"
-                placeholder={modoEquipe ? "" : "00.000.000/0000-00"}
-                value={modoEquipe ? email : cnpj}
-                onChange={(event) => (modoEquipe ? setEmail(event.target.value) : setCnpj(event.target.value))}
-                className="mt-1 w-full border border-ink/15 bg-white px-3 py-3"
-              />
-            </label>
-            <label className="block text-sm">
-              Senha
-              <input
-                type="password"
-                autoComplete="current-password"
-                value={senha}
-                onChange={(event) => setSenha(event.target.value)}
-                className="mt-1 w-full border border-ink/15 bg-white px-3 py-3"
-              />
-            </label>
-            <Button type="submit" disabled={enviando}>
-              Entrar
-            </Button>
-            {modoEquipe ? (
-              <button
-                type="button"
-                className="block text-sm text-ink/55 underline"
-                onClick={() => {
-                  setModoEquipe(false);
-                  window.history.replaceState({}, "", "/pedidos");
-                }}
-              >
-                Voltar
-              </button>
-            ) : null}
-          </form>
-        ) : null}
-
-        {cliente ? (
-          <>
-            <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm text-ink/70">{cliente.cnpj ? formatCnpj(cliente.cnpj) : "Conta da empresa"}</p>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  void portalApi.sair().finally(() => {
-                    setCliente(null);
-                    setCarrinho({});
-                    setCatalogo([]);
-                    setPedidos([]);
-                    setTitulos([]);
-                  });
-                }}
-              >
-                Sair
-              </Button>
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {abas.map(([id, label]) => (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => setAba(id)}
-                  className={`rounded-full px-4 py-2 text-sm ${aba === id ? "bg-forest text-paper" : "bg-ink/5 text-ink"}`}
-                >
-                  {label}
-                </button>
-              ))}
-              {equipe ? (
-                <button
-                  type="button"
-                  onClick={() => void abrirEquipe()}
-                  className={`rounded-full px-4 py-2 text-sm ${aba === "equipe" ? "bg-forest text-paper" : "bg-ink/5 text-ink"}`}
-                >
-                  Loja da equipe
-                </button>
-              ) : null}
-            </div>
-          </>
-        ) : null}
-
-        {cliente && aba === "produtos" ? (
-          <section className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
-            <div className="grid gap-6 sm:grid-cols-2">
-            {catalogo.length === 0 ? (
-              <p className="text-ink/60 sm:col-span-2">Nenhum produto disponível para esta conta.</p>
-            ) : null}
-            {catalogo.map((produto) => {
-              const qtd = carrinho[produto.id] ?? 0;
-              return (
-                <article key={produto.id} className="overflow-hidden rounded-sm border border-ink/10 bg-white">
-                  {produto.imagemUrl ? (
-                    <img src={produto.imagemUrl} alt="" className="h-52 w-full object-cover" />
-                  ) : (
-                    <div className="flex h-52 items-center justify-center bg-ink/5 text-sm text-ink/40">Sem foto</div>
-                  )}
-                  <div className="space-y-3 p-5">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-xs uppercase tracking-wide text-ink/45">{produto.categoria || "Cultivo"}</p>
-                        <h2 className="text-lg font-medium">{produto.nome}</h2>
-                      </div>
-                      <p className="text-sm font-medium">
-                        {reais(produto.preco)}
-                        <span className="block text-xs font-normal text-ink/50">/{produto.unidade}</span>
-                      </p>
-                    </div>
-                    {produto.precoEspecial ? <p className="text-sm text-forest">Preço da sua conta</p> : null}
-                    <div className="flex items-center gap-3">
-                      <Button type="button" variant="outline" size="sm" onClick={() => definirQtd(produto.id, qtd - 1)}>
-                        −
-                      </Button>
-                      <span className="w-8 text-center tabular-nums">{qtd}</span>
-                      <Button type="button" size="sm" onClick={() => definirQtd(produto.id, qtd + 1)}>
-                        +
-                      </Button>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
-            </div>
-            <aside className="space-y-4 rounded-sm border border-ink/10 bg-white p-5 lg:sticky lg:top-28">
-            <h2 className="text-lg">Seu pedido</h2>
-            <p className="text-2xl font-medium tabular-nums">{reais(total)}</p>
-            {total > 0 && total < minimo ? <p className="text-sm text-ink/65">Faltam {reais(minimo - total)} para a entrega.</p> : null}
-            {total === 0 ? <p className="text-sm text-ink/55">Escolha a quantidade ao lado.</p> : null}
-            {emAtraso ? (
-              <p className="text-sm text-red-800">Há um pagamento em atraso nesta conta. O pedido fica bloqueado até a regularização.</p>
-            ) : null}
-            <ul className="space-y-1 text-sm">
-              {catalogo
-                .filter((produto) => (carrinho[produto.id] ?? 0) > 0)
-                .map((produto) => (
-                  <li key={produto.id}>
-                    {carrinho[produto.id]} {produto.unidade} · {produto.nome}
-                  </li>
-                ))}
-            </ul>
-            <label className="block text-sm">
-              Data de entrega
-              <select
-                value={dataEntrega}
-                onChange={(event) => setDataEntrega(event.target.value)}
-                className="mt-1 w-full border border-ink/15 bg-white px-3 py-2"
-              >
-                {datas.map((data) => (
-                  <option key={data} value={data}>
-                    {formatLongDate(data)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block text-sm">
-              Observação
-              <textarea
-                value={observacoes}
-                onChange={(event) => setObservacoes(event.target.value)}
-                className="mt-1 w-full border border-ink/15 px-3 py-2"
-                rows={3}
-              />
-            </label>
-            <Button type="button" disabled={enviando || emAtraso || total < minimo} onClick={() => void lancar()}>
-              Enviar pedido
-            </Button>
-            </aside>
-          </section>
-        ) : null}
-
-        {cliente && aba === "pedidos" ? (
+        {vista === "pedidos" && cliente ? (
           <section className="mt-8 space-y-4">
             {pedidos.length === 0 ? <p className="text-ink/60">Nenhum pedido desta conta ainda.</p> : null}
             {pedidos.map((pedido) => (
@@ -516,170 +369,241 @@ export default function PedidosPage() {
                 <p className="text-sm text-ink/55">{statusPedido(pedido.status)}</p>
                 <ul className="mt-3 space-y-1 text-sm">
                   {pedido.itens.map((item) => (
-                    <li key={`${pedido.id}-${item.nome}`}>
-                      {item.quantidade} · {item.nome}
-                      {item.preco != null ? ` · ${reais(item.preco)}` : ""}
-                    </li>
+                    <li key={`${pedido.id}-${item.nome}`}>{item.quantidade} · {item.nome}{item.preco != null ? ` · ${reais(item.preco)}` : ""}</li>
                   ))}
                 </ul>
+              </article>
+            ))}
+            <button type="button" className="text-sm text-forest" onClick={() => setVista("loja")}>Voltar aos produtos</button>
+          </section>
+        ) : null}
+
+        {vista === "pagamentos" && cliente ? (
+          <section className="mt-8 space-y-4">
+            <p className="text-sm text-ink/70">Recebido {reais(totais.recebido)} · Em aberto {reais(totais.emAberto)} · Em atraso {reais(totais.emAtraso)}</p>
+            {titulos.length === 0 ? <p className="text-ink/60">Nenhum pagamento neste período.</p> : null}
+            {titulos.map((titulo) => (
+              <article key={titulo.id} className="rounded-sm border border-ink/10 bg-white p-5 text-sm">
+                <h2 className="text-base">{titulo.descricao || "Pagamento"}</h2>
+                <p className="text-ink/60">
+                  {titulo.vencimento ? `Vence ${formatLongDate(titulo.vencimento.slice(0, 10))}` : ""}
+                  {titulo.pagamento ? ` · pago ${formatLongDate(titulo.pagamento.slice(0, 10))}` : ""}
+                </p>
+                <p>{reais(titulo.valor)}{titulo.emAberto > 0 ? ` · aberto ${reais(titulo.emAberto)}` : ""}</p>
               </article>
             ))}
           </section>
         ) : null}
 
-        {cliente && aba === "financeiro" ? (
-          <section className="mt-8 space-y-4">
-            <p className="text-sm text-ink/70">
-              Recebido {reais(totais.recebido)} · Em aberto {reais(totais.emAberto)} · Em atraso {reais(totais.emAtraso)}
-            </p>
-            {avisoFinanceiro ? <p className="text-sm text-ink/60">{textoCliente(avisoFinanceiro)}</p> : null}
-            {titulos.length === 0 ? <p className="text-ink/60">Nenhum pagamento neste período.</p> : null}
-            {titulos.map((titulo) => {
-              const situacao = statusPagamento(titulo.status);
-              return (
-              <article key={titulo.id} className="rounded-sm border border-ink/10 bg-white p-5 text-sm">
-                <h2 className="text-base">{titulo.descricao || titulo.referencia || "Pagamento"}</h2>
-                <p className="text-ink/60">
-                  {situacao}
-                  {titulo.vencimento ? `${situacao ? " · " : ""}vence ${formatLongDate(titulo.vencimento.slice(0, 10))}` : ""}
-                  {titulo.pagamento ? ` · pago ${formatLongDate(titulo.pagamento.slice(0, 10))}` : ""}
-                </p>
-                <p>
-                  {reais(titulo.valor)}
-                  {titulo.emAberto > 0 ? ` · aberto ${reais(titulo.emAberto)}` : ""}
-                </p>
-              </article>
-              );
-            })}
-          </section>
-        ) : null}
-
-        {cliente && aba === "conta" ? (
+        {vista === "conta" && cliente ? (
           <form
             className="mt-8 max-w-md space-y-3 rounded-sm border border-ink/10 bg-white p-5"
             onSubmit={(event) => {
               event.preventDefault();
-              if (senhaNova.length < 6) {
-                toast.error("A nova senha precisa ter pelo menos 6 caracteres.");
-                return;
-              }
-              if (senhaNova !== senha2) {
-                toast.error("As duas senhas novas precisam ser iguais.");
+              if (senhaNova.length < 6 || senhaNova !== senha2) {
+                toast.error("A nova senha precisa ter pelo menos 6 caracteres e as duas precisam ser iguais.");
                 return;
               }
               setEnviando(true);
-              void portalApi
-                .alterarSenha(senhaAtual, senhaNova)
+              void portalApi.alterarSenha(senhaAtual, senhaNova)
                 .then(() => {
                   setSenhaAtual("");
                   setSenhaNova("");
                   setSenha2("");
-                  toast.success("Senha alterada. No próximo acesso use a senha nova.");
+                  toast.success("Senha alterada.");
                 })
                 .catch((error) => toast.error(mensagem(error)))
                 .finally(() => setEnviando(false));
             }}
           >
             <h2 className="text-lg">Senha desta conta</h2>
-            <p className="text-sm text-ink/60">
-              Se ainda não trocou, a senha atual são os 5 primeiros dígitos do CNPJ.
-            </p>
-            <label className="block text-sm">
-              Senha atual
-              <input
-                type="password"
-                autoComplete="current-password"
-                value={senhaAtual}
-                onChange={(event) => setSenhaAtual(event.target.value)}
-                className="mt-1 w-full border border-ink/15 px-3 py-3"
-              />
-            </label>
-            <label className="block text-sm">
-              Nova senha
-              <input
-                type="password"
-                autoComplete="new-password"
-                value={senhaNova}
-                onChange={(event) => setSenhaNova(event.target.value)}
-                className="mt-1 w-full border border-ink/15 px-3 py-3"
-              />
-            </label>
-            <label className="block text-sm">
-              Repita a nova senha
-              <input
-                type="password"
-                autoComplete="new-password"
-                value={senha2}
-                onChange={(event) => setSenha2(event.target.value)}
-                className="mt-1 w-full border border-ink/15 px-3 py-3"
-              />
-            </label>
-            <Button type="submit" disabled={enviando}>
-              Alterar senha
-            </Button>
+            <p className="text-sm text-ink/60">Se ainda não trocou, a senha atual são os 5 primeiros dígitos do CNPJ.</p>
+            <CampoSenha label="Senha atual" value={senhaAtual} onChange={setSenhaAtual} autoComplete="current-password" />
+            <CampoSenha label="Nova senha" value={senhaNova} onChange={setSenhaNova} autoComplete="new-password" />
+            <CampoSenha label="Repita a nova senha" value={senha2} onChange={setSenha2} autoComplete="new-password" />
+            <Button type="submit" disabled={enviando}>Alterar senha</Button>
           </form>
         ) : null}
 
-        {aba === "equipe" && equipe ? (
+        {vista === "equipe" && (equipe || modoEquipe) ? (
           <section className="mt-8 space-y-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm text-ink/70">Equipe: {equipe.nome}. Novos itens nascem no Conta Azul. Aqui você libera, tira da loja, ajusta preço e foto.</p>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  void portalApi.equipeSair().finally(() => {
-                    setEquipe(null);
-                    setAba("produtos");
-                  });
+            {!equipe ? (
+              <form
+                className="max-w-md space-y-4 rounded-sm border border-ink/10 bg-white p-6"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void entrar();
                 }}
               >
-                Sair da equipe
-              </Button>
+                <h2 className="text-xl">Acesso da equipe</h2>
+                <Campo label="E-mail" value={email} onChange={setEmail} type="email" />
+                <CampoSenha label="Senha" value={senha} onChange={setSenha} autoComplete="current-password" />
+                <Button type="submit" disabled={enviando}>Entrar</Button>
+              </form>
+            ) : (
+              <>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-sm text-ink/70">{equipe.nome}</p>
+                  <Button type="button" variant="outline" onClick={() => { void portalApi.equipeSair().finally(() => { setEquipe(null); setVista("loja"); }); }}>Sair da equipe</Button>
+                </div>
+                {cadastros.filter((item) => item.status !== "ENVIADO").length > 0 ? (
+                  <ul className="space-y-2 text-sm">
+                    {cadastros.filter((item) => item.status !== "ENVIADO").map((item) => (
+                      <li key={item.id} className="rounded-sm border border-ink/10 bg-white p-3">
+                        <strong>{item.nome}</strong> · {item.cnpj} · {item.cidade}/{item.estado}
+                        {item.erro ? <p className="text-ink/60">{item.erro}</p> : null}
+                        <Button type="button" size="sm" className="mt-2" onClick={() => { void portalApi.enviarCadastro(item.id).then(() => portalApi.cadastros().then((lista) => setCadastros(lista.cadastros))).catch((error) => toast.error(mensagem(error))); }}>Enviar de novo</Button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                <div className="space-y-3">
+                  {produtosEquipe.map((produto) => (
+                    <ProdutoEquipeCard key={produto.id} produto={produto} onSave={salvarProduto} />
+                  ))}
+                </div>
+              </>
+            )}
+          </section>
+        ) : null}
+
+        {vista === "loja" || vista === "cadastro" ? (
+          <section className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+            <div>
+              <div className="mb-6 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+                <button type="button" className={grupo === "Tudo" ? "text-forest" : "text-ink/55"} onClick={() => setGrupo("Tudo")}>Tudo</button>
+                {grupos.map((item) => (
+                  <button key={item} type="button" className={grupo === item ? "text-forest" : "text-ink/55"} onClick={() => setGrupo(item)}>{item}</button>
+                ))}
+              </div>
+              {visiveis.length === 0 && !carregando ? <p className="text-ink/60">Nenhum produto nesta seleção.</p> : null}
+              <div className="grid gap-6 sm:grid-cols-2">
+                {visiveis.map((produto) => {
+                  const qtd = carrinho[produto.id] ?? 0;
+                  const esgotado = produto.estoque === 0;
+                  return (
+                    <article key={produto.id} className="overflow-hidden rounded-sm border border-ink/10 bg-white">
+                      <img
+                        src={produto.imagemUrl || "/uploads/IMG_7964.jpg"}
+                        alt={produto.nome}
+                        className="h-64 w-full object-cover"
+                        onError={(event) => {
+                          event.currentTarget.src = "/uploads/IMG_7964.jpg";
+                        }}
+                      />
+                      <div className="space-y-3 p-5">
+                        <p className="text-[0.72rem] font-medium uppercase tracking-[0.16em] text-forest">{produto.grupo}</p>
+                        <h2 className="text-xl leading-tight">{produto.nome}</h2>
+                        <p className="text-sm leading-relaxed text-ink/75">{produto.descricao}</p>
+                        <p className="text-sm text-ink/55">{produto.aplicacao}</p>
+                        <div className="flex items-end justify-between gap-3">
+                          <p className="text-lg font-medium">
+                            {reais(produto.preco)}
+                            <span className="ml-1 text-xs font-normal text-ink/50">/{produto.unidade}</span>
+                          </p>
+                          {produto.precoEspecial ? <p className="text-xs text-forest">Preço da sua conta</p> : null}
+                        </div>
+                        {produto.estoque != null ? <p className="text-xs text-ink/50">{esgotado ? "Esgotado" : `Disponível: ${produto.estoque} ${produto.unidade}`}</p> : null}
+                        <div className="flex items-center gap-3">
+                          <Button type="button" variant="outline" size="sm" onClick={() => definirQtd(produto, qtd - 1)} disabled={qtd <= 0}>−</Button>
+                          <span className="w-8 text-center tabular-nums">{qtd}</span>
+                          <Button type="button" size="sm" onClick={() => definirQtd(produto, qtd + 1)} disabled={esgotado || (produto.estoque != null && qtd >= produto.estoque)}>+</Button>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                disabled={enviando}
-                onClick={() => {
-                  setEnviando(true);
-                  void portalApi
-                    .liberarProdutos()
-                    .then(async (resposta) => {
-                      const lista = await portalApi.equipeProdutos();
-                      setProdutosEquipe(lista.produtos);
-                      toast.success(`${resposta.atualizados} produtos com preço ficaram disponíveis na loja.`);
-                    })
-                    .catch((error) => toast.error(mensagem(error)))
-                    .finally(() => setEnviando(false));
-                }}
-              >
-                Colocar na loja os produtos que já têm preço
-              </Button>
-              <Button type="button" disabled={enviando} onClick={() => void gerarConvites()}>
-                Gerar convites de quem ainda não tem senha
-              </Button>
-            </div>
-            {convites.length > 0 ? (
-              <ul className="space-y-2 text-sm">
-                {convites.map((item) => (
-                  <li key={item.email} className="break-all rounded-sm border border-ink/10 bg-white p-3">
-                    <strong>{item.nome}</strong> · {item.email}
-                    <div>{item.link}</div>
-                  </li>
+            <aside id="enviar-pedido" className="space-y-4 rounded-sm border border-ink/10 bg-white p-5 lg:sticky lg:top-28">
+              <h2 className="text-lg">Seu pedido</h2>
+              <p className="text-2xl font-medium tabular-nums">{reais(total)}</p>
+              {total === 0 ? <p className="text-sm text-ink/55">Escolha a quantidade nos produtos.</p> : null}
+              {total > 0 && total < minimo ? <p className="text-sm text-ink/65">Faltam {reais(minimo - total)} para a entrega.</p> : null}
+              {emAtraso && cliente ? <p className="text-sm text-red-800">Há um pagamento em atraso nesta conta. O pedido fica bloqueado até a regularização.</p> : null}
+              <ul className="space-y-1 text-sm">
+                {catalogo.filter((produto) => (carrinho[produto.id] ?? 0) > 0).map((produto) => (
+                  <li key={produto.id}>{carrinho[produto.id]} {produto.unidade} · {produto.nome}</li>
                 ))}
               </ul>
-            ) : null}
-            <div className="space-y-3">
-              {produtosEquipe.map((produto) => (
-                <ProdutoEquipeCard key={produto.id} produto={produto} onSave={salvarProduto} />
-              ))}
-            </div>
+              <label className="block text-sm">
+                Entrega
+                <select value={dataEntrega} onChange={(event) => setDataEntrega(event.target.value)} className="mt-1 w-full border border-ink/15 bg-white px-3 py-3">
+                  {datas.map((data) => <option key={data} value={data}>{formatLongDate(data)}</option>)}
+                </select>
+              </label>
+              <label className="block text-sm">
+                Observação
+                <textarea value={observacoes} onChange={(event) => setObservacoes(event.target.value)} rows={3} className="mt-1 w-full border border-ink/15 px-3 py-3" />
+              </label>
+              {cliente ? (
+                <Button type="button" disabled={enviando || emAtraso || total < minimo} onClick={() => void lancar()}>Enviar para aprovação</Button>
+              ) : (
+                <form
+                  className="space-y-3 border-t border-ink/10 pt-4"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void entrar();
+                  }}
+                >
+                  <p className="text-sm text-ink/70">Para enviar, entre com o CNPJ da empresa.</p>
+                  {modoEquipe ? <Campo label="E-mail" value={email} onChange={setEmail} type="email" /> : <Campo label="CNPJ" value={formatCnpj(cnpj)} onChange={setCnpj} inputMode="numeric" />}
+                  <CampoSenha label="Senha" value={senha} onChange={setSenha} autoComplete="current-password" />
+                  <Button type="submit" disabled={enviando}>Entrar</Button>
+                  <button type="button" className="block text-sm text-forest" onClick={() => setVista("cadastro")}>Cadastrar empresa</button>
+                </form>
+              )}
+            </aside>
           </section>
         ) : null}
       </main>
     </div>
+  );
+}
+
+function Campo({
+  label,
+  value,
+  onChange,
+  type = "text",
+  inputMode,
+}: {
+  label: string;
+  value: string;
+  onChange: (valor: string) => void;
+  type?: string;
+  inputMode?: "numeric" | "tel" | "email";
+}) {
+  return (
+    <label className="block text-sm">
+      {label}
+      <input
+        type={type}
+        inputMode={inputMode}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="mt-1 w-full border border-ink/15 bg-white px-3 py-3"
+      />
+    </label>
+  );
+}
+
+function CampoSenha({
+  label,
+  value,
+  onChange,
+  autoComplete,
+}: {
+  label: string;
+  value: string;
+  onChange: (valor: string) => void;
+  autoComplete: string;
+}) {
+  return (
+    <label className="block text-sm">
+      {label}
+      <input type="password" autoComplete={autoComplete} value={value} onChange={(event) => onChange(event.target.value)} className="mt-1 w-full border border-ink/15 bg-white px-3 py-3" />
+    </label>
   );
 }
 
@@ -688,57 +612,51 @@ function ProdutoEquipeCard({
   onSave,
 }: {
   produto: ProdutoEquipe;
-  onSave: (produto: ProdutoEquipe, patch: { naLoja?: boolean; preco?: number; imagemUrl?: string | null }) => Promise<void>;
+  onSave: (produto: ProdutoEquipe, patch: { naLoja?: boolean; preco?: number; imagemUrl?: string | null; descricao?: string; aplicacao?: string; estoque?: number | null }) => Promise<void>;
 }) {
   const [preco, setPreco] = useState(produto.preco?.toString() ?? "");
   const [foto, setFoto] = useState(produto.imagemUrl ?? "");
+  const [descricao, setDescricao] = useState(produto.descricao);
+  const [aplicacao, setAplicacao] = useState(produto.aplicacao);
+  const [estoque, setEstoque] = useState(produto.estoque == null ? "" : String(produto.estoque));
 
   return (
-    <article className="grid gap-3 rounded-sm border border-ink/10 bg-white p-4 md:grid-cols-[1fr_8rem_1fr_auto]">
-      <div>
-        <h3 className="font-medium">{produto.nome}</h3>
-        <p className="text-xs text-ink/50">{produto.categoria || "Sem categoria"} · {produto.unidade}</p>
-      </div>
-      <label className="text-sm">
-        Preço
-        <input
-          value={preco}
-          onChange={(event) => setPreco(event.target.value)}
-          className="mt-1 w-full border border-ink/15 px-2 py-1"
-        />
-      </label>
-      <label className="text-sm">
-        Foto (https)
-        <input
-          value={foto}
-          onChange={(event) => setFoto(event.target.value)}
-          className="mt-1 w-full border border-ink/15 px-2 py-1"
-        />
-      </label>
-      <div className="flex flex-wrap items-end gap-2">
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={() => onSave(produto, { naLoja: !produto.naLoja })}
-        >
+    <article className="space-y-3 rounded-sm border border-ink/10 bg-white p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs uppercase tracking-wide text-ink/45">{produto.grupo}</p>
+          <h3 className="font-medium">{produto.nome}</h3>
+        </div>
+        <Button type="button" size="sm" variant="outline" onClick={() => onSave(produto, { naLoja: !produto.naLoja })}>
           {produto.naLoja ? "Tirar da loja" : "Colocar na loja"}
         </Button>
-        <Button
-          type="button"
-          size="sm"
-          onClick={() => {
-            const valor = Number(preco.replace(",", "."));
-            if (!Number.isFinite(valor) || valor <= 0) {
-              toast.error("Informe um preço maior que zero.");
-              return;
-            }
-            void onSave(produto, { preco: valor, imagemUrl: foto.trim() || null });
-          }}
-        >
-          Salvar
-        </Button>
       </div>
+      <div className="grid gap-3 md:grid-cols-4">
+        <label className="text-sm">Preço<input value={preco} onChange={(event) => setPreco(event.target.value)} className="mt-1 w-full border border-ink/15 px-2 py-2" /></label>
+        <label className="text-sm">Estoque<input value={estoque} onChange={(event) => setEstoque(event.target.value)} placeholder="vazio = sem limite" className="mt-1 w-full border border-ink/15 px-2 py-2" /></label>
+        <label className="text-sm md:col-span-2">Foto<input value={foto} onChange={(event) => setFoto(event.target.value)} className="mt-1 w-full border border-ink/15 px-2 py-2" /></label>
+        <label className="text-sm md:col-span-2">Característica<textarea value={descricao} onChange={(event) => setDescricao(event.target.value)} rows={2} className="mt-1 w-full border border-ink/15 px-2 py-2" /></label>
+        <label className="text-sm md:col-span-2">Aplicação<textarea value={aplicacao} onChange={(event) => setAplicacao(event.target.value)} rows={2} className="mt-1 w-full border border-ink/15 px-2 py-2" /></label>
+      </div>
+      <Button
+        type="button"
+        size="sm"
+        onClick={() => {
+          const valor = Number(preco.replace(",", "."));
+          if (!Number.isFinite(valor) || valor <= 0) {
+            toast.error("Informe um preço maior que zero.");
+            return;
+          }
+          const quantidade = estoque.trim() === "" ? null : Number(estoque.replace(",", "."));
+          if (quantidade != null && (!Number.isFinite(quantidade) || quantidade < 0)) {
+            toast.error("O estoque precisa ser um número, ou ficar vazio.");
+            return;
+          }
+          void onSave(produto, { preco: valor, imagemUrl: foto.trim() || null, descricao, aplicacao, estoque: quantidade });
+        }}
+      >
+        Salvar
+      </Button>
     </article>
   );
 }

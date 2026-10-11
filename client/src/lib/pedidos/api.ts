@@ -22,21 +22,45 @@ export type EquipeSessao = {
 export type ProdutoLoja = {
   id: string;
   nome: string;
-  categoria: string | null;
+  grupo: string;
+  descricao: string;
+  aplicacao: string;
   preco: number;
   precoEspecial: boolean;
   imagemUrl: string | null;
   unidade: string;
+  estoque: number | null;
 };
 
 export type ProdutoEquipe = {
   id: string;
   nome: string;
   categoria: string | null;
+  grupo: string;
+  descricao: string;
+  aplicacao: string;
   naLoja: boolean;
   preco: number | null;
   imagemUrl: string | null;
   unidade: string;
+  estoque: number | null;
+};
+
+export type CadastroEmpresa = {
+  nome: string;
+  nomeFantasia?: string;
+  cnpj: string;
+  email: string;
+  telefone: string;
+  contato: string;
+  cep: string;
+  logradouro: string;
+  numero: string;
+  complemento?: string;
+  bairro: string;
+  cidade: string;
+  estado: string;
+  inscricaoEstadual?: string;
 };
 
 export type PedidoCliente = {
@@ -100,6 +124,13 @@ export const portalApi = {
       method: "POST",
       body: JSON.stringify({ token, senha }),
     }),
+  vitrine: () =>
+    request<{ minimoReais: number; datas: string[]; itens: ProdutoLoja[] }>("/vitrine"),
+  cadastrar: (body: CadastroEmpresa) =>
+    request<{ pendente: boolean; mensagem: string }>("/cadastro", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   catalogo: () => request<{ itens: ProdutoLoja[] }>("/catalogo"),
   pedidos: () => request<{ pedidos: PedidoCliente[] }>("/pedidos"),
   criarPedido: (body: {
@@ -121,11 +152,40 @@ export const portalApi = {
   equipeSair: () => request<{ ok: boolean }>("/equipe/sair", { method: "POST" }),
   equipeProdutos: () => request<{ produtos: ProdutoEquipe[] }>("/equipe/produtos"),
   liberarProdutos: () => request<{ atualizados: number }>("/equipe/produtos/liberar", { method: "POST" }),
-  salvarProduto: (id: string, body: { naLoja?: boolean; preco?: number; imagemUrl?: string | null }) =>
-    request<{ id: string; naLoja: boolean; preco: number | null; imagemUrl: string | null }>(
-      `/equipe/produtos/${id}`,
-      { method: "PATCH", body: JSON.stringify(body) },
-    ),
+  salvarProduto: (
+    id: string,
+    body: {
+      naLoja?: boolean;
+      preco?: number;
+      imagemUrl?: string | null;
+      descricao?: string;
+      aplicacao?: string;
+      estoque?: number | null;
+    },
+  ) =>
+    request<{
+      id: string;
+      naLoja: boolean;
+      preco: number | null;
+      imagemUrl: string | null;
+      descricao: string | null;
+      aplicacao: string | null;
+      estoque: number | null;
+    }>(`/equipe/produtos/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+  cadastros: () =>
+    request<{
+      cadastros: Array<{
+        id: string;
+        nome: string;
+        cnpj: string;
+        email: string;
+        cidade: string;
+        estado: string;
+        status: string;
+        erro: string | null;
+      }>;
+    }>("/equipe/cadastros"),
+  enviarCadastro: (id: string) => request<{ ok: boolean }>(`/equipe/cadastros/${id}/enviar`, { method: "POST" }),
   convites: (body?: { email?: string; redefinir?: boolean }) =>
     request<{
       criados: Array<{ nome: string; email: string; link: string }>;
