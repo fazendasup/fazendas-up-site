@@ -112,13 +112,23 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
   const [verHistorico, setVerHistorico] = useState(false);
   const [baixandoDoc, setBaixandoDoc] = useState("");
 
-  const total = catalogo.reduce((soma, produto) => soma + produto.preco * (carrinho[produto.id] ?? 0), 0);
+  const total = catalogo.reduce((soma, produto) => soma + (produto.preco ?? 0) * (carrinho[produto.id] ?? 0), 0);
+  const precoDaConta = Boolean(cliente);
   const grupos = ORDEM_GRUPOS.filter((item) => catalogo.some((produto) => produto.grupo === item));
   const visiveis = catalogo.filter((produto) => grupo === "Tudo" || produto.grupo === grupo);
 
   useEffect(() => {
     localStorage.setItem("fazendas.pedido", JSON.stringify(carrinho));
   }, [carrinho]);
+
+  useEffect(() => {
+    if (carregando) return;
+    const ids = new Set(catalogo.map((produto) => produto.id));
+    setCarrinho((atual) => {
+      const proximo = Object.fromEntries(Object.entries(atual).filter(([id, quantidade]) => quantidade > 0 && ids.has(id)));
+      return Object.keys(proximo).length === Object.keys(atual).length ? atual : proximo;
+    });
+  }, [carregando, catalogo]);
 
   const carregarVitrine = async () => {
     const loja = await portalApi.vitrine();
@@ -282,7 +292,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
 
   const salvarProduto = async (
     produto: ProdutoEquipe,
-    patch: { naLoja?: boolean; preco?: number; imagemUrl?: string | null; descricao?: string; aplicacao?: string; estoque?: number | null },
+    patch: { naLoja?: boolean; exclusivo?: boolean; preco?: number; imagemUrl?: string | null; descricao?: string; aplicacao?: string; estoque?: number | null },
   ) => {
     try {
       const salvo = await portalApi.salvarProduto(produto.id, patch);
@@ -562,9 +572,9 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
             </div>
             <aside id="enviar-pedido" className="space-y-4 rounded-sm border border-ink/10 bg-white p-5 lg:sticky lg:top-28">
               <h2 className="text-lg">Seu pedido</h2>
-              <p className="text-2xl font-medium tabular-nums">{reais(total)}</p>
-              {total === 0 ? <p className="text-sm text-ink/55">Escolha a quantidade nos produtos.</p> : null}
-              {total > 0 && total < minimo ? <p className="text-sm text-ink/65">Faltam {reais(minimo - total)} para a entrega.</p> : null}
+              {precoDaConta ? <p className="text-2xl font-medium tabular-nums">{reais(total)}</p> : <p className="text-sm text-ink/70">O preço é o da sua conta. Entre para ver o total.</p>}
+              {total === 0 && Object.values(carrinho).every((quantidade) => quantidade <= 0) ? <p className="text-sm text-ink/55">Escolha a quantidade nos produtos.</p> : null}
+              {precoDaConta && total > 0 && total < minimo ? <p className="text-sm text-ink/65">Faltam {reais(minimo - total)} para a entrega.</p> : null}
               {emAtraso && cliente ? <p className="text-sm text-red-800">Há um pagamento em atraso nesta conta. O pedido fica bloqueado até a regularização.</p> : null}
               <ul className="space-y-3 text-sm">
                 {catalogo.filter((produto) => (carrinho[produto.id] ?? 0) > 0).map((produto) => {
@@ -574,7 +584,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                     <li key={produto.id} className="flex items-center gap-2">
                       <div className="min-w-0 flex-1">
                         <p className="truncate">{produto.nome}</p>
-                        <p className="text-xs text-ink/50">{reais(produto.preco * qtd)}</p>
+                        <p className="text-xs text-ink/50">{produto.preco != null ? reais(produto.preco * qtd) : `${qtd} ${produto.unidade}`}</p>
                       </div>
                       <button type="button" className="h-8 w-8 border border-ink/15" onClick={() => definirQtd(produto, qtd - 1)} aria-label={`Diminuir ${produto.nome}`}>−</button>
                       <span className="w-6 text-center tabular-nums">{qtd}</span>
@@ -650,8 +660,14 @@ function CartaoProduto({
         <p className="line-clamp-2 text-xs text-ink/50">{produto.aplicacao}</p>
         <div className="flex items-end justify-between gap-2">
           <p className="text-sm font-medium">
-            {reais(produto.preco)}
-            <span className="ml-1 text-xs font-normal text-ink/50">/{produto.unidade}</span>
+            {produto.preco != null ? (
+              <>
+                {reais(produto.preco)}
+                <span className="ml-1 text-xs font-normal text-ink/50">/{produto.unidade}</span>
+              </>
+            ) : (
+              "Preço na sua conta"
+            )}
           </p>
           {produto.precoEspecial ? <p className="text-[0.65rem] text-forest">Sua conta</p> : null}
         </div>
@@ -841,7 +857,7 @@ function ProdutoEquipeCard({
   onFoto,
 }: {
   produto: ProdutoEquipe;
-  onSave: (produto: ProdutoEquipe, patch: { naLoja?: boolean; preco?: number; imagemUrl?: string | null; descricao?: string; aplicacao?: string; estoque?: number | null }) => Promise<void>;
+  onSave: (produto: ProdutoEquipe, patch: { naLoja?: boolean; exclusivo?: boolean; preco?: number; imagemUrl?: string | null; descricao?: string; aplicacao?: string; estoque?: number | null }) => Promise<void>;
   onFoto: (produto: ProdutoEquipe, imagem: string) => Promise<string>;
 }) {
   const arquivoRef = useRef<HTMLInputElement>(null);
@@ -857,13 +873,19 @@ function ProdutoEquipeCard({
         <div>
           <p className="text-xs uppercase tracking-wide text-ink/45">{produto.grupo}</p>
           <h3 className="font-medium">{produto.nome}</h3>
+          {produto.exclusivo ? <p className="mt-1 text-xs text-ink/55">Só aparece para quem tem este produto na regra comercial.</p> : null}
         </div>
-        <Button type="button" size="sm" variant="outline" onClick={() => onSave(produto, { naLoja: !produto.naLoja })}>
-          {produto.naLoja ? "Tirar da loja" : "Colocar na loja"}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" size="sm" variant="outline" onClick={() => onSave(produto, { naLoja: !produto.naLoja })}>
+            {produto.naLoja ? "Tirar da loja" : "Colocar na loja"}
+          </Button>
+          <Button type="button" size="sm" variant="outline" onClick={() => onSave(produto, { exclusivo: !produto.exclusivo })}>
+            {produto.exclusivo ? "Visível para todos" : "Exclusivo"}
+          </Button>
+        </div>
       </div>
       <div className="grid gap-3 md:grid-cols-4">
-        <label className="text-sm">Preço<input value={preco} onChange={(event) => setPreco(event.target.value)} className="mt-1 w-full border border-ink/15 px-2 py-2" /></label>
+        <label className="text-sm">Preço de tabela<input value={preco} onChange={(event) => setPreco(event.target.value)} className="mt-1 w-full border border-ink/15 px-2 py-2" /></label>
         <label className="text-sm">Estoque<input value={estoque} onChange={(event) => setEstoque(event.target.value)} placeholder="vazio = sem limite" className="mt-1 w-full border border-ink/15 px-2 py-2" /></label>
         <div className="text-sm md:col-span-2">
           <span>Foto</span>

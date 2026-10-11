@@ -25,7 +25,7 @@ export type ProdutoLoja = {
   grupo: string;
   descricao: string;
   aplicacao: string;
-  preco: number;
+  preco: number | null;
   precoEspecial: boolean;
   imagemUrl: string | null;
   unidade: string;
@@ -40,6 +40,7 @@ export type ProdutoEquipe = {
   descricao: string;
   aplicacao: string;
   naLoja: boolean;
+  exclusivo: boolean;
   preco: number | null;
   imagemUrl: string | null;
   unidade: string;
@@ -177,6 +178,7 @@ export const portalApi = {
     id: string,
     body: {
       naLoja?: boolean;
+      exclusivo?: boolean;
       preco?: number;
       imagemUrl?: string | null;
       descricao?: string;
@@ -187,6 +189,7 @@ export const portalApi = {
     request<{
       id: string;
       naLoja: boolean;
+      exclusivo: boolean;
       preco: number | null;
       imagemUrl: string | null;
       descricao: string | null;
