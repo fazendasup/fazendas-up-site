@@ -46,8 +46,8 @@ function mensagem(error: unknown) {
   return texto;
 }
 
-function statusPedido(status: string) {
-  if (status === "PENDENTE") return "Aguardando aprovação";
+function statusPedido(status: string, doSite = false) {
+  if (status === "PENDENTE") return doSite ? "Aguardando aprovação" : "Programado";
   if (status === "PRONTO") return "Separado";
   if (status === "ENTREGUE") return "Entregue";
   if (status === "CANCELADO") return "Cancelado";
@@ -110,6 +110,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
   const [emAtraso, setEmAtraso] = useState(false);
   const [avisoPagamento, setAvisoPagamento] = useState("");
   const [verHistorico, setVerHistorico] = useState(false);
+  const [verHistoricoPedidos, setVerHistoricoPedidos] = useState(false);
   const [baixandoDoc, setBaixandoDoc] = useState("");
 
   const total = catalogo.reduce((soma, produto) => soma + (produto.preco ?? 0) * (carrinho[produto.id] ?? 0), 0);
@@ -346,6 +347,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                   }
                   onClick={() => {
                     if (id === "pagamentos") setVerHistorico(false);
+                    if (id === "pedidos") setVerHistoricoPedidos(false);
                     setVista(id);
                   }}
                 >
@@ -367,6 +369,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                     setTitulos([]);
                     setAvisoPagamento("");
                     setVerHistorico(false);
+                    setVerHistoricoPedidos(false);
                     setVista("loja");
                     void carregarVitrine();
                   });
@@ -425,21 +428,12 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
         ) : null}
 
         {vista === "pedidos" && cliente ? (
-          <section className="mt-8 space-y-4">
-            {pedidos.length === 0 ? <p className="text-ink/60">Nenhum pedido desta conta ainda.</p> : null}
-            {pedidos.map((pedido) => (
-              <article key={pedido.id} className="rounded-sm border border-ink/10 bg-white p-5">
-                <h2 className="text-lg">{formatLongDate(pedido.dataEntrega.slice(0, 10))}</h2>
-                <p className="text-sm text-ink/55">{statusPedido(pedido.status)}</p>
-                <ul className="mt-3 space-y-1 text-sm">
-                  {pedido.itens.map((item) => (
-                    <li key={`${pedido.id}-${item.nome}`}>{item.quantidade} · {item.nome}{item.preco != null ? ` · ${reais(item.preco)}` : ""}</li>
-                  ))}
-                </ul>
-              </article>
-            ))}
-            <button type="button" className="text-sm text-forest" onClick={() => setVista("loja")}>Voltar aos produtos</button>
-          </section>
+          <PedidosCliente
+            pedidos={pedidos}
+            verHistorico={verHistoricoPedidos}
+            onHistorico={() => setVerHistoricoPedidos((atual) => !atual)}
+            onLoja={() => setVista("loja")}
+          />
         ) : null}
 
         {vista === "pagamentos" && cliente ? (
@@ -572,7 +566,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
             </div>
             <aside id="enviar-pedido" className="space-y-4 rounded-sm border border-ink/10 bg-white p-5 lg:sticky lg:top-28">
               <h2 className="text-lg">Seu pedido</h2>
-              {precoDaConta ? <p className="text-2xl font-medium tabular-nums">{reais(total)}</p> : <p className="text-sm text-ink/70">O preço é o da sua conta. Entre para ver o total.</p>}
+              {precoDaConta ? <p className="text-2xl font-medium tabular-nums">{reais(total)}</p> : <p className="text-sm text-ink/70">Entre com o CNPJ da empresa para ver os preços.</p>}
               {total === 0 && Object.values(carrinho).every((quantidade) => quantidade <= 0) ? <p className="text-sm text-ink/55">Escolha a quantidade nos produtos.</p> : null}
               {precoDaConta && total > 0 && total < minimo ? <p className="text-sm text-ink/65">Faltam {reais(minimo - total)} para a entrega.</p> : null}
               {emAtraso && cliente ? <p className="text-sm text-red-800">Há um pagamento em atraso nesta conta. O pedido fica bloqueado até a regularização.</p> : null}
@@ -666,10 +660,10 @@ function CartaoProduto({
                 <span className="ml-1 text-xs font-normal text-ink/50">/{produto.unidade}</span>
               </>
             ) : (
-              "Preço na sua conta"
+              "Entre para ver o preço"
             )}
           </p>
-          {produto.precoEspecial ? <p className="text-[0.65rem] text-forest">Sua conta</p> : null}
+          {produto.precoEspecial ? <p className="text-[0.65rem] text-forest">Preço combinado</p> : null}
         </div>
         {produto.estoque != null ? <p className="text-[0.65rem] text-ink/50">{esgotado ? "Esgotado" : `Disponível: ${produto.estoque} ${produto.unidade}`}</p> : null}
         <div className="flex items-center gap-2">
@@ -749,6 +743,66 @@ async function arquivoParaJpeg(arquivo: File): Promise<string> {
     binario += String.fromCharCode(bytes[i]);
   }
   return btoa(binario);
+}
+
+function CartaoPedido({ pedido }: { pedido: PedidoCliente }) {
+  return (
+    <article className="rounded-sm border border-ink/10 bg-white p-5">
+      <h3 className="text-lg">{formatLongDate(pedido.dataEntrega.slice(0, 10))}</h3>
+      <p className="text-sm text-ink/55">{statusPedido(pedido.status, pedido.doSite)}</p>
+      <ul className="mt-3 space-y-1 text-sm">
+        {pedido.itens.map((item) => (
+          <li key={`${pedido.id}-${item.nome}`}>
+            {item.quantidade} · {item.nome}
+            {item.preco != null ? ` · ${reais(item.preco)}` : ""}
+          </li>
+        ))}
+      </ul>
+    </article>
+  );
+}
+
+function PedidosCliente({
+  pedidos,
+  verHistorico,
+  onHistorico,
+  onLoja,
+}: {
+  pedidos: PedidoCliente[];
+  verHistorico: boolean;
+  onHistorico: () => void;
+  onLoja: () => void;
+}) {
+  const hoje = hojeManaus();
+  const programados = pedidos
+    .filter((pedido) => pedido.programado ?? (pedido.dataEntrega.slice(0, 10) >= hoje && pedido.status !== "CANCELADO"))
+    .sort((a, b) => a.dataEntrega.localeCompare(b.dataEntrega));
+  const historico = pedidos
+    .filter((pedido) => !(pedido.programado ?? (pedido.dataEntrega.slice(0, 10) >= hoje && pedido.status !== "CANCELADO")))
+    .sort((a, b) => b.dataEntrega.localeCompare(a.dataEntrega));
+
+  return (
+    <section className="mt-8 space-y-4">
+      <h2 className="display-head text-3xl">Entregas programadas</h2>
+      {programados.length === 0 ? <p className="text-ink/60">Nenhuma entrega programada.</p> : null}
+      {programados.map((pedido) => (
+        <CartaoPedido key={pedido.id} pedido={pedido} />
+      ))}
+      <button type="button" className="border border-ink/15 px-3 py-2 text-sm" onClick={onHistorico}>
+        {verHistorico ? "Ocultar entregas anteriores" : "Ver entregas anteriores"}
+      </button>
+      {verHistorico ? (
+        <div className="space-y-3">
+          <h2 className="display-head text-3xl">Entregas anteriores</h2>
+          {historico.length === 0 ? <p className="text-ink/60">Nenhuma entrega anterior neste período.</p> : null}
+          {historico.map((pedido) => (
+            <CartaoPedido key={pedido.id} pedido={pedido} />
+          ))}
+        </div>
+      ) : null}
+      <button type="button" className="text-sm text-forest" onClick={onLoja}>Voltar aos produtos</button>
+    </section>
+  );
 }
 
 function CartaoPagamento({
@@ -834,7 +888,6 @@ function Pagamentos({
           <CartaoPagamento key={titulo.id} titulo={titulo} baixandoDoc={baixandoDoc} onBaixar={onBaixar} />
         ))}
       </div>
-      <p className="text-sm text-ink/55">A nota fiscal baixa no arquivo enviado ao fisco.</p>
       <button type="button" className="border border-ink/15 px-3 py-2 text-sm" onClick={onHistorico}>
         {verHistorico ? "Ocultar histórico" : "Ver histórico"}
       </button>

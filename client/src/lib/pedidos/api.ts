@@ -68,7 +68,8 @@ export type PedidoCliente = {
   id: string;
   dataEntrega: string;
   status: string;
-  observacoes: string | null;
+  programado?: boolean;
+  doSite?: boolean;
   itens: Array<{ nome: string; quantidade: number; preco: number | null }>;
 };
 
