@@ -487,7 +487,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                 return (
                   <section key={nome} className="mb-10">
                     <h2 className="display-head mb-4 text-[1.6rem]">{nome}</h2>
-                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
                       {itens.map((produto) => (
                         <CartaoProduto key={produto.id} produto={produto} qtd={carrinho[produto.id] ?? 0} onQtd={definirQtd} />
                       ))}
@@ -575,7 +575,7 @@ function CartaoProduto({
       <img
         src={produto.imagemUrl || "/uploads/IMG_7964.jpg"}
         alt=""
-        className="h-32 w-full object-cover"
+        className="aspect-[4/5] w-full object-cover"
         onError={(event) => {
           event.currentTarget.src = "/uploads/IMG_7964.jpg";
         }}
