@@ -63,9 +63,10 @@ function lerCarrinho(): Record<string, number> {
   }
 }
 
-export default function PedidosPage() {
+export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: boolean }) {
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
   const convite = params.get("convite") ?? "";
+  const portaEquipe = acessoEquipe || params.get("acesso") === "equipe";
   const [cliente, setCliente] = useState<ClienteSessao | null>(null);
   const [equipe, setEquipe] = useState<EquipeSessao | null>(null);
   const [catalogo, setCatalogo] = useState<ProdutoLoja[]>([]);
@@ -74,8 +75,8 @@ export default function PedidosPage() {
   const [totais, setTotais] = useState({ recebido: 0, emAberto: 0, emAtraso: 0 });
   const [carrinho, setCarrinho] = useState<Record<string, number>>(lerCarrinho);
   const [grupo, setGrupo] = useState("Tudo");
-  const [vista, setVista] = useState<Vista>(params.get("acesso") === "equipe" ? "equipe" : "loja");
-  const [modoEquipe, setModoEquipe] = useState(params.get("acesso") === "equipe");
+  const [vista, setVista] = useState<Vista>(portaEquipe ? "equipe" : "loja");
+  const [modoEquipe, setModoEquipe] = useState(portaEquipe);
   const [datas, setDatas] = useState<string[]>([]);
   const [dataEntrega, setDataEntrega] = useState("");
   const [observacoes, setObservacoes] = useState("");
@@ -281,7 +282,7 @@ export default function PedidosPage() {
       <main className="container pb-24 pt-28">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <h1 className="display-head max-w-3xl text-[clamp(2.4rem,5vw,3.8rem)] leading-[1.02]">
-            Da fazenda para a <em>cozinha</em>.
+            {vista === "equipe" && !cliente ? "Acesso da equipe" : <>Da fazenda para a <em>cozinha</em>.</>}
           </h1>
           {cliente ? (
             <div className="flex flex-wrap items-center gap-3 text-sm">
@@ -307,10 +308,12 @@ export default function PedidosPage() {
               </button>
             </div>
           ) : (
+            vista === "equipe" ? null : (
             <div className="flex gap-4 text-sm">
               <button type="button" className="text-ink/70" onClick={() => { setVista("loja"); setModoEquipe(false); }}>Entrar</button>
               <button type="button" className="text-forest" onClick={() => setVista("cadastro")}>Cadastrar empresa</button>
             </div>
+            )
           )}
         </div>
 
@@ -435,10 +438,11 @@ export default function PedidosPage() {
                   void entrar();
                 }}
               >
-                <h2 className="text-xl">Acesso da equipe</h2>
+                <p className="text-sm text-ink/65">O mesmo e-mail e a mesma senha do sistema interno.</p>
                 <Campo label="E-mail" value={email} onChange={setEmail} type="email" />
                 <CampoSenha label="Senha" value={senha} onChange={setSenha} autoComplete="current-password" />
                 <Button type="submit" disabled={enviando}>Entrar</Button>
+                <a href="/pedidos" className="block text-sm text-ink/55">Voltar aos produtos</a>
               </form>
             ) : (
               <>
@@ -555,6 +559,11 @@ export default function PedidosPage() {
               )}
             </aside>
           </section>
+        ) : null}
+        {vista !== "equipe" ? (
+          <p className="mt-16 text-sm text-ink/40">
+            <a href="/pedidos/equipe">Acesso da equipe</a>
+          </p>
         ) : null}
       </main>
     </div>
