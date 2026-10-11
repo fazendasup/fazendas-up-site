@@ -144,6 +144,27 @@ export const portalApi = {
       titulos: TituloCliente[];
       aviso?: string;
     }>("/financeiro"),
+  baixarDocumento: async (id: string, tipo: "boleto" | "nota") => {
+    let response: Response;
+    try {
+      response = await fetch(`/api/portal/financeiro/${encodeURIComponent(id)}/${tipo}`, { credentials: "include" });
+    } catch {
+      throw new PortalError(0, "Não foi possível falar com o sistema da fazenda.");
+    }
+    if (!response.ok) {
+      const data = (await response.json().catch(() => ({}))) as { error?: string };
+      throw new PortalError(response.status, data.error || "Não foi possível baixar agora.");
+    }
+    const blob = await response.blob();
+    const disposto = response.headers.get("Content-Disposition") ?? "";
+    const nome = /filename="([^"]+)"/.exec(disposto)?.[1] || (tipo === "boleto" ? "boleto.pdf" : "nota.xml");
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = nome;
+    link.click();
+    URL.revokeObjectURL(url);
+  },
   equipeEntrar: (email: string, senha: string) =>
     request<{ equipe: EquipeSessao }>("/equipe/entrar", {
       method: "POST",

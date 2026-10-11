@@ -54,6 +54,22 @@ function statusPedido(status: string) {
   return "Em andamento";
 }
 
+function hojeManaus() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Manaus",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+function tituloEmAtraso(titulo: TituloCliente, hoje: string) {
+  if (titulo.emAberto <= 0.009) return false;
+  if (/ATRASADO/i.test(titulo.status)) return true;
+  if (titulo.pagamento) return false;
+  return Boolean(titulo.vencimento && titulo.vencimento.slice(0, 10) < hoje);
+}
+
 function lerCarrinho(): Record<string, number> {
   try {
     const salvo = JSON.parse(localStorage.getItem("fazendas.pedido") ?? "{}") as Record<string, number>;
@@ -72,7 +88,6 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
   const [catalogo, setCatalogo] = useState<ProdutoLoja[]>([]);
   const [pedidos, setPedidos] = useState<PedidoCliente[]>([]);
   const [titulos, setTitulos] = useState<TituloCliente[]>([]);
-  const [totais, setTotais] = useState({ recebido: 0, emAberto: 0, emAtraso: 0 });
   const [carrinho, setCarrinho] = useState<Record<string, number>>(lerCarrinho);
   const [grupo, setGrupo] = useState("Tudo");
   const [vista, setVista] = useState<Vista>(portaEquipe ? "equipe" : "loja");
@@ -93,6 +108,9 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
   const [produtosEquipe, setProdutosEquipe] = useState<ProdutoEquipe[]>([]);
   const [cadastros, setCadastros] = useState<Array<{ id: string; nome: string; cnpj: string; email: string; cidade: string; estado: string; status: string; erro: string | null }>>([]);
   const [emAtraso, setEmAtraso] = useState(false);
+  const [avisoPagamento, setAvisoPagamento] = useState("");
+  const [verHistorico, setVerHistorico] = useState(false);
+  const [baixandoDoc, setBaixandoDoc] = useState("");
 
   const total = catalogo.reduce((soma, produto) => soma + produto.preco * (carrinho[produto.id] ?? 0), 0);
   const grupos = ORDEM_GRUPOS.filter((item) => catalogo.some((produto) => produto.grupo === item));
@@ -114,7 +132,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
     const [historico, financeiro] = await Promise.all([portalApi.pedidos(), portalApi.financeiro()]);
     setPedidos(historico.pedidos);
     setTitulos(financeiro.titulos);
-    setTotais(financeiro.totais);
+    setAvisoPagamento(financeiro.aviso ?? "");
     setEmAtraso(financeiro.totais.emAtraso > 0);
   };
 
@@ -284,30 +302,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
           <h1 className="display-head max-w-3xl text-[clamp(2.4rem,5vw,3.8rem)] leading-[1.02]">
             {vista === "equipe" && !cliente ? "Acesso da equipe" : <>Da fazenda para a <em>cozinha</em>.</>}
           </h1>
-          {cliente ? (
-            <div className="flex flex-wrap items-center gap-3 text-sm">
-              <span className="text-ink/70">{cliente.nome}</span>
-              <button type="button" className={vista === "pedidos" ? "text-forest" : "text-ink/70"} onClick={() => setVista("pedidos")}>Meus pedidos</button>
-              <button type="button" className={vista === "pagamentos" ? "text-forest" : "text-ink/70"} onClick={() => setVista("pagamentos")}>Pagamentos</button>
-              <button type="button" className={vista === "conta" ? "text-forest" : "text-ink/70"} onClick={() => setVista("conta")}>Conta</button>
-              {equipe ? <button type="button" className="text-ink/70" onClick={() => setVista("equipe")}>Loja</button> : null}
-              <button
-                type="button"
-                className="text-ink/70"
-                onClick={() => {
-                  void portalApi.sair().finally(() => {
-                    setCliente(null);
-                    setPedidos([]);
-                    setTitulos([]);
-                    setVista("loja");
-                    void carregarVitrine();
-                  });
-                }}
-              >
-                Sair
-              </button>
-            </div>
-          ) : (
+          {cliente ? null : (
             vista === "equipe" ? null : (
             <div className="flex gap-4 text-sm">
               <button type="button" className="text-ink/70" onClick={() => { setVista("loja"); setModoEquipe(false); }}>Entrar</button>
@@ -316,6 +311,62 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
             )
           )}
         </div>
+        {cliente ? (
+          <div className="mt-8 flex flex-col gap-4 border border-ink/15 bg-white px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.18em] text-ink/45">Sua conta</p>
+              <p className="display-head text-[clamp(1.6rem,3vw,2.2rem)] leading-none">{cliente.nome}</p>
+              {emAtraso ? <p className="mt-2 text-sm text-forest">Há pagamento em atraso.</p> : null}
+            </div>
+            <nav className="flex flex-wrap gap-2">
+              {(
+                [
+                  ["pedidos", "Meus pedidos"],
+                  ["pagamentos", "Pagamentos"],
+                  ["conta", "Conta"],
+                ] as const
+              ).map(([id, rotulo]) => (
+                <button
+                  key={id}
+                  type="button"
+                  className={
+                    vista === id
+                      ? "bg-forest px-3 py-2 text-sm text-paper"
+                      : "border border-ink/15 px-3 py-2 text-sm text-ink"
+                  }
+                  onClick={() => {
+                    if (id === "pagamentos") setVerHistorico(false);
+                    setVista(id);
+                  }}
+                >
+                  {rotulo}
+                </button>
+              ))}
+              {equipe ? (
+                <button type="button" className="border border-ink/15 px-3 py-2 text-sm" onClick={() => setVista("equipe")}>
+                  Loja
+                </button>
+              ) : null}
+              <button
+                type="button"
+                className="border border-ink/15 px-3 py-2 text-sm"
+                onClick={() => {
+                  void portalApi.sair().finally(() => {
+                    setCliente(null);
+                    setPedidos([]);
+                    setTitulos([]);
+                    setAvisoPagamento("");
+                    setVerHistorico(false);
+                    setVista("loja");
+                    void carregarVitrine();
+                  });
+                }}
+              >
+                Sair
+              </button>
+            </nav>
+          </div>
+        ) : null}
 
         {carregando ? <p className="mt-8 text-ink/60">Carregando os produtos...</p> : null}
 
@@ -382,20 +433,21 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
         ) : null}
 
         {vista === "pagamentos" && cliente ? (
-          <section className="mt-8 space-y-4">
-            <p className="text-sm text-ink/70">Recebido {reais(totais.recebido)} · Em aberto {reais(totais.emAberto)} · Em atraso {reais(totais.emAtraso)}</p>
-            {titulos.length === 0 ? <p className="text-ink/60">Nenhum pagamento neste período.</p> : null}
-            {titulos.map((titulo) => (
-              <article key={titulo.id} className="rounded-sm border border-ink/10 bg-white p-5 text-sm">
-                <h2 className="text-base">{titulo.descricao || "Pagamento"}</h2>
-                <p className="text-ink/60">
-                  {titulo.vencimento ? `Vence ${formatLongDate(titulo.vencimento.slice(0, 10))}` : ""}
-                  {titulo.pagamento ? ` · pago ${formatLongDate(titulo.pagamento.slice(0, 10))}` : ""}
-                </p>
-                <p>{reais(titulo.valor)}{titulo.emAberto > 0 ? ` · aberto ${reais(titulo.emAberto)}` : ""}</p>
-              </article>
-            ))}
-          </section>
+          <Pagamentos
+            titulos={titulos}
+            aviso={avisoPagamento}
+            verHistorico={verHistorico}
+            baixandoDoc={baixandoDoc}
+            onHistorico={() => setVerHistorico((atual) => !atual)}
+            onBaixar={(id, tipo) => {
+              const chave = `${tipo}:${id}`;
+              setBaixandoDoc(chave);
+              void portalApi
+                .baixarDocumento(id, tipo)
+                .catch((error) => toast.error(mensagem(error)))
+                .finally(() => setBaixandoDoc((atual) => (atual === chave ? "" : atual)));
+            }}
+          />
         ) : null}
 
         {vista === "conta" && cliente ? (
@@ -681,6 +733,106 @@ async function arquivoParaJpeg(arquivo: File): Promise<string> {
     binario += String.fromCharCode(bytes[i]);
   }
   return btoa(binario);
+}
+
+function CartaoPagamento({
+  titulo,
+  baixandoDoc,
+  onBaixar,
+}: {
+  titulo: TituloCliente;
+  baixandoDoc: string;
+  onBaixar: (id: string, tipo: "boleto" | "nota") => void;
+}) {
+  return (
+    <article className="rounded-sm border border-ink/10 bg-white p-5">
+      <h3 className="text-lg">{titulo.descricao || "Pagamento"}</h3>
+      <p className="mt-1 text-sm text-ink/60">
+        {titulo.vencimento ? `Vence ${formatLongDate(titulo.vencimento.slice(0, 10))}` : "Sem vencimento"}
+        {titulo.pagamento ? ` · pago ${formatLongDate(titulo.pagamento.slice(0, 10))}` : ""}
+      </p>
+      <p className="mt-2">{titulo.emAberto > 0 ? reais(titulo.emAberto) : reais(titulo.valor)}</p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button
+          type="button"
+          className="border border-ink/15 px-3 py-2 text-sm disabled:opacity-50"
+          disabled={baixandoDoc === `boleto:${titulo.id}`}
+          onClick={() => onBaixar(titulo.id, "boleto")}
+        >
+          Baixar boleto
+        </button>
+        <button
+          type="button"
+          className="border border-ink/15 px-3 py-2 text-sm disabled:opacity-50"
+          disabled={baixandoDoc === `nota:${titulo.id}`}
+          onClick={() => onBaixar(titulo.id, "nota")}
+        >
+          Baixar nota fiscal
+        </button>
+      </div>
+    </article>
+  );
+}
+
+function Pagamentos({
+  titulos,
+  aviso,
+  verHistorico,
+  baixandoDoc,
+  onHistorico,
+  onBaixar,
+}: {
+  titulos: TituloCliente[];
+  aviso: string;
+  verHistorico: boolean;
+  baixandoDoc: string;
+  onHistorico: () => void;
+  onBaixar: (id: string, tipo: "boleto" | "nota") => void;
+}) {
+  const hoje = hojeManaus();
+  const emAtraso = titulos
+    .filter((titulo) => tituloEmAtraso(titulo, hoje))
+    .sort((a, b) => (a.vencimento ?? "").localeCompare(b.vencimento ?? ""));
+  const idsAtraso = new Set(emAtraso.map((titulo) => titulo.id));
+  const aVencer = titulos
+    .filter((titulo) => titulo.emAberto > 0.009 && !idsAtraso.has(titulo.id))
+    .sort((a, b) => (a.vencimento ?? "").localeCompare(b.vencimento ?? ""));
+  const historico = titulos
+    .filter((titulo) => titulo.emAberto <= 0.009)
+    .sort((a, b) => (b.pagamento ?? b.vencimento ?? "").localeCompare(a.pagamento ?? a.vencimento ?? ""));
+
+  return (
+    <section className="mt-8 space-y-8">
+      {aviso ? <p className="text-sm text-ink/70">{aviso}</p> : null}
+      <div className="space-y-3">
+        <h2 className="display-head text-3xl">Em atraso</h2>
+        {emAtraso.length === 0 ? <p className="text-ink/60">Nenhum pagamento em atraso.</p> : null}
+        {emAtraso.map((titulo) => (
+          <CartaoPagamento key={titulo.id} titulo={titulo} baixandoDoc={baixandoDoc} onBaixar={onBaixar} />
+        ))}
+      </div>
+      <div className="space-y-3">
+        <h2 className="display-head text-3xl">A vencer</h2>
+        {aVencer.length === 0 ? <p className="text-ink/60">Nenhum pagamento a vencer.</p> : null}
+        {aVencer.map((titulo) => (
+          <CartaoPagamento key={titulo.id} titulo={titulo} baixandoDoc={baixandoDoc} onBaixar={onBaixar} />
+        ))}
+      </div>
+      <p className="text-sm text-ink/55">A nota fiscal baixa no arquivo enviado ao fisco.</p>
+      <button type="button" className="border border-ink/15 px-3 py-2 text-sm" onClick={onHistorico}>
+        {verHistorico ? "Ocultar histórico" : "Ver histórico"}
+      </button>
+      {verHistorico ? (
+        <div className="space-y-3">
+          <h2 className="display-head text-3xl">Histórico</h2>
+          {historico.length === 0 ? <p className="text-ink/60">Nenhum pagamento quitado neste período.</p> : null}
+          {historico.map((titulo) => (
+            <CartaoPagamento key={titulo.id} titulo={titulo} baixandoDoc={baixandoDoc} onBaixar={onBaixar} />
+          ))}
+        </div>
+      ) : null}
+    </section>
+  );
 }
 
 function ProdutoEquipeCard({
