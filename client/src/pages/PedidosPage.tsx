@@ -12,20 +12,50 @@ import {
   type ProdutoLoja,
   type TituloCliente,
 } from "@/lib/pedidos/api";
-import { formatLongDate } from "@/lib/pedidos/rules";
+import { formatCnpj, formatLongDate } from "@/lib/pedidos/rules";
 
-type Aba = "produtos" | "encomenda" | "pedidos" | "financeiro" | "equipe";
+type Aba = "produtos" | "pedidos" | "financeiro" | "conta" | "equipe";
 
 function reais(valor: number) {
   return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-function mensagem(error: unknown) {
-  return error instanceof PortalError ? error.message : "Não foi possível concluir agora.";
+function textoCliente(texto: string) {
+  if (/conta azul/i.test(texto) && /não respondeu|nao respondeu/i.test(texto)) {
+    return "Os pagamentos não carregaram agora. Tente de novo em instantes.";
+  }
+  if (/conta azul/i.test(texto)) {
+    return "Esta conta ainda não está pronta para pedidos. Fale com a fazenda.";
+  }
+  return texto;
 }
 
+function mensagem(error: unknown) {
+  const texto = error instanceof PortalError ? error.message : "Não foi possível concluir agora.";
+  return textoCliente(texto);
+}
+
+function statusPedido(status: string) {
+  if (status === "PENDENTE") return "Recebido";
+  if (status === "PRONTO") return "Separado";
+  if (status === "ENTREGUE") return "Entregue";
+  if (status === "CANCELADO") return "Cancelado";
+  return "Em andamento";
+}
+
+function statusPagamento(status: string) {
+  const chave = status.toUpperCase();
+  if (chave.includes("ATRAS")) return "Em atraso";
+  if (chave.includes("RECEB") || chave.includes("PAGO") || chave.includes("QUIT")) return "Pago";
+  if (chave.includes("CANCEL")) return "Cancelado";
+  if (chave.includes("ABERTO") || chave.includes("PEND")) return "Em aberto";
+  return "";
+}
+
+
 export default function PedidosPage() {
-  const convite = useMemo(() => new URLSearchParams(window.location.search).get("convite") ?? "", []);
+  const params = useMemo(() => new URLSearchParams(window.location.search), []);
+  const convite = params.get("convite") ?? "";
   const [aba, setAba] = useState<Aba>("produtos");
   const [carregando, setCarregando] = useState(true);
   const [cliente, setCliente] = useState<ClienteSessao | null>(null);
@@ -36,7 +66,7 @@ export default function PedidosPage() {
   const [senha2, setSenha2] = useState("");
   const [senhaAtual, setSenhaAtual] = useState("");
   const [senhaNova, setSenhaNova] = useState("");
-  const [modoEquipe, setModoEquipe] = useState(false);
+  const [modoEquipe, setModoEquipe] = useState(params.get("acesso") === "equipe");
   const [datas, setDatas] = useState<string[]>([]);
   const [minimo, setMinimo] = useState(300);
   const [dataEntrega, setDataEntrega] = useState("");
@@ -181,7 +211,7 @@ export default function PedidosPage() {
       setObservacoes("");
       await carregarLoja();
       setAba("pedidos");
-      toast.success("Pedido lançado na programação da fazenda.");
+      toast.success("Pedido enviado.");
     } catch (error) {
       toast.error(mensagem(error));
     } finally {
@@ -231,24 +261,31 @@ export default function PedidosPage() {
 
   const abas: Array<[Aba, string]> = [
     ["produtos", "Produtos"],
-    ["encomenda", "Encomenda"],
     ["pedidos", "Meus pedidos"],
-    ["financeiro", "Boletos e notas"],
+    ["financeiro", "Pagamentos"],
+    ["conta", "Conta"],
   ];
 
   return (
     <div className="min-h-screen bg-paper text-ink">
       <SiteHeader variant="subpage" />
       <main className="container pb-20 pt-28">
-        <p className="text-[0.75rem] font-medium uppercase tracking-[0.18em] text-forest">Pedidos B2B</p>
-        <h1 className="display-head mt-3 max-w-3xl text-[clamp(2rem,4vw,3.2rem)] leading-[1.05] text-ink">
-          Cada cliente entra na própria conta.
-        </h1>
-        <p className="mt-4 max-w-2xl text-[1.02rem] leading-relaxed text-ink/75">
-          Os produtos e os pagamentos vêm do Conta Azul. O pedido entra na programação da fazenda.
-          Entrega em dia útil, com 2 dias úteis de antecedência, e mínimo de {reais(minimo)}.
-          {datas[0] ? ` A primeira data é ${formatLongDate(datas[0])}.` : ""}
-        </p>
+        {!cliente && !equipe ? (
+          <>
+            <h1 className="display-head max-w-xl text-[clamp(2.4rem,5vw,3.6rem)] leading-[1.02] text-ink">
+              {modoEquipe ? "Acesso da equipe" : <>Peça para a <em>sua</em> empresa.</>}
+            </h1>
+            {modoEquipe ? null : (
+              <p className="mt-4 max-w-md text-[1.05rem] leading-relaxed text-ink/70">
+                Entre com o CNPJ. Você vê só os produtos, os preços e os pedidos desta conta.
+              </p>
+            )}
+          </>
+        ) : (
+          <h1 className="display-head max-w-3xl text-[clamp(2rem,4vw,3rem)] leading-[1.05] text-ink">
+            {cliente?.nome ?? "Loja"}
+          </h1>
+        )}
 
         {carregando ? <p className="mt-8 text-ink/60">Carregando a conta...</p> : null}
 
@@ -298,16 +335,16 @@ export default function PedidosPage() {
               void entrar();
             }}
           >
-            <h2 className="text-xl">{modoEquipe ? "Equipe da fazenda" : "Entrar"}</h2>
             <label className="block text-sm">
               {modoEquipe ? "E-mail" : "CNPJ"}
               <input
                 type={modoEquipe ? "email" : "text"}
                 inputMode={modoEquipe ? "email" : "numeric"}
                 autoComplete="username"
+                placeholder={modoEquipe ? "" : "00.000.000/0000-00"}
                 value={modoEquipe ? email : cnpj}
                 onChange={(event) => (modoEquipe ? setEmail(event.target.value) : setCnpj(event.target.value))}
-                className="mt-1 w-full border border-ink/15 px-3 py-2"
+                className="mt-1 w-full border border-ink/15 bg-white px-3 py-3"
               />
             </label>
             <label className="block text-sm">
@@ -317,32 +354,31 @@ export default function PedidosPage() {
                 autoComplete="current-password"
                 value={senha}
                 onChange={(event) => setSenha(event.target.value)}
-                className="mt-1 w-full border border-ink/15 px-3 py-2"
+                className="mt-1 w-full border border-ink/15 bg-white px-3 py-3"
               />
             </label>
-            {modoEquipe ? null : (
-              <p className="text-sm text-ink/60">A senha inicial são os 5 primeiros dígitos do CNPJ. Dá para trocar em Pedidos.</p>
-            )}
             <Button type="submit" disabled={enviando}>
               Entrar
             </Button>
-            <button
-              type="button"
-              className="block text-sm text-forest underline"
-              onClick={() => setModoEquipe((atual) => !atual)}
-            >
-              {modoEquipe ? "Sou cliente" : "Sou da equipe"}
-            </button>
+            {modoEquipe ? (
+              <button
+                type="button"
+                className="block text-sm text-ink/55 underline"
+                onClick={() => {
+                  setModoEquipe(false);
+                  window.history.replaceState({}, "", "/pedidos");
+                }}
+              >
+                Voltar
+              </button>
+            ) : null}
           </form>
         ) : null}
 
         {cliente ? (
           <>
             <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm text-ink/70">
-                {cliente.nome}
-                {cliente.cnpj ? ` · ${cliente.cnpj}` : ""}
-              </p>
+              <p className="text-sm text-ink/70">{cliente.cnpj ? formatCnpj(cliente.cnpj) : "Conta da empresa"}</p>
               <Button
                 type="button"
                 variant="outline"
@@ -384,9 +420,10 @@ export default function PedidosPage() {
         ) : null}
 
         {cliente && aba === "produtos" ? (
-          <section className="mt-8 grid gap-6 md:grid-cols-3">
+          <section className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+            <div className="grid gap-6 sm:grid-cols-2">
             {catalogo.length === 0 ? (
-              <p className="text-ink/60">Nenhum produto liberado na loja. A equipe marca isso depois da sincronização do Conta Azul.</p>
+              <p className="text-ink/60 sm:col-span-2">Nenhum produto disponível para esta conta.</p>
             ) : null}
             {catalogo.map((produto) => {
               const qtd = carrinho[produto.id] ?? 0;
@@ -422,16 +459,24 @@ export default function PedidosPage() {
                 </article>
               );
             })}
-          </section>
-        ) : null}
-
-        {cliente && aba === "encomenda" ? (
-          <section className="mt-8 max-w-xl space-y-4">
-            <p className="text-lg">Total {reais(total)}</p>
-            {total < minimo ? <p className="text-sm text-ink/65">Faltam {reais(minimo - total)} para a entrega.</p> : null}
+            </div>
+            <aside className="space-y-4 rounded-sm border border-ink/10 bg-white p-5 lg:sticky lg:top-28">
+            <h2 className="text-lg">Seu pedido</h2>
+            <p className="text-2xl font-medium tabular-nums">{reais(total)}</p>
+            {total > 0 && total < minimo ? <p className="text-sm text-ink/65">Faltam {reais(minimo - total)} para a entrega.</p> : null}
+            {total === 0 ? <p className="text-sm text-ink/55">Escolha a quantidade ao lado.</p> : null}
             {emAtraso ? (
-              <p className="text-sm text-red-800">Há pagamento em atraso. O lançamento fica bloqueado até a regularização.</p>
+              <p className="text-sm text-red-800">Há um pagamento em atraso nesta conta. O pedido fica bloqueado até a regularização.</p>
             ) : null}
+            <ul className="space-y-1 text-sm">
+              {catalogo
+                .filter((produto) => (carrinho[produto.id] ?? 0) > 0)
+                .map((produto) => (
+                  <li key={produto.id}>
+                    {carrinho[produto.id]} {produto.unidade} · {produto.nome}
+                  </li>
+                ))}
+            </ul>
             <label className="block text-sm">
               Data de entrega
               <select
@@ -455,91 +500,20 @@ export default function PedidosPage() {
                 rows={3}
               />
             </label>
-            <ul className="space-y-1 text-sm">
-              {catalogo
-                .filter((produto) => (carrinho[produto.id] ?? 0) > 0)
-                .map((produto) => (
-                  <li key={produto.id}>
-                    {carrinho[produto.id]} {produto.unidade} · {produto.nome}
-                  </li>
-                ))}
-            </ul>
-            <Button type="button" disabled={enviando || emAtraso} onClick={() => void lancar()}>
-              Lançar pedido
+            <Button type="button" disabled={enviando || emAtraso || total < minimo} onClick={() => void lancar()}>
+              Enviar pedido
             </Button>
+            </aside>
           </section>
         ) : null}
 
         {cliente && aba === "pedidos" ? (
           <section className="mt-8 space-y-4">
-            <form
-              className="max-w-md space-y-3 rounded-sm border border-ink/10 bg-white p-5"
-              onSubmit={(event) => {
-                event.preventDefault();
-                if (senhaNova.length < 6) {
-                  toast.error("A nova senha precisa ter pelo menos 6 caracteres.");
-                  return;
-                }
-                if (senhaNova !== senha2) {
-                  toast.error("As duas senhas novas precisam ser iguais.");
-                  return;
-                }
-                setEnviando(true);
-                void portalApi
-                  .alterarSenha(senhaAtual, senhaNova)
-                  .then(() => {
-                    setSenhaAtual("");
-                    setSenhaNova("");
-                    setSenha2("");
-                    toast.success("Senha alterada. No próximo acesso use a senha nova.");
-                  })
-                  .catch((error) => toast.error(mensagem(error)))
-                  .finally(() => setEnviando(false));
-              }}
-            >
-              <h2 className="text-lg">Senha desta conta</h2>
-              <p className="text-sm text-ink/60">
-                Se ainda não trocou, a senha atual são os 5 primeiros dígitos do CNPJ.
-              </p>
-              <label className="block text-sm">
-                Senha atual
-                <input
-                  type="password"
-                  autoComplete="current-password"
-                  value={senhaAtual}
-                  onChange={(event) => setSenhaAtual(event.target.value)}
-                  className="mt-1 w-full border border-ink/15 px-3 py-2"
-                />
-              </label>
-              <label className="block text-sm">
-                Nova senha
-                <input
-                  type="password"
-                  autoComplete="new-password"
-                  value={senhaNova}
-                  onChange={(event) => setSenhaNova(event.target.value)}
-                  className="mt-1 w-full border border-ink/15 px-3 py-2"
-                />
-              </label>
-              <label className="block text-sm">
-                Repita a nova senha
-                <input
-                  type="password"
-                  autoComplete="new-password"
-                  value={senha2}
-                  onChange={(event) => setSenha2(event.target.value)}
-                  className="mt-1 w-full border border-ink/15 px-3 py-2"
-                />
-              </label>
-              <Button type="submit" disabled={enviando}>
-                Alterar senha
-              </Button>
-            </form>
             {pedidos.length === 0 ? <p className="text-ink/60">Nenhum pedido desta conta ainda.</p> : null}
             {pedidos.map((pedido) => (
               <article key={pedido.id} className="rounded-sm border border-ink/10 bg-white p-5">
                 <h2 className="text-lg">{formatLongDate(pedido.dataEntrega.slice(0, 10))}</h2>
-                <p className="text-sm text-ink/55">{pedido.status}</p>
+                <p className="text-sm text-ink/55">{statusPedido(pedido.status)}</p>
                 <ul className="mt-3 space-y-1 text-sm">
                   {pedido.itens.map((item) => (
                     <li key={`${pedido.id}-${item.nome}`}>
@@ -558,23 +532,92 @@ export default function PedidosPage() {
             <p className="text-sm text-ink/70">
               Recebido {reais(totais.recebido)} · Em aberto {reais(totais.emAberto)} · Em atraso {reais(totais.emAtraso)}
             </p>
-            {avisoFinanceiro ? <p className="text-sm text-ink/60">{avisoFinanceiro}</p> : null}
-            {titulos.length === 0 ? <p className="text-ink/60">Nenhum título neste período.</p> : null}
-            {titulos.map((titulo) => (
+            {avisoFinanceiro ? <p className="text-sm text-ink/60">{textoCliente(avisoFinanceiro)}</p> : null}
+            {titulos.length === 0 ? <p className="text-ink/60">Nenhum pagamento neste período.</p> : null}
+            {titulos.map((titulo) => {
+              const situacao = statusPagamento(titulo.status);
+              return (
               <article key={titulo.id} className="rounded-sm border border-ink/10 bg-white p-5 text-sm">
-                <h2 className="text-base">{titulo.descricao || titulo.referencia || "Título"}</h2>
+                <h2 className="text-base">{titulo.descricao || titulo.referencia || "Pagamento"}</h2>
                 <p className="text-ink/60">
-                  {titulo.status}
-                  {titulo.vencimento ? ` · vence ${titulo.vencimento.slice(0, 10)}` : ""}
-                  {titulo.pagamento ? ` · pago ${titulo.pagamento.slice(0, 10)}` : ""}
+                  {situacao}
+                  {titulo.vencimento ? `${situacao ? " · " : ""}vence ${formatLongDate(titulo.vencimento.slice(0, 10))}` : ""}
+                  {titulo.pagamento ? ` · pago ${formatLongDate(titulo.pagamento.slice(0, 10))}` : ""}
                 </p>
                 <p>
                   {reais(titulo.valor)}
                   {titulo.emAberto > 0 ? ` · aberto ${reais(titulo.emAberto)}` : ""}
                 </p>
               </article>
-            ))}
+              );
+            })}
           </section>
+        ) : null}
+
+        {cliente && aba === "conta" ? (
+          <form
+            className="mt-8 max-w-md space-y-3 rounded-sm border border-ink/10 bg-white p-5"
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (senhaNova.length < 6) {
+                toast.error("A nova senha precisa ter pelo menos 6 caracteres.");
+                return;
+              }
+              if (senhaNova !== senha2) {
+                toast.error("As duas senhas novas precisam ser iguais.");
+                return;
+              }
+              setEnviando(true);
+              void portalApi
+                .alterarSenha(senhaAtual, senhaNova)
+                .then(() => {
+                  setSenhaAtual("");
+                  setSenhaNova("");
+                  setSenha2("");
+                  toast.success("Senha alterada. No próximo acesso use a senha nova.");
+                })
+                .catch((error) => toast.error(mensagem(error)))
+                .finally(() => setEnviando(false));
+            }}
+          >
+            <h2 className="text-lg">Senha desta conta</h2>
+            <p className="text-sm text-ink/60">
+              Se ainda não trocou, a senha atual são os 5 primeiros dígitos do CNPJ.
+            </p>
+            <label className="block text-sm">
+              Senha atual
+              <input
+                type="password"
+                autoComplete="current-password"
+                value={senhaAtual}
+                onChange={(event) => setSenhaAtual(event.target.value)}
+                className="mt-1 w-full border border-ink/15 px-3 py-3"
+              />
+            </label>
+            <label className="block text-sm">
+              Nova senha
+              <input
+                type="password"
+                autoComplete="new-password"
+                value={senhaNova}
+                onChange={(event) => setSenhaNova(event.target.value)}
+                className="mt-1 w-full border border-ink/15 px-3 py-3"
+              />
+            </label>
+            <label className="block text-sm">
+              Repita a nova senha
+              <input
+                type="password"
+                autoComplete="new-password"
+                value={senha2}
+                onChange={(event) => setSenha2(event.target.value)}
+                className="mt-1 w-full border border-ink/15 px-3 py-3"
+              />
+            </label>
+            <Button type="submit" disabled={enviando}>
+              Alterar senha
+            </Button>
+          </form>
         ) : null}
 
         {aba === "equipe" && equipe ? (
