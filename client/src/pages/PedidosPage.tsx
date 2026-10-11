@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
@@ -463,7 +463,19 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                 ) : null}
                 <div className="space-y-3">
                   {produtosEquipe.map((produto) => (
-                    <ProdutoEquipeCard key={produto.id} produto={produto} onSave={salvarProduto} />
+                    <ProdutoEquipeCard
+                      key={produto.id}
+                      produto={produto}
+                      onSave={salvarProduto}
+                      onFoto={async (item, imagem) => {
+                        const salvo = await portalApi.enviarFoto(item.id, imagem);
+                        setProdutosEquipe((atual) =>
+                          atual.map((produto) => (produto.id === item.id ? { ...produto, imagemUrl: salvo.imagemUrl } : produto)),
+                        );
+                        void carregarVitrine();
+                        return salvo.imagemUrl;
+                      }}
+                    />
                   ))}
                 </div>
               </>
@@ -648,13 +660,39 @@ function CampoSenha({
   );
 }
 
+async function arquivoParaJpeg(arquivo: File): Promise<string> {
+  const bitmap = await createImageBitmap(arquivo);
+  const limite = 1400;
+  const escala = Math.min(1, limite / Math.max(bitmap.width, bitmap.height));
+  const largura = Math.max(1, Math.round(bitmap.width * escala));
+  const altura = Math.max(1, Math.round(bitmap.height * escala));
+  const tela = document.createElement("canvas");
+  tela.width = largura;
+  tela.height = altura;
+  const contexto = tela.getContext("2d");
+  if (!contexto) throw new Error("Não foi possível ler a foto.");
+  contexto.drawImage(bitmap, 0, 0, largura, altura);
+  bitmap.close();
+  const blob = await new Promise<Blob | null>((resolve) => tela.toBlob(resolve, "image/jpeg", 0.82));
+  if (!blob) throw new Error("Não foi possível ler a foto.");
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  let binario = "";
+  for (let i = 0; i < bytes.length; i += 1) {
+    binario += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binario);
+}
+
 function ProdutoEquipeCard({
   produto,
   onSave,
+  onFoto,
 }: {
   produto: ProdutoEquipe;
   onSave: (produto: ProdutoEquipe, patch: { naLoja?: boolean; preco?: number; imagemUrl?: string | null; descricao?: string; aplicacao?: string; estoque?: number | null }) => Promise<void>;
+  onFoto: (produto: ProdutoEquipe, imagem: string) => Promise<string>;
 }) {
+  const arquivoRef = useRef<HTMLInputElement>(null);
   const [preco, setPreco] = useState(produto.preco?.toString() ?? "");
   const [foto, setFoto] = useState(produto.imagemUrl ?? "");
   const [descricao, setDescricao] = useState(produto.descricao);
@@ -675,7 +713,30 @@ function ProdutoEquipeCard({
       <div className="grid gap-3 md:grid-cols-4">
         <label className="text-sm">Preço<input value={preco} onChange={(event) => setPreco(event.target.value)} className="mt-1 w-full border border-ink/15 px-2 py-2" /></label>
         <label className="text-sm">Estoque<input value={estoque} onChange={(event) => setEstoque(event.target.value)} placeholder="vazio = sem limite" className="mt-1 w-full border border-ink/15 px-2 py-2" /></label>
-        <label className="text-sm md:col-span-2">Foto<input value={foto} onChange={(event) => setFoto(event.target.value)} className="mt-1 w-full border border-ink/15 px-2 py-2" /></label>
+        <div className="text-sm md:col-span-2">
+          <span>Foto</span>
+          <div className="mt-1 flex items-center gap-3">
+            {foto ? <img src={foto} alt="" className="h-16 w-12 object-cover" /> : null}
+            <Button type="button" size="sm" variant="outline" onClick={() => arquivoRef.current?.click()}>
+              Escolher foto
+            </Button>
+            <input
+              ref={arquivoRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={(event) => {
+                const arquivo = event.target.files?.[0];
+                event.target.value = "";
+                if (!arquivo) return;
+                void arquivoParaJpeg(arquivo)
+                  .then((imagem) => onFoto(produto, imagem))
+                  .then((url) => setFoto(`${url}?v=${Date.now()}`))
+                  .catch((error) => toast.error(mensagem(error)));
+              }}
+            />
+          </div>
+        </div>
         <label className="text-sm md:col-span-2">Característica<textarea value={descricao} onChange={(event) => setDescricao(event.target.value)} rows={2} className="mt-1 w-full border border-ink/15 px-2 py-2" /></label>
         <label className="text-sm md:col-span-2">Aplicação<textarea value={aplicacao} onChange={(event) => setAplicacao(event.target.value)} rows={2} className="mt-1 w-full border border-ink/15 px-2 py-2" /></label>
       </div>
@@ -693,7 +754,7 @@ function ProdutoEquipeCard({
             toast.error("O estoque precisa ser um número, ou ficar vazio.");
             return;
           }
-          void onSave(produto, { preco: valor, imagemUrl: foto.trim() || null, descricao, aplicacao, estoque: quantidade });
+          void onSave(produto, { preco: valor, descricao, aplicacao, estoque: quantidade });
         }}
       >
         Salvar

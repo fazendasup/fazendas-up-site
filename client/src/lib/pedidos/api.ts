@@ -172,6 +172,11 @@ export const portalApi = {
       aplicacao: string | null;
       estoque: number | null;
     }>(`/equipe/produtos/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+  enviarFoto: (id: string, imagem: string) =>
+    request<{ imagemUrl: string }>(`/equipe/produtos/${id}/foto`, {
+      method: "POST",
+      body: JSON.stringify({ imagem }),
+    }),
   cadastros: () =>
     request<{
       cadastros: Array<{
