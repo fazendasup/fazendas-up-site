@@ -475,49 +475,26 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
           <section className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
             <div>
               <div className="mb-6 flex flex-wrap gap-x-5 gap-y-2 text-sm">
-                <button type="button" className={grupo === "Tudo" ? "text-forest" : "text-ink/55"} onClick={() => setGrupo("Tudo")}>Tudo</button>
+                <button type="button" className={grupo === "Tudo" ? "text-forest" : "text-ink/55"} onClick={() => setGrupo("Tudo")}>Todos</button>
                 {grupos.map((item) => (
                   <button key={item} type="button" className={grupo === item ? "text-forest" : "text-ink/55"} onClick={() => setGrupo(item)}>{item}</button>
                 ))}
               </div>
               {visiveis.length === 0 && !carregando ? <p className="text-ink/60">Nenhum produto nesta seleção.</p> : null}
-              <div className="grid gap-6 sm:grid-cols-2">
-                {visiveis.map((produto) => {
-                  const qtd = carrinho[produto.id] ?? 0;
-                  const esgotado = produto.estoque === 0;
-                  return (
-                    <article key={produto.id} className="overflow-hidden rounded-sm border border-ink/10 bg-white">
-                      <img
-                        src={produto.imagemUrl || "/uploads/IMG_7964.jpg"}
-                        alt={produto.nome}
-                        className="h-64 w-full object-cover"
-                        onError={(event) => {
-                          event.currentTarget.src = "/uploads/IMG_7964.jpg";
-                        }}
-                      />
-                      <div className="space-y-3 p-5">
-                        <p className="text-[0.72rem] font-medium uppercase tracking-[0.16em] text-forest">{produto.grupo}</p>
-                        <h2 className="text-xl leading-tight">{produto.nome}</h2>
-                        <p className="text-sm leading-relaxed text-ink/75">{produto.descricao}</p>
-                        <p className="text-sm text-ink/55">{produto.aplicacao}</p>
-                        <div className="flex items-end justify-between gap-3">
-                          <p className="text-lg font-medium">
-                            {reais(produto.preco)}
-                            <span className="ml-1 text-xs font-normal text-ink/50">/{produto.unidade}</span>
-                          </p>
-                          {produto.precoEspecial ? <p className="text-xs text-forest">Preço da sua conta</p> : null}
-                        </div>
-                        {produto.estoque != null ? <p className="text-xs text-ink/50">{esgotado ? "Esgotado" : `Disponível: ${produto.estoque} ${produto.unidade}`}</p> : null}
-                        <div className="flex items-center gap-3">
-                          <Button type="button" variant="outline" size="sm" onClick={() => definirQtd(produto, qtd - 1)} disabled={qtd <= 0}>−</Button>
-                          <span className="w-8 text-center tabular-nums">{qtd}</span>
-                          <Button type="button" size="sm" onClick={() => definirQtd(produto, qtd + 1)} disabled={esgotado || (produto.estoque != null && qtd >= produto.estoque)}>+</Button>
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
+              {(grupo === "Tudo" ? grupos : [grupo]).map((nome) => {
+                const itens = visiveis.filter((produto) => produto.grupo === nome);
+                if (itens.length === 0) return null;
+                return (
+                  <section key={nome} className="mb-10">
+                    <h2 className="display-head mb-4 text-[1.6rem]">{nome}</h2>
+                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                      {itens.map((produto) => (
+                        <CartaoProduto key={produto.id} produto={produto} qtd={carrinho[produto.id] ?? 0} onQtd={definirQtd} />
+                      ))}
+                    </div>
+                  </section>
+                );
+              })}
             </div>
             <aside id="enviar-pedido" className="space-y-4 rounded-sm border border-ink/10 bg-white p-5 lg:sticky lg:top-28">
               <h2 className="text-lg">Seu pedido</h2>
@@ -525,10 +502,23 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
               {total === 0 ? <p className="text-sm text-ink/55">Escolha a quantidade nos produtos.</p> : null}
               {total > 0 && total < minimo ? <p className="text-sm text-ink/65">Faltam {reais(minimo - total)} para a entrega.</p> : null}
               {emAtraso && cliente ? <p className="text-sm text-red-800">Há um pagamento em atraso nesta conta. O pedido fica bloqueado até a regularização.</p> : null}
-              <ul className="space-y-1 text-sm">
-                {catalogo.filter((produto) => (carrinho[produto.id] ?? 0) > 0).map((produto) => (
-                  <li key={produto.id}>{carrinho[produto.id]} {produto.unidade} · {produto.nome}</li>
-                ))}
+              <ul className="space-y-3 text-sm">
+                {catalogo.filter((produto) => (carrinho[produto.id] ?? 0) > 0).map((produto) => {
+                  const qtd = carrinho[produto.id] ?? 0;
+                  const noTeto = produto.estoque != null && qtd >= produto.estoque;
+                  return (
+                    <li key={produto.id} className="flex items-center gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate">{produto.nome}</p>
+                        <p className="text-xs text-ink/50">{reais(produto.preco * qtd)}</p>
+                      </div>
+                      <button type="button" className="h-8 w-8 border border-ink/15" onClick={() => definirQtd(produto, qtd - 1)} aria-label={`Diminuir ${produto.nome}`}>−</button>
+                      <span className="w-6 text-center tabular-nums">{qtd}</span>
+                      <button type="button" className="h-8 w-8 border border-ink/15 disabled:opacity-40" onClick={() => definirQtd(produto, qtd + 1)} disabled={noTeto} aria-label={`Aumentar ${produto.nome}`}>+</button>
+                      <button type="button" className="h-8 w-8 text-ink/55" onClick={() => definirQtd(produto, 0)} aria-label={`Excluir ${produto.nome}`}>×</button>
+                    </li>
+                  );
+                })}
               </ul>
               <label className="block text-sm">
                 Entrega
@@ -567,6 +557,48 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
         ) : null}
       </main>
     </div>
+  );
+}
+
+function CartaoProduto({
+  produto,
+  qtd,
+  onQtd,
+}: {
+  produto: ProdutoLoja;
+  qtd: number;
+  onQtd: (produto: ProdutoLoja, qtd: number) => void;
+}) {
+  const esgotado = produto.estoque === 0;
+  return (
+    <article className="overflow-hidden rounded-sm border border-ink/10 bg-white">
+      <img
+        src={produto.imagemUrl || "/uploads/IMG_7964.jpg"}
+        alt=""
+        className="h-32 w-full object-cover"
+        onError={(event) => {
+          event.currentTarget.src = "/uploads/IMG_7964.jpg";
+        }}
+      />
+      <div className="space-y-2 p-3">
+        <h3 className="text-[0.95rem] leading-tight">{produto.nome}</h3>
+        <p className="line-clamp-2 text-xs leading-relaxed text-ink/70">{produto.descricao}</p>
+        <p className="line-clamp-2 text-xs text-ink/50">{produto.aplicacao}</p>
+        <div className="flex items-end justify-between gap-2">
+          <p className="text-sm font-medium">
+            {reais(produto.preco)}
+            <span className="ml-1 text-xs font-normal text-ink/50">/{produto.unidade}</span>
+          </p>
+          {produto.precoEspecial ? <p className="text-[0.65rem] text-forest">Sua conta</p> : null}
+        </div>
+        {produto.estoque != null ? <p className="text-[0.65rem] text-ink/50">{esgotado ? "Esgotado" : `Disponível: ${produto.estoque} ${produto.unidade}`}</p> : null}
+        <div className="flex items-center gap-2">
+          <Button type="button" variant="outline" size="sm" onClick={() => onQtd(produto, qtd - 1)} disabled={qtd <= 0}>−</Button>
+          <span className="w-6 text-center text-sm tabular-nums">{qtd}</span>
+          <Button type="button" size="sm" onClick={() => onQtd(produto, qtd + 1)} disabled={esgotado || (produto.estoque != null && qtd >= produto.estoque)}>+</Button>
+        </div>
+      </div>
+    </article>
   );
 }
 
