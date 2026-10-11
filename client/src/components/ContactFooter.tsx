@@ -16,6 +16,7 @@ const footerCols = [
     links: [
       { label: "Sobre", href: "#sobre" },
       { label: "Plataforma de operação", href: "/operacao" },
+      { label: "Pedidos B2B", href: "/pedidos" },
       { label: "Tecnologia", href: "#tecnologia" },
       { label: "Sustentabilidade", href: "#impacto" },
       { label: "Trabalhe conosco", href: "https://www.linkedin.com/company/fazendasup" },

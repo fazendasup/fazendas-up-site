@@ -7,11 +7,13 @@ import { OverflowProbe } from "./components/OverflowProbe";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import OperacaoPage from "./pages/OperacaoPage";
+import PedidosPage from "./pages/PedidosPage";
 
 function Router() {
   return (
     <Switch>
       <Route path="/operacao" component={OperacaoPage} />
+      <Route path="/pedidos" component={PedidosPage} />
       <Route path={"/"} component={Home} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}

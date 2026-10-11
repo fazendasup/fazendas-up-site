@@ -15,6 +15,7 @@ const navItems: NavItem[] = [
   { href: "/#sobre", label: "Sobre" },
   { href: "/#contato", label: "Contato" },
   { href: "/operacao", label: "Plataforma", isRoute: true },
+  { href: "/pedidos", label: "Pedidos", isRoute: true },
 ];
 
 export type SiteHeaderVariant = "home" | "subpage";
