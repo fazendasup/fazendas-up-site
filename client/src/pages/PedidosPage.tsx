@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { ContaCliente } from "@/components/ContaCliente";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
 import {
@@ -496,6 +497,8 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
         ) : null}
 
         {vista === "conta" && cliente ? (
+          <>
+          <ContaCliente onMinimo={setMinimo} />
           <form
             className="mt-8 max-w-md space-y-3 rounded-sm border border-ink/10 bg-white p-5"
             onSubmit={(event) => {
@@ -524,6 +527,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
             <Button type="submit" disabled={enviando}>Alterar senha</Button>
             <button type="button" className="text-sm text-forest" onClick={() => { setVista("loja"); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Fazer pedido</button>
           </form>
+          </>
         ) : null}
 
         {vista === "equipe" && (equipe || modoEquipe) ? (

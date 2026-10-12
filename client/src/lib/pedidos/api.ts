@@ -47,6 +47,42 @@ export type ProdutoEquipe = {
   estoque: number | null;
 };
 
+export type CadastroConta = {
+  nome: string;
+  nomeFantasia: string;
+  cnpj: string;
+  email: string;
+  telefone: string;
+  contato: string;
+  cep: string;
+  logradouro: string;
+  numero: string;
+  complemento: string;
+  bairro: string;
+  cidade: string;
+  estado: string;
+  inscricaoEstadual: string;
+};
+
+export type ContaPortal = {
+  cadastro: CadastroConta;
+  minimoReais: number;
+  aviso?: string | null;
+  contrato: {
+    versao: string;
+    texto: string;
+    status: string;
+    aceite: {
+      aceitoEm: string;
+      representanteNome: string;
+      representanteCpf: string;
+      representanteEmail: string;
+      ip: string;
+      userAgent: string;
+    } | null;
+  } | null;
+};
+
 export type CadastroEmpresa = {
   nome: string;
   nomeFantasia?: string;
@@ -128,6 +164,11 @@ export const portalApi = {
     }),
   vitrine: () =>
     request<{ minimoReais: number; datas: string[]; itens: ProdutoLoja[] }>("/vitrine"),
+  conta: () => request<ContaPortal>("/conta"),
+  salvarConta: (body: CadastroConta) =>
+    request<ContaPortal & { aviso: string | null }>("/conta", { method: "PATCH", body: JSON.stringify(body) }),
+  aceitarContrato: (body: { representanteNome: string; representanteCpf: string; representanteEmail: string; liEAceito: true }) =>
+    request<ContaPortal>("/conta/contrato", { method: "POST", body: JSON.stringify(body) }),
   cadastrar: (body: CadastroEmpresa) =>
     request<{ pendente: boolean; mensagem: string }>("/cadastro", {
       method: "POST",
