@@ -816,21 +816,11 @@ async function blobParaJpeg(origem: Blob): Promise<string> {
 }
 
 async function arquivoParaJpeg(arquivo: File): Promise<string> {
-  let origem: Blob = arquivo;
   if (pareceHeic(arquivo)) {
-    try {
-      const modulo = await import("heic2any");
-      const heic2any = modulo.default as (opcoes: { blob: Blob; toType: string; quality: number }) => Promise<Blob | Blob[]>;
-      const saida = await heic2any({ blob: arquivo, toType: "image/jpeg", quality: 0.9 });
-      const convertido = Array.isArray(saida) ? saida[0] : saida;
-      if (!convertido) throw new Error("vazio");
-      origem = convertido;
-    } catch (error) {
-      if (error instanceof Error && error.message.startsWith("Não consegui")) throw error;
-      throw new Error("Não consegui abrir a foto do celular. Escolha JPG ou PNG.");
-    }
+    if (arquivo.size > 12_000_000) throw new Error("Essa foto ficou grande demais. Escolha outra, ou uma menor.");
+    return base64DosBytes(new Uint8Array(await arquivo.arrayBuffer()));
   }
-  return blobParaJpeg(origem);
+  return blobParaJpeg(arquivo);
 }
 
 function IndicadoresConta({
