@@ -70,6 +70,37 @@ function tituloEmAtraso(titulo: TituloCliente, hoje: string) {
   return Boolean(titulo.vencimento && titulo.vencimento.slice(0, 10) < hoje);
 }
 
+function dataCurta(ymd: string) {
+  const [ano, mes, dia] = ymd.split("-").map(Number);
+  return new Date(Date.UTC(ano, (mes ?? 1) - 1, dia ?? 1)).toLocaleDateString("pt-BR", {
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+  });
+}
+
+function resumoDaConta(pedidos: PedidoCliente[], titulos: TituloCliente[]) {
+  const hoje = hojeManaus();
+  const programados = pedidos
+    .filter((pedido) => pedido.programado ?? (pedido.dataEntrega.slice(0, 10) >= hoje && pedido.status !== "CANCELADO"))
+    .sort((a, b) => a.dataEntrega.localeCompare(b.dataEntrega));
+  const atrasados = titulos.filter((titulo) => tituloEmAtraso(titulo, hoje));
+  const idsAtraso = new Set(atrasados.map((titulo) => titulo.id));
+  const aVencer = titulos
+    .filter((titulo) => titulo.emAberto > 0.009 && !idsAtraso.has(titulo.id))
+    .sort((a, b) => (a.vencimento ?? "9999").localeCompare(b.vencimento ?? "9999"));
+  return {
+    programados: programados.length,
+    proximaEntrega: programados[0]?.dataEntrega.slice(0, 10) ?? null,
+    aguardando: programados.filter((pedido) => pedido.doSite && pedido.status === "PENDENTE").length,
+    atraso: atrasados.length,
+    valorAtraso: atrasados.reduce((soma, titulo) => soma + titulo.emAberto, 0),
+    aVencer: aVencer.length,
+    proximoVencimento: aVencer[0]?.vencimento?.slice(0, 10) ?? null,
+    valorProximo: aVencer[0]?.emAberto ?? 0,
+  };
+}
+
 function lerCarrinho(): Record<string, number> {
   try {
     const salvo = JSON.parse(localStorage.getItem("fazendas.pedido") ?? "{}") as Record<string, number>;
@@ -108,6 +139,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
   const [produtosEquipe, setProdutosEquipe] = useState<ProdutoEquipe[]>([]);
   const [cadastros, setCadastros] = useState<Array<{ id: string; nome: string; cnpj: string; email: string; cidade: string; estado: string; status: string; erro: string | null }>>([]);
   const [emAtraso, setEmAtraso] = useState(false);
+  const [contaPronta, setContaPronta] = useState(false);
   const [avisoPagamento, setAvisoPagamento] = useState("");
   const [verHistorico, setVerHistorico] = useState(false);
   const [verHistoricoPedidos, setVerHistoricoPedidos] = useState(false);
@@ -145,6 +177,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
     setTitulos(financeiro.titulos);
     setAvisoPagamento(financeiro.aviso ?? "");
     setEmAtraso(financeiro.totais.emAtraso > 0);
+    setContaPronta(true);
   };
 
   useEffect(() => {
@@ -323,11 +356,11 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
           )}
         </div>
         {cliente ? (
-          <div className="mt-8 flex flex-col gap-4 border border-ink/15 bg-white px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-8 border border-ink/15 bg-white px-5 py-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.18em] text-ink/45">Sua conta</p>
               <p className="display-head text-[clamp(1.6rem,3vw,2.2rem)] leading-none">{cliente.nome}</p>
-              {emAtraso ? <p className="mt-2 text-sm text-forest">Há pagamento em atraso.</p> : null}
             </div>
             <nav className="flex flex-wrap gap-2">
               {(
@@ -368,6 +401,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                     setPedidos([]);
                     setTitulos([]);
                     setAvisoPagamento("");
+                    setContaPronta(false);
                     setVerHistorico(false);
                     setVerHistoricoPedidos(false);
                     setVista("loja");
@@ -378,6 +412,8 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                 Sair
               </button>
             </nav>
+            </div>
+            {contaPronta ? <IndicadoresConta pedidos={pedidos} titulos={titulos} onPedidos={() => { setVerHistoricoPedidos(false); setVista("pedidos"); }} onPagamentos={() => { setVerHistorico(false); setVista("pagamentos"); }} /> : null}
           </div>
         ) : null}
 
@@ -743,6 +779,68 @@ async function arquivoParaJpeg(arquivo: File): Promise<string> {
     binario += String.fromCharCode(bytes[i]);
   }
   return btoa(binario);
+}
+
+function IndicadoresConta({
+  pedidos,
+  titulos,
+  onPedidos,
+  onPagamentos,
+}: {
+  pedidos: PedidoCliente[];
+  titulos: TituloCliente[];
+  onPedidos: () => void;
+  onPagamentos: () => void;
+}) {
+  const resumo = resumoDaConta(pedidos, titulos);
+  const entrega =
+    resumo.proximaEntrega && resumo.aguardando
+      ? `Próxima em ${dataCurta(resumo.proximaEntrega)}. ${resumo.aguardando === 1 ? "1 aguardando aprovação." : `${resumo.aguardando} aguardando aprovação.`}`
+      : resumo.proximaEntrega
+        ? `Próxima em ${dataCurta(resumo.proximaEntrega)}.`
+        : resumo.aguardando
+          ? resumo.aguardando === 1
+            ? "1 aguardando aprovação."
+            : `${resumo.aguardando} aguardando aprovação.`
+          : "Nenhuma entrega marcada.";
+  const atraso = resumo.atraso > 0 ? reais(resumo.valorAtraso) : "Nada em atraso.";
+  const vencer = resumo.proximoVencimento
+    ? `${reais(resumo.valorProximo)} em ${dataCurta(resumo.proximoVencimento)}.`
+    : "Nenhum pagamento perto de vencer.";
+
+  return (
+    <div className="mt-5 grid gap-2 sm:grid-cols-3">
+      <Indicador valor={resumo.programados} rotulo={resumo.programados === 1 ? "entrega programada" : "entregas programadas"} detalhe={entrega} onClick={onPedidos} />
+      <Indicador valor={resumo.atraso} rotulo={resumo.atraso === 1 ? "pagamento em atraso" : "pagamentos em atraso"} detalhe={atraso} destaque={resumo.atraso > 0} onClick={onPagamentos} />
+      <Indicador valor={resumo.aVencer} rotulo={resumo.aVencer === 1 ? "pagamento a vencer" : "pagamentos a vencer"} detalhe={vencer} onClick={onPagamentos} />
+    </div>
+  );
+}
+
+function Indicador({
+  valor,
+  rotulo,
+  detalhe,
+  destaque = false,
+  onClick,
+}: {
+  valor: number;
+  rotulo: string;
+  detalhe: string;
+  destaque?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={destaque ? "bg-forest px-4 py-3 text-left text-paper" : "border border-ink/10 px-4 py-3 text-left"}
+    >
+      <p className="display-head text-3xl leading-none">{valor}</p>
+      <p className="mt-2 text-sm">{rotulo}</p>
+      <p className={`mt-1 text-xs ${destaque ? "text-paper/80" : "text-ink/55"}`}>{detalhe}</p>
+    </button>
+  );
 }
 
 function CartaoPedido({ pedido }: { pedido: PedidoCliente }) {
