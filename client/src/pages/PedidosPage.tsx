@@ -684,6 +684,7 @@ function CartaoProduto({
     <article className="overflow-hidden rounded-sm border border-ink/10 bg-white">
       {produto.imagemUrl ? (
         <img
+          key={produto.imagemUrl}
           src={produto.imagemUrl}
           alt=""
           className="aspect-[4/5] w-full bg-ink/5 object-cover"

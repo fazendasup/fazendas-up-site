@@ -4,7 +4,7 @@
  * Imagens com parallax acoplado ao scroll (mesma lógica editorial da capa).
  */
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getSiteImage } from "@/content/siteImages";
 import { useMinLg } from "@/hooks/useMinLg";
 import { motionEnterFromBelow } from "@/lib/motionEntrance";
@@ -54,7 +54,15 @@ const cultivos = [
   },
 ] as const;
 
-type CultivoRow = (typeof cultivos)[number];
+type CultivoRow = {
+  n: string;
+  name: string;
+  subtitle: string;
+  image: string;
+  body: string;
+  notes: readonly string[];
+  accent: string;
+};
 
 function CultivosSpreadRow({
   c,
@@ -239,6 +247,34 @@ function CultivosSpreadRow({
 
 export function CultivosSection() {
   const desktopLg = useMinLg();
+  const [fotoFlores, setFotoFlores] = useState("/produtos/flores.jpg");
+
+  useEffect(() => {
+    let ativo = true;
+    fetch("/api/portal/vitrine")
+      .then((resposta) => resposta.json())
+      .then((dados: { itens?: Array<{ nome: string; grupo: string; imagemUrl: string | null }> }) => {
+        const flor = dados.itens?.find((item) => /flor/i.test(`${item.grupo} ${item.nome}`));
+        if (ativo && flor?.imagemUrl) setFotoFlores(flor.imagemUrl);
+      })
+      .catch(() => undefined);
+    return () => {
+      ativo = false;
+    };
+  }, []);
+
+  const categorias = [
+    ...cultivos,
+    {
+      n: "04",
+      name: "Flores",
+      subtitle: "Produção ativa",
+      image: fotoFlores,
+      body: "Flores comestíveis, colhidas para ir ao prato.",
+      notes: ["Finalização de prato", "Drink e sobremesa", "Colheita do dia", "Entrega local"],
+      accent: "#8a3d55",
+    },
+  ];
 
   return (
     <section id="cultivos" className="relative isolate w-full max-w-full min-w-0 overflow-x-visible bg-paper text-ink">
@@ -291,14 +327,14 @@ export function CultivosSection() {
         </div>
       )}
 
-      {cultivos.map((c, i) => (
+      {categorias.map((c, i) => (
         <CultivosSpreadRow
           key={c.name}
           desktopLg={desktopLg}
           c={c}
           i={i}
           reverse={i % 2 === 1}
-          showBorder={i !== cultivos.length - 1}
+          showBorder={i !== categorias.length - 1}
         />
       ))}
     </section>
