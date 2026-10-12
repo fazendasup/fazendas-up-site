@@ -12,6 +12,17 @@ export type ClienteSessao = {
   email: string;
   cnpj: string | null;
   vinculado: boolean;
+  recorrente?: boolean;
+};
+
+export type ProgramacaoPortal = {
+  minimoReais: number;
+  dias: Array<{
+    diaSemana: number;
+    itens: Array<{ produtoId: string; nome: string; quantidade: number; preco: number | null }>;
+  }>;
+  proximas: Array<{ data: string; diaSemana: number; total: number }>;
+  mantidas?: number;
 };
 
 export type EquipeSessao = {
@@ -169,6 +180,9 @@ export const portalApi = {
     request<ContaPortal & { aviso: string | null }>("/conta", { method: "PATCH", body: JSON.stringify(body) }),
   aceitarContrato: (body: { representanteNome: string; representanteCpf: string; representanteEmail: string; liEAceito: true }) =>
     request<ContaPortal>("/conta/contrato", { method: "POST", body: JSON.stringify(body) }),
+  programacao: () => request<ProgramacaoPortal>("/programacao"),
+  salvarProgramacao: (body: { dias: Array<{ diaSemana: number; itens: Array<{ produtoId: string; quantidade: number }> }> }) =>
+    request<ProgramacaoPortal>("/programacao", { method: "POST", body: JSON.stringify(body) }),
   cadastrar: (body: CadastroEmpresa) =>
     request<{ pendente: boolean; mensagem: string }>("/cadastro", {
       method: "POST",

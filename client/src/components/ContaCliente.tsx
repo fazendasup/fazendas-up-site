@@ -68,7 +68,7 @@ const vazio: CadastroConta = {
   inscricaoEstadual: "",
 };
 
-export function ContaCliente({ onMinimo }: { onMinimo: (valor: number) => void }) {
+export function ContaCliente({ onMinimo, onRecorrente }: { onMinimo: (valor: number) => void; onRecorrente?: () => void }) {
   const [conta, setConta] = useState<ContaPortal | null>(null);
   const [cadastro, setCadastro] = useState<CadastroConta>(vazio);
   const [enviando, setEnviando] = useState(false);
@@ -83,6 +83,7 @@ export function ContaCliente({ onMinimo }: { onMinimo: (valor: number) => void }
     setCadastro(dados.cadastro);
     setEmailAceite((atual) => atual || dados.cadastro.email);
     onMinimo(dados.minimoReais);
+    if (dados.contrato?.status === "ACEITO") onRecorrente?.();
   };
 
   useEffect(() => {
@@ -172,7 +173,8 @@ export function ContaCliente({ onMinimo }: { onMinimo: (valor: number) => void }
                   .then((salvo) => {
                     setConta(salvo);
                     onMinimo(salvo.minimoReais);
-                    toast.success("Contrato aceito. A entrega recorrente passa a valer a partir de R$ 150.");
+                    onRecorrente?.();
+                    toast.success("Contrato aceito. A programação das entregas está na aba Programação.");
                   })
                   .catch((error) => toast.error(mensagem(error)))
                   .finally(() => setEnviando(false));

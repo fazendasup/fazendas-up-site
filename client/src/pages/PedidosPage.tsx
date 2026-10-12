@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ContaCliente } from "@/components/ContaCliente";
+import { ProgramacaoPedidos } from "@/components/ProgramacaoPedidos";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +17,7 @@ import {
 } from "@/lib/pedidos/api";
 import { formatCnpj, formatLongDate, isValidCnpj } from "@/lib/pedidos/rules";
 
-type Vista = "loja" | "pedidos" | "pagamentos" | "conta" | "equipe" | "cadastro";
+type Vista = "loja" | "programacao" | "pedidos" | "pagamentos" | "conta" | "equipe" | "cadastro";
 
 const ORDEM_GRUPOS = ["Folhas", "Microverdes", "Ervas", "Saladas", "Flores", "Legumes", "Processados", "Molhos", "Planos", "Da fazenda"];
 
@@ -367,6 +368,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
               {(
                 [
                   ["loja", "Fazer pedido"],
+                  ...(cliente.recorrente ? [["programacao", "Programação"] as const] : []),
                   ["pedidos", "Meus pedidos"],
                   ["pagamentos", "Pagamentos"],
                   ["conta", "Conta"],
@@ -466,6 +468,8 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
           </form>
         ) : null}
 
+        {vista === "programacao" && cliente?.recorrente ? <ProgramacaoPedidos produtos={catalogo} /> : null}
+
         {vista === "pedidos" && cliente ? (
           <PedidosCliente
             pedidos={pedidos}
@@ -498,7 +502,10 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
 
         {vista === "conta" && cliente ? (
           <>
-          <ContaCliente onMinimo={setMinimo} />
+          <ContaCliente
+            onMinimo={setMinimo}
+            onRecorrente={() => setCliente((atual) => (atual ? { ...atual, recorrente: true } : atual))}
+          />
           <form
             className="mt-8 max-w-md space-y-3 rounded-sm border border-ink/10 bg-white p-5"
             onSubmit={(event) => {
