@@ -365,6 +365,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
             <nav className="flex flex-wrap gap-2">
               {(
                 [
+                  ["loja", "Fazer pedido"],
                   ["pedidos", "Meus pedidos"],
                   ["pagamentos", "Pagamentos"],
                   ["conta", "Conta"],
@@ -382,6 +383,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                     if (id === "pagamentos") setVerHistorico(false);
                     if (id === "pedidos") setVerHistoricoPedidos(false);
                     setVista(id);
+                    if (id === "loja") window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
                 >
                   {rotulo}
@@ -468,11 +470,12 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
             pedidos={pedidos}
             verHistorico={verHistoricoPedidos}
             onHistorico={() => setVerHistoricoPedidos((atual) => !atual)}
-            onLoja={() => setVista("loja")}
+            onLoja={() => { setVista("loja"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
           />
         ) : null}
 
         {vista === "pagamentos" && cliente ? (
+          <>
           <Pagamentos
             titulos={titulos}
             aviso={avisoPagamento}
@@ -488,6 +491,8 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                 .finally(() => setBaixandoDoc((atual) => (atual === chave ? "" : atual)));
             }}
           />
+          <button type="button" className="mt-8 text-sm text-forest" onClick={() => { setVista("loja"); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Fazer pedido</button>
+          </>
         ) : null}
 
         {vista === "conta" && cliente ? (
@@ -517,6 +522,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
             <CampoSenha label="Nova senha" value={senhaNova} onChange={setSenhaNova} autoComplete="new-password" />
             <CampoSenha label="Repita a nova senha" value={senha2} onChange={setSenha2} autoComplete="new-password" />
             <Button type="submit" disabled={enviando}>Alterar senha</Button>
+            <button type="button" className="text-sm text-forest" onClick={() => { setVista("loja"); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Fazer pedido</button>
           </form>
         ) : null}
 
@@ -898,7 +904,7 @@ function PedidosCliente({
           ))}
         </div>
       ) : null}
-      <button type="button" className="text-sm text-forest" onClick={onLoja}>Voltar aos produtos</button>
+      <button type="button" className="text-sm text-forest" onClick={onLoja}>Fazer pedido</button>
     </section>
   );
 }
