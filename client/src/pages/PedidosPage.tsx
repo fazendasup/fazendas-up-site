@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
@@ -682,14 +682,18 @@ function CartaoProduto({
   const esgotado = produto.estoque === 0;
   return (
     <article className="overflow-hidden rounded-sm border border-ink/10 bg-white">
-      <img
-        src={produto.imagemUrl || "/uploads/IMG_7964.jpg"}
-        alt=""
-        className="aspect-[4/5] w-full object-cover"
-        onError={(event) => {
-          event.currentTarget.src = "/uploads/IMG_7964.jpg";
-        }}
-      />
+      {produto.imagemUrl ? (
+        <img
+          src={produto.imagemUrl}
+          alt=""
+          className="aspect-[4/5] w-full bg-ink/5 object-cover"
+          onError={(event) => {
+            event.currentTarget.removeAttribute("src");
+          }}
+        />
+      ) : (
+        <div className="aspect-[4/5] w-full bg-ink/5" />
+      )}
       <div className="space-y-2 p-3">
         <h3 className="text-[0.95rem] leading-tight">{produto.nome}</h3>
         <p className="line-clamp-2 text-xs leading-relaxed text-ink/70">{produto.descricao}</p>
@@ -764,8 +768,28 @@ function CampoSenha({
   );
 }
 
-async function arquivoParaJpeg(arquivo: File): Promise<string> {
-  const bitmap = await createImageBitmap(arquivo);
+function base64DosBytes(bytes: Uint8Array): string {
+  let binario = "";
+  const passo = 0x8000;
+  for (let i = 0; i < bytes.length; i += passo) {
+    const fatia = bytes.subarray(i, i + passo);
+    binario += String.fromCharCode.apply(null, Array.from(fatia));
+  }
+  return btoa(binario);
+}
+
+function pareceHeic(arquivo: File): boolean {
+  const nome = arquivo.name.toLowerCase();
+  return nome.endsWith(".heic") || nome.endsWith(".heif") || arquivo.type === "image/heic" || arquivo.type === "image/heif";
+}
+
+async function blobParaJpeg(origem: Blob): Promise<string> {
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(origem);
+  } catch {
+    throw new Error("Não consegui abrir essa foto. Escolha JPG, PNG ou WEBP.");
+  }
   const limite = 1400;
   const escala = Math.min(1, limite / Math.max(bitmap.width, bitmap.height));
   const largura = Math.max(1, Math.round(bitmap.width * escala));
@@ -775,16 +799,38 @@ async function arquivoParaJpeg(arquivo: File): Promise<string> {
   tela.height = altura;
   const contexto = tela.getContext("2d");
   if (!contexto) throw new Error("Não foi possível ler a foto.");
+  contexto.fillStyle = "#ffffff";
+  contexto.fillRect(0, 0, largura, altura);
   contexto.drawImage(bitmap, 0, 0, largura, altura);
   bitmap.close();
-  const blob = await new Promise<Blob | null>((resolve) => tela.toBlob(resolve, "image/jpeg", 0.82));
-  if (!blob) throw new Error("Não foi possível ler a foto.");
-  const bytes = new Uint8Array(await blob.arrayBuffer());
-  let binario = "";
-  for (let i = 0; i < bytes.length; i += 1) {
-    binario += String.fromCharCode(bytes[i]);
+  let qualidade = 0.82;
+  let blob: Blob | null = null;
+  for (let tentativa = 0; tentativa < 4; tentativa += 1) {
+    blob = await new Promise<Blob | null>((resolve) => tela.toBlob(resolve, "image/jpeg", qualidade));
+    if (blob && blob.size <= 1_200_000) break;
+    qualidade -= 0.15;
   }
-  return btoa(binario);
+  if (!blob) throw new Error("Não foi possível ler a foto.");
+  if (blob.size > 1_400_000) throw new Error("Essa foto ficou grande demais. Escolha outra, ou uma menor.");
+  return base64DosBytes(new Uint8Array(await blob.arrayBuffer()));
+}
+
+async function arquivoParaJpeg(arquivo: File): Promise<string> {
+  let origem: Blob = arquivo;
+  if (pareceHeic(arquivo)) {
+    try {
+      const modulo = await import("heic2any");
+      const heic2any = modulo.default as (opcoes: { blob: Blob; toType: string; quality: number }) => Promise<Blob | Blob[]>;
+      const saida = await heic2any({ blob: arquivo, toType: "image/jpeg", quality: 0.9 });
+      const convertido = Array.isArray(saida) ? saida[0] : saida;
+      if (!convertido) throw new Error("vazio");
+      origem = convertido;
+    } catch (error) {
+      if (error instanceof Error && error.message.startsWith("Não consegui")) throw error;
+      throw new Error("Não consegui abrir a foto do celular. Escolha JPG ou PNG.");
+    }
+  }
+  return blobParaJpeg(origem);
 }
 
 function IndicadoresConta({
@@ -1017,9 +1063,9 @@ function ProdutoEquipeCard({
   onSave: (produto: ProdutoEquipe, patch: { naLoja?: boolean; exclusivo?: boolean; preco?: number; imagemUrl?: string | null; descricao?: string; aplicacao?: string; estoque?: number | null }) => Promise<void>;
   onFoto: (produto: ProdutoEquipe, imagem: string) => Promise<string>;
 }) {
-  const arquivoRef = useRef<HTMLInputElement>(null);
   const [preco, setPreco] = useState(produto.preco?.toString() ?? "");
   const [foto, setFoto] = useState(produto.imagemUrl ?? "");
+  const [enviandoFoto, setEnviandoFoto] = useState(false);
   const [descricao, setDescricao] = useState(produto.descricao);
   const [aplicacao, setAplicacao] = useState(produto.aplicacao);
   const [estoque, setEstoque] = useState(produto.estoque == null ? "" : String(produto.estoque));
@@ -1047,25 +1093,41 @@ function ProdutoEquipeCard({
         <div className="text-sm md:col-span-2">
           <span>Foto</span>
           <div className="mt-1 flex items-center gap-3">
-            {foto ? <img src={foto} alt="" className="h-16 w-12 object-cover" /> : null}
-            <Button type="button" size="sm" variant="outline" onClick={() => arquivoRef.current?.click()}>
-              Escolher foto
-            </Button>
-            <input
-              ref={arquivoRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="hidden"
-              onChange={(event) => {
-                const arquivo = event.target.files?.[0];
-                event.target.value = "";
-                if (!arquivo) return;
-                void arquivoParaJpeg(arquivo)
-                  .then((imagem) => onFoto(produto, imagem))
-                  .then((url) => setFoto(`${url}?v=${Date.now()}`))
-                  .catch((error) => toast.error(mensagem(error)));
-              }}
-            />
+            {foto ? <img src={foto} alt="" className="h-16 w-12 bg-ink/5 object-cover" /> : null}
+            <label className={`inline-flex cursor-pointer items-center border border-ink/20 px-3 py-2 text-sm ${enviandoFoto ? "pointer-events-none opacity-60" : ""}`}>
+              {enviandoFoto ? "Enviando foto..." : "Escolher foto"}
+              <input
+                type="file"
+                accept="image/*,.heic,.heif,.jfif,.jpg,.jpeg,.png,.webp,.gif,.bmp,.avif"
+                className="sr-only"
+                disabled={enviandoFoto}
+                onChange={(event) => {
+                  const arquivo = event.target.files?.[0];
+                  event.target.value = "";
+                  if (!arquivo) return;
+                  const anterior = foto;
+                  const previa = URL.createObjectURL(arquivo);
+                  setFoto(previa);
+                  setEnviandoFoto(true);
+                  void arquivoParaJpeg(arquivo)
+                    .then((imagem) => onFoto(produto, imagem))
+                    .then((url) => {
+                      const destino = new URL(url, window.location.origin);
+                      destino.searchParams.set("v", String(Date.now()));
+                      setFoto(`${destino.pathname}${destino.search}`);
+                    })
+                    .catch((error) => {
+                      setFoto(anterior);
+                      const texto = error instanceof Error && error.message ? error.message : "Não foi possível usar essa foto.";
+                      toast.error(texto);
+                    })
+                    .finally(() => {
+                      URL.revokeObjectURL(previa);
+                      setEnviandoFoto(false);
+                    });
+                }}
+              />
+            </label>
           </div>
         </div>
         <label className="text-sm md:col-span-2">Característica<textarea value={descricao} onChange={(event) => setDescricao(event.target.value)} rows={2} className="mt-1 w-full border border-ink/15 px-2 py-2" /></label>
