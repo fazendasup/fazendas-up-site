@@ -11,6 +11,8 @@ export type ClienteSessao = {
   nome: string;
   email: string;
   cnpj: string | null;
+  documento?: string | null;
+  perfil?: "empresa" | "pessoa";
   vinculado: boolean;
   recorrente?: boolean;
 };
@@ -111,13 +113,30 @@ export type CadastroEmpresa = {
   inscricaoEstadual?: string;
 };
 
+export type PedidoPagamento = {
+  status: string;
+  pixUrl: string | null;
+  cartaoUrl: string | null;
+  total: number | null;
+};
+
 export type PedidoCliente = {
   id: string;
   dataEntrega: string;
   status: string;
   programado?: boolean;
   doSite?: boolean;
+  pessoa?: boolean;
+  pagamento?: PedidoPagamento | null;
   itens: Array<{ nome: string; quantidade: number; preco: number | null }>;
+};
+
+export type CadastroPessoa = {
+  nome: string;
+  cpf: string;
+  email: string;
+  telefone: string;
+  senha: string;
 };
 
 export type TituloCliente = {
@@ -157,10 +176,10 @@ export const portalApi = {
   regras: () =>
     request<{ minimoReais: number; primeiraData: string; datas: string[] }>("/regras"),
   sessao: () => request<{ cliente: ClienteSessao | null; equipe: EquipeSessao | null }>("/sessao"),
-  entrar: (cnpj: string, senha: string) =>
+  entrar: (documento: string, senha: string) =>
     request<{ cliente: ClienteSessao; senhaInicial?: boolean }>("/entrar", {
       method: "POST",
-      body: JSON.stringify({ cnpj, senha }),
+      body: JSON.stringify({ documento, senha }),
     }),
   alterarSenha: (senhaAtual: string, senhaNova: string) =>
     request<{ ok: boolean }>("/senha", {
@@ -188,13 +207,35 @@ export const portalApi = {
       method: "POST",
       body: JSON.stringify(body),
     }),
+  cadastrarPessoa: (body: CadastroPessoa) =>
+    request<{ cliente: ClienteSessao; mensagem: string }>("/cadastro/pessoa", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   catalogo: () => request<{ itens: ProdutoLoja[] }>("/catalogo"),
   pedidos: () => request<{ pedidos: PedidoCliente[] }>("/pedidos"),
   criarPedido: (body: {
     dataEntrega: string;
     observacoes?: string;
     itens: Array<{ produtoId: string; quantidade: number }>;
-  }) => request<{ id: string; dataEntrega: string; total: number }>("/pedidos", { method: "POST", body: JSON.stringify(body) }),
+  }) =>
+    request<{
+      id: string;
+      dataEntrega: string;
+      total: number;
+      perfil?: "empresa" | "pessoa";
+      mensagem?: string;
+      pagamento?: PedidoPagamento;
+    }>("/pedidos", { method: "POST", body: JSON.stringify(body) }),
+  pagamentoPedido: (id: string) =>
+    request<{
+      pedidoId: string;
+      status: string;
+      pixUrl: string | null;
+      cartaoUrl: string | null;
+      total: number | null;
+      pago: boolean;
+    }>(`/pedidos/${encodeURIComponent(id)}/pagamento`),
   financeiro: () =>
     request<{
       totais: { recebido: number; emAberto: number; emAtraso: number };

@@ -8,16 +8,19 @@ import {
   portalApi,
   PortalError,
   type CadastroEmpresa,
+  type CadastroPessoa,
   type ClienteSessao,
   type EquipeSessao,
   type PedidoCliente,
+  type PedidoPagamento,
   type ProdutoEquipe,
   type ProdutoLoja,
   type TituloCliente,
 } from "@/lib/pedidos/api";
-import { formatCnpj, formatLongDate, isValidCnpj } from "@/lib/pedidos/rules";
+import { formatCnpj, formatCpf, formatDocumento, formatLongDate, isValidCnpj, isValidCpf } from "@/lib/pedidos/rules";
 
 type Vista = "loja" | "programacao" | "pedidos" | "pagamentos" | "conta" | "equipe" | "cadastro";
+type TipoCadastro = "empresa" | "pessoa";
 
 const ORDEM_GRUPOS = ["Folhas", "Microverdes", "Ervas", "Saladas", "Flores", "Legumes", "Processados", "Molhos", "Planos", "Da fazenda"];
 
@@ -48,12 +51,18 @@ function mensagem(error: unknown) {
   return texto;
 }
 
-function statusPedido(status: string, doSite = false) {
-  if (status === "PENDENTE") return doSite ? "Aguardando aprovação" : "Programado";
-  if (status === "PRONTO") return "Separado";
-  if (status === "ENTREGUE") return "Entregue";
-  if (status === "CANCELADO") return "Cancelado";
+function statusPedido(pedido: Pick<PedidoCliente, "status" | "doSite" | "pessoa" | "pagamento">) {
+  if (pedido.pessoa && pedido.pagamento?.status === "AGUARDANDO") return "Aguardando pagamento";
+  if (pedido.pessoa && pedido.pagamento?.status === "PAGO") return "Pago · na programação";
+  if (pedido.status === "PENDENTE") return pedido.doSite && !pedido.pessoa ? "Aguardando aprovação" : "Programado";
+  if (pedido.status === "PRONTO") return "Separado";
+  if (pedido.status === "ENTREGUE") return "Entregue";
+  if (pedido.status === "CANCELADO") return "Cancelado";
   return "Em andamento";
+}
+
+function ehPessoa(cliente: ClienteSessao | null) {
+  return cliente?.perfil === "pessoa";
 }
 
 function hojeManaus() {
@@ -94,7 +103,11 @@ function resumoDaConta(pedidos: PedidoCliente[], titulos: TituloCliente[]) {
   return {
     programados: programados.length,
     proximaEntrega: programados[0]?.dataEntrega.slice(0, 10) ?? null,
-    aguardando: programados.filter((pedido) => pedido.doSite && pedido.status === "PENDENTE").length,
+    aguardando: programados.filter(
+      (pedido) =>
+        (pedido.doSite && pedido.status === "PENDENTE" && !pedido.pessoa) ||
+        pedido.pagamento?.status === "AGUARDANDO",
+    ).length,
     atraso: atrasados.length,
     valorAtraso: atrasados.reduce((soma, titulo) => soma + titulo.emAberto, 0),
     aVencer: aVencer.length,
@@ -136,6 +149,9 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
   const [senhaAtual, setSenhaAtual] = useState("");
   const [senhaNova, setSenhaNova] = useState("");
   const [empresa, setEmpresa] = useState<CadastroEmpresa>(cadastroVazio);
+  const [tipoCadastro, setTipoCadastro] = useState<TipoCadastro>("pessoa");
+  const [pessoa, setPessoa] = useState<CadastroPessoa>({ nome: "", cpf: "", email: "", telefone: "", senha: "" });
+  const [pagamentoAberto, setPagamentoAberto] = useState<(PedidoPagamento & { pedidoId: string }) | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [enviando, setEnviando] = useState(false);
   const [produtosEquipe, setProdutosEquipe] = useState<ProdutoEquipe[]>([]);
@@ -240,6 +256,9 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
         setSenha("");
         setVista("loja");
         await Promise.all([carregarVitrine(), carregarConta()]);
+        if (resposta.cliente.perfil === "pessoa") {
+          toast.success("Bem-vindo. Pague com Pix ou cartão ao enviar o pedido.");
+        }
       }
     } catch (error) {
       toast.error(mensagem(error));
@@ -288,12 +307,17 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
     }
     setEnviando(true);
     try {
-      await portalApi.criarPedido({ dataEntrega, observacoes, itens });
+      const criado = await portalApi.criarPedido({ dataEntrega, observacoes, itens });
       setCarrinho({});
       setObservacoes("");
       await Promise.all([carregarVitrine(), carregarConta()]);
       setVista("pedidos");
-      toast.success("Pedido enviado para aprovação.");
+      if (criado.perfil === "pessoa" && criado.pagamento) {
+        setPagamentoAberto({ ...criado.pagamento, pedidoId: criado.id });
+        toast.success(criado.mensagem || "Pedido criado. Escolha Pix ou cartão.");
+      } else {
+        toast.success(criado.mensagem || "Pedido enviado para aprovação.");
+      }
     } catch (error) {
       toast.error(mensagem(error));
     } finally {
@@ -302,6 +326,35 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
   };
 
   const enviarCadastro = async () => {
+    if (tipoCadastro === "pessoa") {
+      if (!isValidCpf(pessoa.cpf)) {
+        toast.error("Confira o CPF.");
+        return;
+      }
+      if (pessoa.senha.length < 8) {
+        toast.error("A senha precisa ter pelo menos 8 caracteres.");
+        return;
+      }
+      setEnviando(true);
+      try {
+        const resposta = await portalApi.cadastrarPessoa({
+          ...pessoa,
+          cpf: pessoa.cpf.replace(/\D/g, ""),
+          telefone: pessoa.telefone.replace(/\D/g, ""),
+        });
+        setCliente(resposta.cliente);
+        setCnpj(pessoa.cpf);
+        setVista("loja");
+        setModoEquipe(false);
+        await Promise.all([carregarVitrine(), carregarConta()]);
+        toast.success(resposta.mensagem || "Conta criada.");
+      } catch (error) {
+        toast.error(mensagem(error));
+      } finally {
+        setEnviando(false);
+      }
+      return;
+    }
     if (!isValidCnpj(empresa.cnpj)) {
       toast.error("Confira o CNPJ.");
       return;
@@ -352,7 +405,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
             vista === "equipe" ? null : (
             <div className="flex gap-4 text-sm">
               <button type="button" className="text-ink/70" onClick={() => { setVista("loja"); setModoEquipe(false); }}>Entrar</button>
-              <button type="button" className="text-forest" onClick={() => setVista("cadastro")}>Cadastrar empresa</button>
+              <button type="button" className="text-forest" onClick={() => { setTipoCadastro("pessoa"); setVista("cadastro"); }}>Criar conta</button>
             </div>
             )
           )}
@@ -368,10 +421,10 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
               {(
                 [
                   ["loja", "Fazer pedido"],
-                  ...(cliente.recorrente ? [["programacao", "Programação"] as const] : []),
+                  ...(cliente.recorrente && !ehPessoa(cliente) ? [["programacao", "Programação"] as const] : []),
                   ["pedidos", "Meus pedidos"],
                   ["pagamentos", "Pagamentos"],
-                  ["conta", "Conta"],
+                  ...(!ehPessoa(cliente) ? [["conta", "Conta"] as const] : []),
                 ] as const
               ).map(([id, rotulo]) => (
                 <button
@@ -425,32 +478,74 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
         {carregando ? <p className="mt-8 text-ink/60">Carregando os produtos...</p> : null}
 
         {vista === "cadastro" && !cliente ? (
-          <form
-            className="mt-8 grid max-w-3xl gap-4 rounded-sm border border-ink/10 bg-white p-6 sm:grid-cols-2"
-            onSubmit={(event) => {
-              event.preventDefault();
-              void enviarCadastro();
-            }}
-          >
-            <h2 className="display-head text-2xl sm:col-span-2">Cadastro da empresa</h2>
-            <Campo label="Razão social" value={empresa.nome} onChange={(nome) => setEmpresa({ ...empresa, nome })} />
-            <Campo label="Nome fantasia" value={empresa.nomeFantasia ?? ""} onChange={(nomeFantasia) => setEmpresa({ ...empresa, nomeFantasia })} />
-            <Campo label="CNPJ" value={formatCnpj(empresa.cnpj)} onChange={(valor) => setEmpresa({ ...empresa, cnpj: valor })} inputMode="numeric" />
-            <Campo label="Inscrição estadual" value={empresa.inscricaoEstadual ?? ""} onChange={(inscricaoEstadual) => setEmpresa({ ...empresa, inscricaoEstadual })} />
-            <Campo label="E-mail" value={empresa.email} onChange={(valor) => setEmpresa({ ...empresa, email: valor })} type="email" />
-            <Campo label="Telefone" value={empresa.telefone} onChange={(telefone) => setEmpresa({ ...empresa, telefone })} inputMode="tel" />
-            <Campo label="Pessoa de contato" value={empresa.contato} onChange={(contato) => setEmpresa({ ...empresa, contato })} />
-            <Campo label="CEP" value={empresa.cep} onChange={(cep) => setEmpresa({ ...empresa, cep })} inputMode="numeric" />
-            <Campo label="Logradouro" value={empresa.logradouro} onChange={(logradouro) => setEmpresa({ ...empresa, logradouro })} />
-            <Campo label="Número" value={empresa.numero} onChange={(numero) => setEmpresa({ ...empresa, numero })} />
-            <Campo label="Complemento" value={empresa.complemento ?? ""} onChange={(complemento) => setEmpresa({ ...empresa, complemento })} />
-            <Campo label="Bairro" value={empresa.bairro} onChange={(bairro) => setEmpresa({ ...empresa, bairro })} />
-            <Campo label="Cidade" value={empresa.cidade} onChange={(cidade) => setEmpresa({ ...empresa, cidade })} />
-            <Campo label="Estado" value={empresa.estado} onChange={(estado) => setEmpresa({ ...empresa, estado: estado.slice(0, 2).toUpperCase() })} />
-            <div className="sm:col-span-2">
-              <Button type="submit" disabled={enviando}>Enviar cadastro</Button>
+          <div className="mt-8 max-w-3xl space-y-4">
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                className={tipoCadastro === "pessoa" ? "bg-forest px-3 py-2 text-sm text-paper" : "border border-ink/15 px-3 py-2 text-sm"}
+                onClick={() => setTipoCadastro("pessoa")}
+              >
+                Pessoa física
+              </button>
+              <button
+                type="button"
+                className={tipoCadastro === "empresa" ? "bg-forest px-3 py-2 text-sm text-paper" : "border border-ink/15 px-3 py-2 text-sm"}
+                onClick={() => setTipoCadastro("empresa")}
+              >
+                Empresa (CNPJ)
+              </button>
             </div>
-          </form>
+            {tipoCadastro === "pessoa" ? (
+              <form
+                className="grid gap-4 rounded-sm border border-ink/10 bg-white p-6 sm:grid-cols-2"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void enviarCadastro();
+                }}
+              >
+                <h2 className="display-head text-2xl sm:col-span-2">Criar conta</h2>
+                <p className="text-sm text-ink/65 sm:col-span-2">Só o essencial. Depois você paga com Pix ou cartão.</p>
+                <Campo label="Seu nome" value={pessoa.nome} onChange={(nome) => setPessoa({ ...pessoa, nome })} />
+                <Campo label="CPF" value={formatCpf(pessoa.cpf)} onChange={(cpf) => setPessoa({ ...pessoa, cpf })} inputMode="numeric" />
+                <Campo label="E-mail" value={pessoa.email} onChange={(email) => setPessoa({ ...pessoa, email })} type="email" />
+                <Campo label="Telefone / WhatsApp" value={pessoa.telefone} onChange={(telefone) => setPessoa({ ...pessoa, telefone })} inputMode="tel" />
+                <div className="sm:col-span-2">
+                  <CampoSenha label="Senha (mín. 8)" value={pessoa.senha} onChange={(senha) => setPessoa({ ...pessoa, senha })} autoComplete="new-password" />
+                </div>
+                <div className="sm:col-span-2">
+                  <Button type="submit" disabled={enviando}>Criar conta e entrar</Button>
+                </div>
+              </form>
+            ) : (
+              <form
+                className="grid gap-4 rounded-sm border border-ink/10 bg-white p-6 sm:grid-cols-2"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void enviarCadastro();
+                }}
+              >
+                <h2 className="display-head text-2xl sm:col-span-2">Cadastro da empresa</h2>
+                <p className="text-sm text-ink/65 sm:col-span-2">Pedidos B2B passam por aprovação da fazenda. As regras de pagamento ficam por cliente.</p>
+                <Campo label="Razão social" value={empresa.nome} onChange={(nome) => setEmpresa({ ...empresa, nome })} />
+                <Campo label="Nome fantasia" value={empresa.nomeFantasia ?? ""} onChange={(nomeFantasia) => setEmpresa({ ...empresa, nomeFantasia })} />
+                <Campo label="CNPJ" value={formatCnpj(empresa.cnpj)} onChange={(valor) => setEmpresa({ ...empresa, cnpj: valor })} inputMode="numeric" />
+                <Campo label="Inscrição estadual" value={empresa.inscricaoEstadual ?? ""} onChange={(inscricaoEstadual) => setEmpresa({ ...empresa, inscricaoEstadual })} />
+                <Campo label="E-mail" value={empresa.email} onChange={(valor) => setEmpresa({ ...empresa, email: valor })} type="email" />
+                <Campo label="Telefone" value={empresa.telefone} onChange={(telefone) => setEmpresa({ ...empresa, telefone })} inputMode="tel" />
+                <Campo label="Pessoa de contato" value={empresa.contato} onChange={(contato) => setEmpresa({ ...empresa, contato })} />
+                <Campo label="CEP" value={empresa.cep} onChange={(cep) => setEmpresa({ ...empresa, cep })} inputMode="numeric" />
+                <Campo label="Logradouro" value={empresa.logradouro} onChange={(logradouro) => setEmpresa({ ...empresa, logradouro })} />
+                <Campo label="Número" value={empresa.numero} onChange={(numero) => setEmpresa({ ...empresa, numero })} />
+                <Campo label="Complemento" value={empresa.complemento ?? ""} onChange={(complemento) => setEmpresa({ ...empresa, complemento })} />
+                <Campo label="Bairro" value={empresa.bairro} onChange={(bairro) => setEmpresa({ ...empresa, bairro })} />
+                <Campo label="Cidade" value={empresa.cidade} onChange={(cidade) => setEmpresa({ ...empresa, cidade })} />
+                <Campo label="Estado" value={empresa.estado} onChange={(estado) => setEmpresa({ ...empresa, estado: estado.slice(0, 2).toUpperCase() })} />
+                <div className="sm:col-span-2">
+                  <Button type="submit" disabled={enviando}>Enviar cadastro</Button>
+                </div>
+              </form>
+            )}
+          </div>
         ) : null}
 
         {!cliente && convite ? (
@@ -619,10 +714,10 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
             </div>
             <aside id="enviar-pedido" className="space-y-4 rounded-sm border border-ink/10 bg-white p-5 lg:sticky lg:top-28">
               <h2 className="text-lg">Seu pedido</h2>
-              {precoDaConta ? <p className="text-2xl font-medium tabular-nums">{reais(total)}</p> : <p className="text-sm text-ink/70">Entre com o CNPJ da empresa para ver os preços.</p>}
+              {precoDaConta ? <p className="text-2xl font-medium tabular-nums">{reais(total)}</p> : <p className="text-sm text-ink/70">Entre para ver os preços e enviar o pedido.</p>}
               {total === 0 && Object.values(carrinho).every((quantidade) => quantidade <= 0) ? <p className="text-sm text-ink/55">Escolha a quantidade nos produtos.</p> : null}
               {precoDaConta && total > 0 && total < minimo ? <p className="text-sm text-ink/65">Faltam {reais(minimo - total)} para a entrega.</p> : null}
-              {emAtraso && cliente ? <p className="text-sm text-red-800">Há um pagamento em atraso nesta conta. O pedido fica bloqueado até a regularização.</p> : null}
+              {emAtraso && cliente && !ehPessoa(cliente) ? <p className="text-sm text-red-800">Há um pagamento em atraso nesta conta. O pedido fica bloqueado até a regularização.</p> : null}
               <ul className="space-y-3 text-sm">
                 {catalogo.filter((produto) => (carrinho[produto.id] ?? 0) > 0).map((produto) => {
                   const qtd = carrinho[produto.id] ?? 0;
@@ -652,7 +747,13 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                 <textarea value={observacoes} onChange={(event) => setObservacoes(event.target.value)} rows={3} className="mt-1 w-full border border-ink/15 px-3 py-3" />
               </label>
               {cliente ? (
-                <Button type="button" disabled={enviando || emAtraso || total < minimo} onClick={() => void lancar()}>Enviar para aprovação</Button>
+                <Button
+                  type="button"
+                  disabled={enviando || (emAtraso && !ehPessoa(cliente)) || total < minimo}
+                  onClick={() => void lancar()}
+                >
+                  {ehPessoa(cliente) ? "Pedir e pagar" : "Enviar para aprovação"}
+                </Button>
               ) : (
                 <form
                   className="space-y-3 border-t border-ink/10 pt-4"
@@ -661,15 +762,94 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                     void entrar();
                   }}
                 >
-                  <p className="text-sm text-ink/70">Para enviar, entre com o CNPJ da empresa.</p>
-                  {modoEquipe ? <Campo label="E-mail" value={email} onChange={setEmail} type="email" /> : <Campo label="CNPJ" value={formatCnpj(cnpj)} onChange={setCnpj} inputMode="numeric" />}
+                  <p className="text-sm text-ink/70">Entre com CPF (pessoa) ou CNPJ (empresa).</p>
+                  {modoEquipe ? (
+                    <Campo label="E-mail" value={email} onChange={setEmail} type="email" />
+                  ) : (
+                    <Campo label="CPF ou CNPJ" value={formatDocumento(cnpj)} onChange={setCnpj} inputMode="numeric" />
+                  )}
                   <CampoSenha label="Senha" value={senha} onChange={setSenha} autoComplete="current-password" />
                   <Button type="submit" disabled={enviando}>Entrar</Button>
-                  <button type="button" className="block text-sm text-forest" onClick={() => setVista("cadastro")}>Cadastrar empresa</button>
+                  <button
+                    type="button"
+                    className="block text-sm text-forest"
+                    onClick={() => {
+                      setTipoCadastro("pessoa");
+                      setVista("cadastro");
+                    }}
+                  >
+                    Criar conta (pessoa física)
+                  </button>
+                  <button
+                    type="button"
+                    className="block text-sm text-ink/55"
+                    onClick={() => {
+                      setTipoCadastro("empresa");
+                      setVista("cadastro");
+                    }}
+                  >
+                    Cadastrar empresa
+                  </button>
                 </form>
               )}
             </aside>
           </section>
+        ) : null}
+        {pagamentoAberto ? (
+          <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 p-4 sm:items-center">
+            <div className="w-full max-w-md space-y-4 rounded-sm bg-paper p-6 shadow-lg">
+              <h2 className="display-head text-2xl">Pagar o pedido</h2>
+              <p className="text-sm text-ink/70">
+                {pagamentoAberto.total != null ? reais(pagamentoAberto.total) : "Pedido"} · Pix ou cartão pelo Conta Azul.
+              </p>
+              <div className="flex flex-col gap-2">
+                {pagamentoAberto.pixUrl ? (
+                  <a
+                    href={pagamentoAberto.pixUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="bg-forest px-4 py-3 text-center text-sm text-paper"
+                  >
+                    Pagar com Pix
+                  </a>
+                ) : null}
+                {pagamentoAberto.cartaoUrl ? (
+                  <a
+                    href={pagamentoAberto.cartaoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="border border-ink/15 px-4 py-3 text-center text-sm"
+                  >
+                    Pagar com cartão
+                  </a>
+                ) : null}
+              </div>
+              <button
+                type="button"
+                className="text-sm text-forest"
+                onClick={() => {
+                  const id = pagamentoAberto.pedidoId;
+                  void portalApi
+                    .pagamentoPedido(id)
+                    .then((pagamento) => {
+                      if (pagamento.pago) {
+                        toast.success("Pagamento confirmado.");
+                        setPagamentoAberto(null);
+                        void carregarConta();
+                      } else {
+                        toast.message("Ainda não identificamos o pagamento. Se já pagou, aguarde um instante.");
+                      }
+                    })
+                    .catch((error) => toast.error(mensagem(error)));
+                }}
+              >
+                Já paguei · atualizar
+              </button>
+              <button type="button" className="block text-sm text-ink/55" onClick={() => setPagamentoAberto(null)}>
+                Fechar
+              </button>
+            </div>
+          </div>
         ) : null}
         {vista !== "equipe" ? (
           <p className="mt-16 text-sm text-ink/40">
@@ -901,7 +1081,7 @@ function CartaoPedido({ pedido }: { pedido: PedidoCliente }) {
   return (
     <article className="rounded-sm border border-ink/10 bg-white p-5">
       <h3 className="text-lg">{formatLongDate(pedido.dataEntrega.slice(0, 10))}</h3>
-      <p className="text-sm text-ink/55">{statusPedido(pedido.status, pedido.doSite)}</p>
+      <p className="text-sm text-ink/55">{statusPedido(pedido)}</p>
       <ul className="mt-3 space-y-1 text-sm">
         {pedido.itens.map((item) => (
           <li key={`${pedido.id}-${item.nome}`}>
@@ -910,6 +1090,20 @@ function CartaoPedido({ pedido }: { pedido: PedidoCliente }) {
           </li>
         ))}
       </ul>
+      {pedido.pagamento?.status === "AGUARDANDO" ? (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {pedido.pagamento.pixUrl ? (
+            <a href={pedido.pagamento.pixUrl} target="_blank" rel="noreferrer" className="bg-forest px-3 py-2 text-sm text-paper">
+              Pagar Pix
+            </a>
+          ) : null}
+          {pedido.pagamento.cartaoUrl ? (
+            <a href={pedido.pagamento.cartaoUrl} target="_blank" rel="noreferrer" className="border border-ink/15 px-3 py-2 text-sm">
+              Pagar cartão
+            </a>
+          ) : null}
+        </div>
+      ) : null}
     </article>
   );
 }
