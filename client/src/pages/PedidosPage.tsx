@@ -411,9 +411,22 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
       await Promise.all([carregarVitrine(), carregarConta()]);
       setVista("pedidos");
       if (criado.pagamento) {
-        setPagamentoAberto({ ...criado.pagamento, pedidoId: criado.id });
+        setPagamentoAberto({ ...criado.pagamento, pedidoId: criado.id, linkPendente: criado.pagamento.linkPendente });
         const url = criado.pagamento.pixUrl || criado.pagamento.cartaoUrl;
         if (url) window.open(url, "_blank", "noopener,noreferrer");
+        else if (criado.pagamento.linkPendente) {
+          // Conta Azul libera o link com atraso — tenta de novo em alguns segundos.
+          const id = criado.id;
+          window.setTimeout(() => {
+            void portalApi.pagamentoPedido(id).then((pagamento) => {
+              const pronto = pagamento.pixUrl || pagamento.cartaoUrl;
+              if (pronto) {
+                setPagamentoAberto({ ...pagamento, pedidoId: id, linkPendente: false });
+                window.open(pronto, "_blank", "noopener,noreferrer");
+              }
+            }).catch(() => undefined);
+          }, 4000);
+        }
       }
       toast.success(criado.mensagem || "Pedido criado. Conclua o pagamento.");
     } catch (error) {
@@ -1016,6 +1029,9 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
               <p className="text-sm text-ink/70">
                 {pagamentoAberto.total != null ? reais(pagamentoAberto.total) : "Pedido"} · conclua o pagamento para liberar a entrega.
               </p>
+              {!pagamentoAberto.pixUrl && !pagamentoAberto.cartaoUrl ? (
+                <p className="text-sm text-ink/65">O Conta Azul ainda está liberando o link. Clique em atualizar em alguns segundos.</p>
+              ) : null}
               <div className="flex flex-col gap-2">
                 {pagamentoAberto.pixUrl ? (
                   <a
@@ -1050,14 +1066,21 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                         toast.success("Pagamento confirmado.");
                         setPagamentoAberto(null);
                         void carregarConta();
+                        return;
+                      }
+                      const url = pagamento.pixUrl || pagamento.cartaoUrl;
+                      setPagamentoAberto({ ...pagamento, pedidoId: id, linkPendente: !url });
+                      if (url) {
+                        toast.success("Link de pagamento pronto.");
+                        window.open(url, "_blank", "noopener,noreferrer");
                       } else {
-                        toast.message("Ainda não identificamos o pagamento. Se já pagou, aguarde um instante.");
+                        toast.message("Link ainda não liberado. Tente de novo em instantes.");
                       }
                     })
                     .catch((error) => toast.error(mensagem(error)));
                 }}
               >
-                Já paguei · atualizar
+                {!pagamentoAberto.pixUrl && !pagamentoAberto.cartaoUrl ? "Buscar link de pagamento" : "Já paguei · atualizar"}
               </button>
               <button type="button" className="block text-sm text-ink/55" onClick={() => setPagamentoAberto(null)}>
                 Fechar

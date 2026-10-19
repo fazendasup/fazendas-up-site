@@ -122,6 +122,7 @@ export type PedidoPagamento = {
   cartaoUrl: string | null;
   total: number | null;
   formaPagamento?: "pix" | "cartao" | null;
+  linkPendente?: boolean;
 };
 
 export type PedidoCliente = {
