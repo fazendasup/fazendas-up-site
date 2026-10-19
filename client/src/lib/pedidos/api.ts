@@ -217,9 +217,33 @@ export const portalApi = {
     }),
   catalogo: () => request<{ itens: ProdutoLoja[] }>("/catalogo"),
   pedidos: () => request<{ pedidos: PedidoCliente[] }>("/pedidos"),
+  endereco: () =>
+    request<{
+      endereco: {
+        cep: string;
+        logradouro: string;
+        numero: string;
+        complemento: string;
+        bairro: string;
+        cidade: string;
+        estado: string;
+      };
+      telefone: string;
+    }>("/endereco"),
   criarPedido: (body: {
     dataEntrega: string;
     observacoes?: string;
+    periodoEntrega?: "manha" | "tarde";
+    formaPagamento?: "pix" | "cartao";
+    endereco?: {
+      cep: string;
+      logradouro: string;
+      numero: string;
+      complemento?: string;
+      bairro: string;
+      cidade: string;
+      estado: string;
+    };
     itens: Array<{ produtoId: string; quantidade: number }>;
   }) =>
     request<{
@@ -228,7 +252,7 @@ export const portalApi = {
       total: number;
       perfil?: "empresa" | "pessoa";
       mensagem?: string;
-      pagamento?: PedidoPagamento;
+      pagamento?: PedidoPagamento & { formaPagamento?: "pix" | "cartao" };
     }>("/pedidos", { method: "POST", body: JSON.stringify(body) }),
   pagamentoPedido: (id: string) =>
     request<{
