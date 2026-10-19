@@ -306,7 +306,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
       toast.error("Inclua ao menos um produto.");
       return;
     }
-    if (total < minimo) {
+    if (minimo > 0 && total < minimo) {
       toast.error(`O pedido mínimo para entrega é ${reais(minimo)}.`);
       return;
     }
@@ -721,7 +721,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
               <h2 className="text-lg">Seu pedido</h2>
               {precoDaConta ? <p className="text-2xl font-medium tabular-nums">{reais(total)}</p> : <p className="text-sm text-ink/70">Entre para ver os preços e enviar o pedido.</p>}
               {total === 0 && Object.values(carrinho).every((quantidade) => quantidade <= 0) ? <p className="text-sm text-ink/55">Escolha a quantidade nos produtos.</p> : null}
-              {precoDaConta && total > 0 && total < minimo ? <p className="text-sm text-ink/65">Faltam {reais(minimo - total)} para a entrega.</p> : null}
+              {precoDaConta && minimo > 0 && total > 0 && total < minimo ? <p className="text-sm text-ink/65">Faltam {reais(minimo - total)} para a entrega.</p> : null}
               {emAtraso && cliente && !ehPessoa(cliente) ? <p className="text-sm text-red-800">Há um pagamento em atraso nesta conta. O pedido fica bloqueado até a regularização.</p> : null}
               <ul className="space-y-3 text-sm">
                 {catalogo.filter((produto) => (carrinho[produto.id] ?? 0) > 0).map((produto) => {
@@ -759,7 +759,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
               {cliente ? (
                 <Button
                   type="button"
-                  disabled={enviando || (emAtraso && !ehPessoa(cliente)) || total < minimo}
+                  disabled={enviando || (emAtraso && !ehPessoa(cliente)) || (minimo > 0 && total < minimo) || total <= 0}
                   onClick={() => void lancar()}
                 >
                   {ehPessoa(cliente) ? "Pedir e pagar" : "Enviar para aprovação"}
