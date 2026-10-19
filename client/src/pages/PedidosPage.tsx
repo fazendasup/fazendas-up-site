@@ -1383,14 +1383,14 @@ function PedidosCliente({
     .sort((a, b) => b.dataEntrega.localeCompare(a.dataEntrega));
 
   const cancelar = async (pedido: PedidoCliente) => {
-    if (!window.confirm("Cancelar este pedido?")) return;
+    if (!window.confirm("Cancelar este pedido? A cobrança em aberto deixa de valer.")) return;
     setOcupadoId(pedido.id);
     try {
       await portalApi.cancelarPedido(pedido.id);
       toast.success("Pedido cancelado.");
-      onAtualizar();
+      await Promise.resolve(onAtualizar());
     } catch (error) {
-      toast.error(mensagem(error));
+      toast.error(mensagem(error) || "Não foi possível cancelar.");
     } finally {
       setOcupadoId("");
     }
@@ -1398,10 +1398,11 @@ function PedidosCliente({
 
   const trocarPagamento = async (pedido: PedidoCliente, forma: "pix" | "cartao") => {
     setOcupadoId(pedido.id);
+    toast.message(forma === "pix" ? "Gerando Pix…" : "Gerando link do cartão…");
     try {
       const cobranca = await portalApi.alterarFormaPagamento(pedido.id, forma);
       toast.success(cobranca.mensagem || (forma === "pix" ? "Agora é Pix." : "Agora é cartão."));
-      onAtualizar();
+      await Promise.resolve(onAtualizar());
       onPagamento({
         status: cobranca.status,
         pixUrl: cobranca.pixUrl,
@@ -1412,8 +1413,9 @@ function PedidosCliente({
       });
       const url = cobranca.pixUrl || cobranca.cartaoUrl;
       if (url) window.open(url, "_blank", "noopener,noreferrer");
+      else toast.error("A cobrança foi criada, mas o link ainda não veio. Abra em Meus pedidos em instantes.");
     } catch (error) {
-      toast.error(mensagem(error));
+      toast.error(mensagem(error) || "Não foi possível alterar o pagamento.");
     } finally {
       setOcupadoId("");
     }
