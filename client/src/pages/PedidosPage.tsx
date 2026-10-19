@@ -79,13 +79,25 @@ function mensagem(error: unknown) {
 }
 
 function statusPedido(pedido: Pick<PedidoCliente, "status" | "doSite" | "pessoa" | "pagamento">) {
+  if (pedido.status === "CANCELADO" || pedido.pagamento?.status === "CANCELADO") return "Cancelado";
   if (pedido.pessoa && pedido.pagamento?.status === "AGUARDANDO") return "Aguardando pagamento";
   if (pedido.pessoa && pedido.pagamento?.status === "PAGO") return "Pago · na programação";
   if (pedido.status === "PENDENTE") return pedido.doSite && !pedido.pessoa ? "Aguardando aprovação" : "Programado";
   if (pedido.status === "PRONTO") return "Separado";
   if (pedido.status === "ENTREGUE") return "Entregue";
-  if (pedido.status === "CANCELADO") return "Cancelado";
   return "Em andamento";
+}
+
+function podeCancelarPedido(pedido: PedidoCliente) {
+  if (pedido.status === "CANCELADO" || pedido.pagamento?.status === "CANCELADO") return false;
+  if (pedido.pagamento?.status === "PAGO") return false;
+  if (pedido.pessoa && pedido.pagamento?.status === "AGUARDANDO") return true;
+  if (pedido.doSite && !pedido.pessoa && pedido.status === "PENDENTE") return true;
+  return false;
+}
+
+function podeTrocarPagamento(pedido: PedidoCliente) {
+  return Boolean(pedido.pessoa && pedido.pagamento?.status === "AGUARDANDO");
 }
 
 function ehPessoa(cliente: ClienteSessao | null) {
@@ -683,6 +695,8 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
             verHistorico={verHistoricoPedidos}
             onHistorico={() => setVerHistoricoPedidos((atual) => !atual)}
             onLoja={() => { setVista("loja"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+            onAtualizar={() => void carregarConta()}
+            onPagamento={(pagamento) => setPagamentoAberto(pagamento)}
           />
         ) : null}
 
@@ -1279,11 +1293,31 @@ function Indicador({
   );
 }
 
-function CartaoPedido({ pedido }: { pedido: PedidoCliente }) {
+function CartaoPedido({
+  pedido,
+  ocupado,
+  onCancelar,
+  onTrocarPagamento,
+  onAbrirPagamento,
+}: {
+  pedido: PedidoCliente;
+  ocupado: boolean;
+  onCancelar: (pedido: PedidoCliente) => void;
+  onTrocarPagamento: (pedido: PedidoCliente, forma: "pix" | "cartao") => void;
+  onAbrirPagamento: (pedido: PedidoCliente) => void;
+}) {
+  const formaAtual =
+    pedido.pagamento?.formaPagamento ??
+    (pedido.pagamento?.pixUrl ? "pix" : pedido.pagamento?.cartaoUrl ? "cartao" : null);
+  const outraForma: "pix" | "cartao" | null = formaAtual === "pix" ? "cartao" : formaAtual === "cartao" ? "pix" : null;
+
   return (
     <article className="rounded-sm border border-ink/10 bg-white p-5">
       <h3 className="text-lg">{formatLongDate(pedido.dataEntrega.slice(0, 10))}</h3>
       <p className="text-sm text-ink/55">{statusPedido(pedido)}</p>
+      {formaAtual && pedido.pagamento?.status === "AGUARDANDO" ? (
+        <p className="mt-1 text-xs text-ink/50">Pagamento escolhido: {formaAtual === "pix" ? "Pix" : "cartão"}</p>
+      ) : null}
       <ul className="mt-3 space-y-1 text-sm">
         {pedido.itens.map((item) => {
           const peso = pesoDoItem(item.nome, item.peso);
@@ -1296,17 +1330,27 @@ function CartaoPedido({ pedido }: { pedido: PedidoCliente }) {
           );
         })}
       </ul>
-      {pedido.pagamento?.status === "AGUARDANDO" ? (
+      {pedido.pagamento?.status === "AGUARDANDO" || podeCancelarPedido(pedido) ? (
         <div className="mt-4 flex flex-wrap gap-2">
-          {pedido.pagamento.pixUrl ? (
-            <a href={pedido.pagamento.pixUrl} target="_blank" rel="noreferrer" className="bg-forest px-3 py-2 text-sm text-paper">
-              Pagar Pix
-            </a>
+          {pedido.pagamento?.status === "AGUARDANDO" && (pedido.pagamento.pixUrl || pedido.pagamento.cartaoUrl) ? (
+            <button type="button" className="bg-forest px-3 py-2 text-sm text-paper disabled:opacity-50" disabled={ocupado} onClick={() => onAbrirPagamento(pedido)}>
+              {pedido.pagamento.pixUrl ? "Abrir Pix" : "Abrir cartão"}
+            </button>
           ) : null}
-          {pedido.pagamento.cartaoUrl ? (
-            <a href={pedido.pagamento.cartaoUrl} target="_blank" rel="noreferrer" className="border border-ink/15 px-3 py-2 text-sm">
-              Pagar cartão
-            </a>
+          {podeTrocarPagamento(pedido) && outraForma ? (
+            <button
+              type="button"
+              className="border border-ink/15 px-3 py-2 text-sm disabled:opacity-50"
+              disabled={ocupado}
+              onClick={() => onTrocarPagamento(pedido, outraForma)}
+            >
+              Trocar para {outraForma === "pix" ? "Pix" : "cartão"}
+            </button>
+          ) : null}
+          {podeCancelarPedido(pedido) ? (
+            <button type="button" className="border border-ink/15 px-3 py-2 text-sm text-red-800 disabled:opacity-50" disabled={ocupado} onClick={() => onCancelar(pedido)}>
+              Cancelar pedido
+            </button>
           ) : null}
         </div>
       ) : null}
@@ -1319,12 +1363,17 @@ function PedidosCliente({
   verHistorico,
   onHistorico,
   onLoja,
+  onAtualizar,
+  onPagamento,
 }: {
   pedidos: PedidoCliente[];
   verHistorico: boolean;
   onHistorico: () => void;
   onLoja: () => void;
+  onAtualizar: () => void;
+  onPagamento: (pagamento: PedidoPagamento & { pedidoId: string }) => void;
 }) {
+  const [ocupadoId, setOcupadoId] = useState("");
   const hoje = hojeManaus();
   const programados = pedidos
     .filter((pedido) => pedido.programado ?? (pedido.dataEntrega.slice(0, 10) >= hoje && pedido.status !== "CANCELADO"))
@@ -1333,12 +1382,63 @@ function PedidosCliente({
     .filter((pedido) => !(pedido.programado ?? (pedido.dataEntrega.slice(0, 10) >= hoje && pedido.status !== "CANCELADO")))
     .sort((a, b) => b.dataEntrega.localeCompare(a.dataEntrega));
 
+  const cancelar = async (pedido: PedidoCliente) => {
+    if (!window.confirm("Cancelar este pedido?")) return;
+    setOcupadoId(pedido.id);
+    try {
+      await portalApi.cancelarPedido(pedido.id);
+      toast.success("Pedido cancelado.");
+      onAtualizar();
+    } catch (error) {
+      toast.error(mensagem(error));
+    } finally {
+      setOcupadoId("");
+    }
+  };
+
+  const trocarPagamento = async (pedido: PedidoCliente, forma: "pix" | "cartao") => {
+    setOcupadoId(pedido.id);
+    try {
+      const cobranca = await portalApi.alterarFormaPagamento(pedido.id, forma);
+      toast.success(cobranca.mensagem || (forma === "pix" ? "Agora é Pix." : "Agora é cartão."));
+      onAtualizar();
+      onPagamento({
+        status: cobranca.status,
+        pixUrl: cobranca.pixUrl,
+        cartaoUrl: cobranca.cartaoUrl,
+        total: cobranca.total,
+        formaPagamento: cobranca.formaPagamento ?? forma,
+        pedidoId: pedido.id,
+      });
+      const url = cobranca.pixUrl || cobranca.cartaoUrl;
+      if (url) window.open(url, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      toast.error(mensagem(error));
+    } finally {
+      setOcupadoId("");
+    }
+  };
+
+  const abrirPagamento = (pedido: PedidoCliente) => {
+    if (!pedido.pagamento) return;
+    onPagamento({ ...pedido.pagamento, pedidoId: pedido.id });
+    const url = pedido.pagamento.pixUrl || pedido.pagamento.cartaoUrl;
+    if (url) window.open(url, "_blank", "noopener,noreferrer");
+  };
+
   return (
     <section className="mt-8 space-y-4">
       <h2 className="display-head text-3xl">Entregas programadas</h2>
       {programados.length === 0 ? <p className="text-ink/60">Nenhuma entrega programada.</p> : null}
       {programados.map((pedido) => (
-        <CartaoPedido key={pedido.id} pedido={pedido} />
+        <CartaoPedido
+          key={pedido.id}
+          pedido={pedido}
+          ocupado={ocupadoId === pedido.id}
+          onCancelar={(item) => void cancelar(item)}
+          onTrocarPagamento={(item, forma) => void trocarPagamento(item, forma)}
+          onAbrirPagamento={abrirPagamento}
+        />
       ))}
       <button type="button" className="border border-ink/15 px-3 py-2 text-sm" onClick={onHistorico}>
         {verHistorico ? "Ocultar entregas anteriores" : "Ver entregas anteriores"}
@@ -1348,7 +1448,14 @@ function PedidosCliente({
           <h2 className="display-head text-3xl">Entregas anteriores</h2>
           {historico.length === 0 ? <p className="text-ink/60">Nenhuma entrega anterior neste período.</p> : null}
           {historico.map((pedido) => (
-            <CartaoPedido key={pedido.id} pedido={pedido} />
+            <CartaoPedido
+              key={pedido.id}
+              pedido={pedido}
+              ocupado={ocupadoId === pedido.id}
+              onCancelar={(item) => void cancelar(item)}
+              onTrocarPagamento={(item, forma) => void trocarPagamento(item, forma)}
+              onAbrirPagamento={abrirPagamento}
+            />
           ))}
         </div>
       ) : null}

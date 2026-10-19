@@ -121,6 +121,7 @@ export type PedidoPagamento = {
   pixUrl: string | null;
   cartaoUrl: string | null;
   total: number | null;
+  formaPagamento?: "pix" | "cartao" | null;
 };
 
 export type PedidoCliente = {
@@ -262,7 +263,15 @@ export const portalApi = {
       cartaoUrl: string | null;
       total: number | null;
       pago: boolean;
+      formaPagamento?: "pix" | "cartao" | null;
     }>(`/pedidos/${encodeURIComponent(id)}/pagamento`),
+  cancelarPedido: (id: string) =>
+    request<{ ok: boolean }>(`/pedidos/${encodeURIComponent(id)}/cancelar`, { method: "POST" }),
+  alterarFormaPagamento: (id: string, formaPagamento: "pix" | "cartao") =>
+    request<PedidoPagamento & { formaPagamento?: "pix" | "cartao"; mensagem?: string }>(
+      `/pedidos/${encodeURIComponent(id)}/forma-pagamento`,
+      { method: "POST", body: JSON.stringify({ formaPagamento }) },
+    ),
   financeiro: () =>
     request<{
       totais: { recebido: number; emAberto: number; emAtraso: number };
