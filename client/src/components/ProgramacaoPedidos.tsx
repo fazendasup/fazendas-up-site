@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { portalApi, PortalError, type ProdutoLoja, type ProgramacaoPortal } from "@/lib/pedidos/api";
+import { pesoDoProduto } from "@/lib/pedidos/peso";
 
 const DIAS = [
   { dia: 1, curto: "Seg", nome: "Segunda" },
@@ -185,11 +186,16 @@ export function ProgramacaoPedidos({ produtos }: { produtos: ProdutoLoja[] }) {
             <ul className="mt-4 space-y-3">
               {linhas.map(([produtoId, quantidade]) => {
                 const produto = porId.get(produtoId);
+                const peso = produto ? produto.peso?.trim() || pesoDoProduto(produto.nome, produto.unidade) : null;
                 return (
                   <li key={produtoId} className="flex flex-wrap items-center justify-between gap-3 border-b border-ink/10 pb-3">
                     <div>
                       <p>{produto?.nome ?? "Produto"}</p>
-                      <p className="text-sm text-ink/55">{produto?.preco != null ? reais(produto.preco) : "Sem preço"}</p>
+                      <p className="text-sm text-ink/55">
+                        {peso ? `Peso ${peso}` : null}
+                        {peso && produto?.preco != null ? " · " : null}
+                        {produto?.preco != null ? reais(produto.preco) : "Sem preço"}
+                      </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <input
@@ -221,11 +227,14 @@ export function ProgramacaoPedidos({ produtos }: { produtos: ProdutoLoja[] }) {
                 className="border border-ink/15 bg-white px-3 py-2"
               >
                 <option value="">Escolher produto</option>
-                {opcoes.map((produto) => (
-                  <option key={produto.id} value={produto.id}>
-                    {produto.nome}
-                  </option>
-                ))}
+                {opcoes.map((produto) => {
+                  const peso = produto.peso?.trim() || pesoDoProduto(produto.nome, produto.unidade);
+                  return (
+                    <option key={produto.id} value={produto.id}>
+                      {peso ? `${produto.nome} · ${peso}` : produto.nome}
+                    </option>
+                  );
+                })}
               </select>
               <Button type="button" variant="outline" onClick={() => adicionar(diaSemana)}>
                 Adicionar

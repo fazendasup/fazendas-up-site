@@ -21,7 +21,7 @@ export type ProgramacaoPortal = {
   minimoReais: number;
   dias: Array<{
     diaSemana: number;
-    itens: Array<{ produtoId: string; nome: string; quantidade: number; preco: number | null }>;
+    itens: Array<{ produtoId: string; nome: string; quantidade: number; preco: number | null; peso?: string | null }>;
   }>;
   proximas: Array<{ data: string; diaSemana: number; total: number }>;
   mantidas?: number;
@@ -42,6 +42,8 @@ export type ProdutoLoja = {
   precoEspecial: boolean;
   imagemUrl: string | null;
   unidade: string;
+  /** Embalagem ou venda por kg, ex.: "100 g", "por kg". */
+  peso?: string | null;
   estoque: number | null;
 };
 
@@ -57,6 +59,7 @@ export type ProdutoEquipe = {
   preco: number | null;
   imagemUrl: string | null;
   unidade: string;
+  peso?: string | null;
   estoque: number | null;
 };
 
@@ -128,7 +131,7 @@ export type PedidoCliente = {
   doSite?: boolean;
   pessoa?: boolean;
   pagamento?: PedidoPagamento | null;
-  itens: Array<{ nome: string; quantidade: number; preco: number | null }>;
+  itens: Array<{ nome: string; quantidade: number; preco: number | null; peso?: string | null }>;
 };
 
 export type CadastroPessoa = {

@@ -17,7 +17,12 @@ import {
   type ProdutoLoja,
   type TituloCliente,
 } from "@/lib/pedidos/api";
+import { pesoDoProduto } from "@/lib/pedidos/peso";
 import { formatCnpj, formatCpf, formatDocumento, formatLongDate, isValidCnpj, isValidCpf } from "@/lib/pedidos/rules";
+
+function pesoDoItem(nome: string, peso?: string | null, unidade?: string | null) {
+  return peso?.trim() || pesoDoProduto(nome, unidade);
+}
 
 type Vista = "loja" | "programacao" | "pedidos" | "pagamentos" | "conta" | "equipe" | "cadastro";
 type TipoCadastro = "empresa" | "pessoa";
@@ -722,11 +727,16 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                 {catalogo.filter((produto) => (carrinho[produto.id] ?? 0) > 0).map((produto) => {
                   const qtd = carrinho[produto.id] ?? 0;
                   const noTeto = produto.estoque != null && qtd >= produto.estoque;
+                  const peso = pesoDoItem(produto.nome, produto.peso, produto.unidade);
                   return (
                     <li key={produto.id} className="flex items-center gap-2">
                       <div className="min-w-0 flex-1">
                         <p className="truncate">{produto.nome}</p>
-                        <p className="text-xs text-ink/50">{produto.preco != null ? reais(produto.preco * qtd) : `${qtd} ${produto.unidade}`}</p>
+                        <p className="text-xs text-ink/50">
+                          {peso ? `Peso ${peso}` : null}
+                          {peso && produto.preco != null ? " · " : null}
+                          {produto.preco != null ? reais(produto.preco * qtd) : `${qtd} ${produto.unidade}`}
+                        </p>
                       </div>
                       <button type="button" className="h-8 w-8 border border-ink/15" onClick={() => definirQtd(produto, qtd - 1)} aria-label={`Diminuir ${produto.nome}`}>−</button>
                       <span className="w-6 text-center tabular-nums">{qtd}</span>
@@ -871,6 +881,7 @@ function CartaoProduto({
   onQtd: (produto: ProdutoLoja, qtd: number) => void;
 }) {
   const esgotado = produto.estoque === 0;
+  const peso = pesoDoItem(produto.nome, produto.peso, produto.unidade);
   return (
     <article className="overflow-hidden rounded-sm border border-ink/10 bg-white">
       {produto.imagemUrl ? (
@@ -888,6 +899,7 @@ function CartaoProduto({
       )}
       <div className="space-y-2 p-3">
         <h3 className="text-[0.95rem] leading-tight">{produto.nome}</h3>
+        {peso ? <p className="text-xs font-medium text-forest">Peso {peso}</p> : null}
         <p className="line-clamp-2 text-xs leading-relaxed text-ink/70">{produto.descricao}</p>
         <p className="line-clamp-2 text-xs text-ink/50">{produto.aplicacao}</p>
         <div className="flex items-end justify-between gap-2">
@@ -895,7 +907,7 @@ function CartaoProduto({
             {produto.preco != null ? (
               <>
                 {reais(produto.preco)}
-                <span className="ml-1 text-xs font-normal text-ink/50">/{produto.unidade}</span>
+                <span className="ml-1 text-xs font-normal text-ink/50">/{produto.unidade}{peso ? ` · ${peso}` : ""}</span>
               </>
             ) : (
               "Entre para ver o preço"
@@ -1083,12 +1095,16 @@ function CartaoPedido({ pedido }: { pedido: PedidoCliente }) {
       <h3 className="text-lg">{formatLongDate(pedido.dataEntrega.slice(0, 10))}</h3>
       <p className="text-sm text-ink/55">{statusPedido(pedido)}</p>
       <ul className="mt-3 space-y-1 text-sm">
-        {pedido.itens.map((item) => (
-          <li key={`${pedido.id}-${item.nome}`}>
-            {item.quantidade} · {item.nome}
-            {item.preco != null ? ` · ${reais(item.preco)}` : ""}
-          </li>
-        ))}
+        {pedido.itens.map((item) => {
+          const peso = pesoDoItem(item.nome, item.peso);
+          return (
+            <li key={`${pedido.id}-${item.nome}`}>
+              {item.quantidade} · {item.nome}
+              {peso ? ` · ${peso}` : ""}
+              {item.preco != null ? ` · ${reais(item.preco)}` : ""}
+            </li>
+          );
+        })}
       </ul>
       {pedido.pagamento?.status === "AGUARDANDO" ? (
         <div className="mt-4 flex flex-wrap gap-2">
@@ -1265,6 +1281,7 @@ function ProdutoEquipeCard({
   const [descricao, setDescricao] = useState(produto.descricao);
   const [aplicacao, setAplicacao] = useState(produto.aplicacao);
   const [estoque, setEstoque] = useState(produto.estoque == null ? "" : String(produto.estoque));
+  const peso = pesoDoItem(produto.nome, produto.peso, produto.unidade);
 
   return (
     <article className="space-y-3 rounded-sm border border-ink/10 bg-white p-4">
@@ -1272,6 +1289,7 @@ function ProdutoEquipeCard({
         <div>
           <p className="text-xs uppercase tracking-wide text-ink/45">{produto.grupo}</p>
           <h3 className="font-medium">{produto.nome}</h3>
+          {peso ? <p className="mt-1 text-xs font-medium text-forest">Peso {peso}</p> : null}
           {produto.exclusivo ? <p className="mt-1 text-xs text-ink/55">Só aparece para quem tem este produto na regra comercial.</p> : null}
         </div>
         <div className="flex flex-wrap gap-2">
