@@ -547,12 +547,33 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
 
   const salvarProduto = async (
     produto: ProdutoEquipe,
-    patch: { naLoja?: boolean; exclusivo?: boolean; preco?: number; imagemUrl?: string | null; descricao?: string; aplicacao?: string; estoque?: number | null },
+    patch: {
+      naLoja?: boolean;
+      exclusivo?: boolean;
+      preco?: number;
+      imagemUrl?: string | null;
+      descricao?: string;
+      aplicacao?: string;
+      estoque?: number | null;
+      grupo?: string;
+    },
   ) => {
     try {
       const salvo = await portalApi.salvarProduto(produto.id, patch);
-      setProdutosEquipe((atual) => atual.map((item) => (item.id === produto.id ? { ...item, ...salvo, descricao: salvo.descricao ?? item.descricao, aplicacao: salvo.aplicacao ?? item.aplicacao } : item)));
-      toast.success("Produto atualizado.");
+      setProdutosEquipe((atual) =>
+        atual.map((item) =>
+          item.id === produto.id
+            ? {
+                ...item,
+                ...salvo,
+                descricao: salvo.descricao ?? item.descricao,
+                aplicacao: salvo.aplicacao ?? item.aplicacao,
+                grupo: salvo.grupo ?? item.grupo,
+              }
+            : item,
+        ),
+      );
+      toast.success(patch.grupo ? `Classe atualizada: ${salvo.grupo ?? patch.grupo}.` : "Produto atualizado.");
       void carregarVitrine();
     } catch (error) {
       toast.error(mensagem(error));
@@ -2033,7 +2054,16 @@ function PainelEquipe({
   onAtualizar: () => Promise<void>;
   onSalvar: (
     produto: ProdutoEquipe,
-    patch: { naLoja?: boolean; exclusivo?: boolean; preco?: number; imagemUrl?: string | null; descricao?: string; aplicacao?: string; estoque?: number | null },
+    patch: {
+      naLoja?: boolean;
+      exclusivo?: boolean;
+      preco?: number;
+      imagemUrl?: string | null;
+      descricao?: string;
+      aplicacao?: string;
+      estoque?: number | null;
+      grupo?: string;
+    },
   ) => Promise<void>;
   onFoto: (produto: ProdutoEquipe, imagem: string) => Promise<string>;
   onCadastros: (lista: CadastroEquipe[]) => void;
@@ -2046,6 +2076,7 @@ function PainelEquipe({
   const [ocupado, setOcupado] = useState(false);
   const [emailConvite, setEmailConvite] = useState("");
   const [linksConvite, setLinksConvite] = useState<Array<{ nome: string; email: string; link: string }>>([]);
+  const [nomesClasse, setNomesClasse] = useState<Record<string, string>>({});
 
   const kpis = useMemo(() => kpisCatalogo(produtos, cadastros), [produtos, cadastros]);
   const gruposDisponiveis = useMemo(() => {
@@ -2054,6 +2085,58 @@ function PainelEquipe({
     const extras = [...presentes].filter((g) => !ORDEM_GRUPOS.includes(g)).sort((a, b) => a.localeCompare(b, "pt-BR"));
     return [...ordenados, ...extras];
   }, [produtos]);
+  const classesParaSelect = useMemo(() => {
+    const base = new Set([...ORDEM_GRUPOS, ...gruposDisponiveis]);
+    return [...base].sort((a, b) => {
+      const ia = ORDEM_GRUPOS.indexOf(a);
+      const ib = ORDEM_GRUPOS.indexOf(b);
+      const oa = ia === -1 ? 99 : ia;
+      const ob = ib === -1 ? 99 : ib;
+      if (oa !== ob) return oa - ob;
+      return a.localeCompare(b, "pt-BR");
+    });
+  }, [gruposDisponiveis]);
+
+  useEffect(() => {
+    setNomesClasse((atual) => {
+      const proximo = { ...atual };
+      for (const classe of gruposDisponiveis) {
+        if (proximo[classe] == null) proximo[classe] = classe;
+      }
+      return proximo;
+    });
+  }, [gruposDisponiveis]);
+
+  const renomearClasse = async (de: string) => {
+    if (ocupado) return;
+    const para = (nomesClasse[de] ?? "").trim().replace(/\s+/g, " ");
+    if (para.length < 2) {
+      toast.error("Informe o novo nome da classe.");
+      return;
+    }
+    if (para === de) {
+      toast.message("O nome é o mesmo.");
+      return;
+    }
+    if (!window.confirm(`Renomear a classe “${de}” para “${para}” em todos os produtos?`)) return;
+    setOcupado(true);
+    try {
+      const resposta = await portalApi.renomearGrupo(de, para);
+      toast.success(`${resposta.atualizados} produto(s) atualizados para “${resposta.para}”.`);
+      setGrupoFiltro((atual) => (atual === de ? resposta.para : atual));
+      setNomesClasse((atual) => {
+        const proximo = { ...atual };
+        delete proximo[de];
+        proximo[resposta.para] = resposta.para;
+        return proximo;
+      });
+      await onAtualizar();
+    } catch (error) {
+      toast.error(mensagem(error));
+    } finally {
+      setOcupado(false);
+    }
+  };
 
   const filtrados = useMemo(() => {
     const termo = busca.trim().toLocaleLowerCase("pt-BR");
@@ -2327,7 +2410,13 @@ function PainelEquipe({
           ) : (
             <div className="space-y-3">
               {filtrados.map((produto) => (
-                <ProdutoEquipeCard key={produto.id} produto={produto} onSave={onSalvar} onFoto={onFoto} />
+                <ProdutoEquipeCard
+                  key={produto.id}
+                  produto={produto}
+                  classes={classesParaSelect}
+                  onSave={onSalvar}
+                  onFoto={onFoto}
+                />
               ))}
             </div>
           )}
@@ -2423,29 +2512,50 @@ function PainelEquipe({
               </ul>
             ) : null}
           </div>
-          <div className="space-y-2 rounded-sm border border-ink/10 bg-white p-5 lg:col-span-2">
-            <h3 className="font-medium">Resumo por classe</h3>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="space-y-3 rounded-sm border border-ink/10 bg-white p-5 lg:col-span-2">
+            <h3 className="font-medium">Classes de produto</h3>
+            <p className="text-sm text-ink/65">
+              Edite o nome da classe para renomear todos os produtos dela na loja. Para classificar um item individual, use o campo Classe no catálogo.
+            </p>
+            <div className="space-y-3">
               {gruposDisponiveis.map((classe) => {
                 const itens = produtos.filter((p) => normalizarGrupo(p.grupo) === classe);
                 const ativos = itens.filter((p) => p.naLoja).length;
+                const rascunho = nomesClasse[classe] ?? classe;
+                const mudou = rascunho.trim() !== classe;
                 return (
-                  <button
-                    key={classe}
-                    type="button"
-                    className="border border-ink/10 px-3 py-3 text-left text-sm hover:border-forest/40"
-                    onClick={() => {
-                      setAba("catalogo");
-                      setGrupoFiltro(classe);
-                      setLojaFiltro("todos");
-                      setAlertaFiltro("todos");
-                    }}
-                  >
-                    <p className="font-medium">{classe}</p>
-                    <p className="mt-1 text-ink/55">
-                      {ativos}/{itens.length} no site
-                    </p>
-                  </button>
+                  <div key={classe} className="grid gap-2 border border-ink/10 p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                    <label className="block text-sm">
+                      Nome da classe
+                      <input
+                        value={rascunho}
+                        onChange={(event) =>
+                          setNomesClasse((atual) => ({ ...atual, [classe]: event.target.value }))
+                        }
+                        className="mt-1 w-full border border-ink/15 px-3 py-2"
+                      />
+                      <span className="mt-1 block text-xs text-ink/50">
+                        {ativos}/{itens.length} no site · atual: {classe}
+                      </span>
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      <Button type="button" size="sm" disabled={ocupado || !mudou} onClick={() => void renomearClasse(classe)}>
+                        Salvar nome
+                      </Button>
+                      <button
+                        type="button"
+                        className="border border-ink/15 px-3 py-2 text-sm"
+                        onClick={() => {
+                          setAba("catalogo");
+                          setGrupoFiltro(classe);
+                          setLojaFiltro("todos");
+                          setAlertaFiltro("todos");
+                        }}
+                      >
+                        Ver produtos
+                      </button>
+                    </div>
+                  </div>
                 );
               })}
             </div>
@@ -2458,19 +2568,36 @@ function PainelEquipe({
 
 function ProdutoEquipeCard({
   produto,
+  classes,
   onSave,
   onFoto,
 }: {
   produto: ProdutoEquipe;
-  onSave: (produto: ProdutoEquipe, patch: { naLoja?: boolean; exclusivo?: boolean; preco?: number; imagemUrl?: string | null; descricao?: string; aplicacao?: string; estoque?: number | null }) => Promise<void>;
+  classes: string[];
+  onSave: (
+    produto: ProdutoEquipe,
+    patch: {
+      naLoja?: boolean;
+      exclusivo?: boolean;
+      preco?: number;
+      imagemUrl?: string | null;
+      descricao?: string;
+      aplicacao?: string;
+      estoque?: number | null;
+      grupo?: string;
+    },
+  ) => Promise<void>;
   onFoto: (produto: ProdutoEquipe, imagem: string) => Promise<string>;
 }) {
+  const grupoAtual = normalizarGrupo(produto.grupo);
   const [preco, setPreco] = useState(produto.preco?.toString() ?? "");
   const [foto, setFoto] = useState(produto.imagemUrl ?? "");
   const [enviandoFoto, setEnviandoFoto] = useState(false);
   const [descricao, setDescricao] = useState(produto.descricao);
   const [aplicacao, setAplicacao] = useState(produto.aplicacao);
   const [estoque, setEstoque] = useState(produto.estoque == null ? "" : String(produto.estoque));
+  const [grupoSelect, setGrupoSelect] = useState(classes.includes(grupoAtual) ? grupoAtual : "__outra__");
+  const [grupoCustom, setGrupoCustom] = useState(classes.includes(grupoAtual) ? "" : grupoAtual);
   const peso = pesoDoItem(produto.nome, produto.peso, produto.unidade);
 
   useEffect(() => {
@@ -2479,14 +2606,32 @@ function ProdutoEquipeCard({
     setDescricao(produto.descricao);
     setAplicacao(produto.aplicacao);
     setEstoque(produto.estoque == null ? "" : String(produto.estoque));
-  }, [produto.id, produto.preco, produto.imagemUrl, produto.descricao, produto.aplicacao, produto.estoque]);
+    const atual = normalizarGrupo(produto.grupo);
+    if (classes.includes(atual)) {
+      setGrupoSelect(atual);
+      setGrupoCustom("");
+    } else {
+      setGrupoSelect("__outra__");
+      setGrupoCustom(atual);
+    }
+  }, [produto.id, produto.preco, produto.imagemUrl, produto.descricao, produto.aplicacao, produto.estoque, produto.grupo, classes]);
+
+  const salvarClasse = (valor: string) => {
+    const grupo = valor.trim().replace(/\s+/g, " ");
+    if (grupo.length < 2) {
+      toast.error("Informe um nome de classe.");
+      return;
+    }
+    if (grupo === grupoAtual) return;
+    void onSave(produto, { grupo });
+  };
 
   return (
     <article className={produto.naLoja ? "space-y-3 rounded-sm border border-ink/10 bg-white p-4" : "space-y-3 rounded-sm border border-dashed border-ink/20 bg-ink/[0.02] p-4"}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-xs uppercase tracking-wide text-ink/45">{normalizarGrupo(produto.grupo)}</p>
+            <p className="text-xs uppercase tracking-wide text-ink/45">{grupoAtual}</p>
             <span className={produto.naLoja ? "bg-forest/10 px-2 py-0.5 text-[11px] font-medium text-forest" : "bg-ink/10 px-2 py-0.5 text-[11px] font-medium text-ink/60"}>
               {produto.naLoja ? "Ativo no site" : "Inativo"}
             </span>
@@ -2509,6 +2654,42 @@ function ProdutoEquipeCard({
         </div>
       </div>
       <div className="grid gap-3 md:grid-cols-4">
+        <label className="text-sm md:col-span-2">
+          Classe
+          <select
+            value={grupoSelect}
+            onChange={(event) => {
+              const valor = event.target.value;
+              setGrupoSelect(valor);
+              if (valor === "__outra__") return;
+              salvarClasse(valor);
+            }}
+            className="mt-1 w-full border border-ink/15 bg-white px-2 py-2"
+          >
+            {classes.map((classe) => (
+              <option key={classe} value={classe}>
+                {classe}
+              </option>
+            ))}
+            <option value="__outra__">Outra classe…</option>
+          </select>
+        </label>
+        {grupoSelect === "__outra__" ? (
+          <label className="text-sm md:col-span-2">
+            Nova classe
+            <div className="mt-1 flex gap-2">
+              <input
+                value={grupoCustom}
+                onChange={(event) => setGrupoCustom(event.target.value)}
+                placeholder="Ex.: Temperos"
+                className="w-full border border-ink/15 px-2 py-2"
+              />
+              <Button type="button" size="sm" onClick={() => salvarClasse(grupoCustom)}>
+                Aplicar
+              </Button>
+            </div>
+          </label>
+        ) : null}
         <label className="text-sm">Preço de tabela<input value={preco} onChange={(event) => setPreco(event.target.value)} className="mt-1 w-full border border-ink/15 px-2 py-2" /></label>
         <label className="text-sm">Estoque<input value={estoque} onChange={(event) => setEstoque(event.target.value)} placeholder="vazio = sem limite" className="mt-1 w-full border border-ink/15 px-2 py-2" /></label>
         <div className="text-sm md:col-span-2">

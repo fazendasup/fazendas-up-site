@@ -349,6 +349,7 @@ export const portalApi = {
       descricao?: string;
       aplicacao?: string;
       estoque?: number | null;
+      grupo?: string;
     },
   ) =>
     request<{
@@ -360,7 +361,13 @@ export const portalApi = {
       descricao: string | null;
       aplicacao: string | null;
       estoque: number | null;
+      grupo?: string;
     }>(`/equipe/produtos/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+  renomearGrupo: (de: string, para: string) =>
+    request<{ atualizados: number; de: string; para: string }>("/equipe/grupos/renomear", {
+      method: "POST",
+      body: JSON.stringify({ de, para }),
+    }),
   enviarFoto: (id: string, imagem: string) =>
     request<{ imagemUrl: string }>(`/equipe/produtos/${id}/foto`, {
       method: "POST",
