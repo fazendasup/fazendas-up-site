@@ -2024,6 +2024,49 @@ type FiltroLojaEquipe = "todos" | "ativos" | "inativos";
 type AlertaCatalogo = "todos" | "semPreco" | "semFoto" | "estoqueZero" | "exclusivos";
 type AbaEquipe = "catalogo" | "cadastros" | "ferramentas";
 
+type RascunhoProduto = {
+  grupo: string;
+  preco: string;
+  estoque: string;
+  descricao: string;
+  aplicacao: string;
+  naLoja: boolean;
+  exclusivo: boolean;
+};
+
+function rascunhoDe(produto: ProdutoEquipe): RascunhoProduto {
+  return {
+    grupo: normalizarGrupo(produto.grupo),
+    preco: produto.preco?.toString() ?? "",
+    estoque: produto.estoque == null ? "" : String(produto.estoque),
+    descricao: produto.descricao,
+    aplicacao: produto.aplicacao,
+    naLoja: produto.naLoja,
+    exclusivo: produto.exclusivo,
+  };
+}
+
+function estoqueIgual(a: string, b: number | null) {
+  const va = a.trim() === "" ? null : Number(a.replace(",", "."));
+  if (va == null && b == null) return true;
+  if (va == null || b == null) return false;
+  return Math.abs(va - b) < 0.0005;
+}
+
+function rascunhoSujo(produto: ProdutoEquipe, rascunho: RascunhoProduto) {
+  const precoNum = Number(rascunho.preco.replace(",", "."));
+  const precoBase = produto.preco ?? NaN;
+  return (
+    normalizarGrupo(rascunho.grupo) !== normalizarGrupo(produto.grupo) ||
+    rascunho.descricao !== produto.descricao ||
+    rascunho.aplicacao !== produto.aplicacao ||
+    rascunho.naLoja !== produto.naLoja ||
+    rascunho.exclusivo !== produto.exclusivo ||
+    !estoqueIgual(rascunho.estoque, produto.estoque) ||
+    !(Number.isFinite(precoNum) && Number.isFinite(precoBase) && Math.abs(precoNum - precoBase) < 0.005)
+  );
+}
+
 function kpisCatalogo(produtos: ProdutoEquipe[], cadastros: CadastroEquipe[]) {
   return {
     total: produtos.length,
@@ -2077,16 +2120,23 @@ function PainelEquipe({
   const [emailConvite, setEmailConvite] = useState("");
   const [linksConvite, setLinksConvite] = useState<Array<{ nome: string; email: string; link: string }>>([]);
   const [nomesClasse, setNomesClasse] = useState<Record<string, string>>({});
+  const [rascunhos, setRascunhos] = useState<Record<string, RascunhoProduto>>({});
 
   const kpis = useMemo(() => kpisCatalogo(produtos, cadastros), [produtos, cadastros]);
   const gruposDisponiveis = useMemo(() => {
-    const presentes = new Set(produtos.map((p) => normalizarGrupo(p.grupo)));
+    const presentes = new Set(
+      produtos.map((p) => normalizarGrupo(rascunhos[p.id]?.grupo ?? p.grupo)),
+    );
     const ordenados = ORDEM_GRUPOS.filter((g) => presentes.has(g));
     const extras = [...presentes].filter((g) => !ORDEM_GRUPOS.includes(g)).sort((a, b) => a.localeCompare(b, "pt-BR"));
     return [...ordenados, ...extras];
-  }, [produtos]);
+  }, [produtos, rascunhos]);
   const classesParaSelect = useMemo(() => {
     const base = new Set([...ORDEM_GRUPOS, ...gruposDisponiveis]);
+    for (const rascunho of Object.values(rascunhos)) {
+      const g = normalizarGrupo(rascunho.grupo);
+      if (g) base.add(g);
+    }
     return [...base].sort((a, b) => {
       const ia = ORDEM_GRUPOS.indexOf(a);
       const ib = ORDEM_GRUPOS.indexOf(b);
@@ -2095,7 +2145,18 @@ function PainelEquipe({
       if (oa !== ob) return oa - ob;
       return a.localeCompare(b, "pt-BR");
     });
-  }, [gruposDisponiveis]);
+  }, [gruposDisponiveis, rascunhos]);
+
+  useEffect(() => {
+    setRascunhos((atual) => {
+      const proximo: Record<string, RascunhoProduto> = {};
+      for (const produto of produtos) {
+        const existente = atual[produto.id];
+        proximo[produto.id] = existente && rascunhoSujo(produto, existente) ? existente : rascunhoDe(produto);
+      }
+      return proximo;
+    });
+  }, [produtos]);
 
   useEffect(() => {
     setNomesClasse((atual) => {
@@ -2106,6 +2167,83 @@ function PainelEquipe({
       return proximo;
     });
   }, [gruposDisponiveis]);
+
+  const alterados = useMemo(
+    () => produtos.filter((produto) => {
+      const rascunho = rascunhos[produto.id];
+      return rascunho ? rascunhoSujo(produto, rascunho) : false;
+    }),
+    [produtos, rascunhos],
+  );
+
+  const atualizarRascunho = (id: string, patch: Partial<RascunhoProduto>) => {
+    setRascunhos((atual) => {
+      const base = atual[id] ?? rascunhoDe(produtos.find((p) => p.id === id)!);
+      return { ...atual, [id]: { ...base, ...patch } };
+    });
+  };
+
+  const descartarAlteracoes = () => {
+    setRascunhos(Object.fromEntries(produtos.map((produto) => [produto.id, rascunhoDe(produto)])));
+    toast.message("Alterações descartadas.");
+  };
+
+  const salvarTudo = async () => {
+    if (ocupado || alterados.length === 0) return;
+    const payloads: Array<{ id: string; nome: string; body: Parameters<typeof portalApi.salvarProduto>[1] }> = [];
+    for (const produto of alterados) {
+      const rascunho = rascunhos[produto.id];
+      if (!rascunho) continue;
+      const grupo = normalizarGrupo(rascunho.grupo);
+      if (grupo.length < 2) {
+        toast.error(`“${produto.nome}”: informe uma classe válida.`);
+        return;
+      }
+      const preco = Number(rascunho.preco.replace(",", "."));
+      if (!Number.isFinite(preco) || preco <= 0) {
+        toast.error(`“${produto.nome}”: informe um preço maior que zero.`);
+        return;
+      }
+      const estoque = rascunho.estoque.trim() === "" ? null : Number(rascunho.estoque.replace(",", "."));
+      if (estoque != null && (!Number.isFinite(estoque) || estoque < 0)) {
+        toast.error(`“${produto.nome}”: estoque inválido.`);
+        return;
+      }
+      payloads.push({
+        id: produto.id,
+        nome: produto.nome,
+        body: {
+          grupo,
+          preco,
+          estoque,
+          descricao: rascunho.descricao,
+          aplicacao: rascunho.aplicacao,
+          naLoja: rascunho.naLoja,
+          exclusivo: rascunho.exclusivo,
+        },
+      });
+    }
+    setOcupado(true);
+    let ok = 0;
+    const falhas: string[] = [];
+    for (const item of payloads) {
+      try {
+        await portalApi.salvarProduto(item.id, item.body);
+        ok += 1;
+      } catch (error) {
+        falhas.push(`${item.nome}: ${mensagem(error)}`);
+      }
+    }
+    try {
+      await onAtualizar();
+    } catch (error) {
+      toast.error(mensagem(error));
+    } finally {
+      setOcupado(false);
+    }
+    if (ok > 0) toast.success(ok === 1 ? "1 produto salvo." : `${ok} produtos salvos.`);
+    if (falhas.length > 0) toast.error(falhas.slice(0, 2).join(" · "));
+  };
 
   const renomearClasse = async (de: string) => {
     if (ocupado) return;
@@ -2141,33 +2279,39 @@ function PainelEquipe({
   const filtrados = useMemo(() => {
     const termo = busca.trim().toLocaleLowerCase("pt-BR");
     return produtos
-      .filter((p) => (grupoFiltro === "Tudo" ? true : normalizarGrupo(p.grupo) === grupoFiltro))
-      .filter((p) => (lojaFiltro === "ativos" ? p.naLoja : lojaFiltro === "inativos" ? !p.naLoja : true))
       .filter((p) => {
-        if (alertaFiltro === "semPreco") return p.preco == null || p.preco <= 0;
-        if (alertaFiltro === "semFoto") return !p.imagemUrl;
-        if (alertaFiltro === "estoqueZero") return p.estoque === 0;
-        if (alertaFiltro === "exclusivos") return p.exclusivo;
+        const rascunho = rascunhos[p.id];
+        const grupo = normalizarGrupo(rascunho?.grupo ?? p.grupo);
+        const naLoja = rascunho?.naLoja ?? p.naLoja;
+        const exclusivo = rascunho?.exclusivo ?? p.exclusivo;
+        if (grupoFiltro !== "Tudo" && grupo !== grupoFiltro) return false;
+        if (lojaFiltro === "ativos" && !naLoja) return false;
+        if (lojaFiltro === "inativos" && naLoja) return false;
+        if (alertaFiltro === "semPreco") {
+          const preco = rascunho ? Number(rascunho.preco.replace(",", ".")) : p.preco;
+          if (!(preco == null || !Number.isFinite(preco) || preco <= 0)) return false;
+        }
+        if (alertaFiltro === "semFoto" && p.imagemUrl) return false;
+        if (alertaFiltro === "estoqueZero" && p.estoque !== 0) return false;
+        if (alertaFiltro === "exclusivos" && !exclusivo) return false;
+        if (termo) {
+          return (
+            p.nome.toLocaleLowerCase("pt-BR").includes(termo) ||
+            grupo.toLocaleLowerCase("pt-BR").includes(termo) ||
+            (p.categoria ?? "").toLocaleLowerCase("pt-BR").includes(termo)
+          );
+        }
         return true;
       })
-      .filter((p) => {
-        if (!termo) return true;
-        const grupo = normalizarGrupo(p.grupo);
-        return (
-          p.nome.toLocaleLowerCase("pt-BR").includes(termo) ||
-          grupo.toLocaleLowerCase("pt-BR").includes(termo) ||
-          (p.categoria ?? "").toLocaleLowerCase("pt-BR").includes(termo)
-        );
-      })
       .sort((a, b) => {
-        const ga = ORDEM_GRUPOS.indexOf(normalizarGrupo(a.grupo));
-        const gb = ORDEM_GRUPOS.indexOf(normalizarGrupo(b.grupo));
+        const ga = ORDEM_GRUPOS.indexOf(normalizarGrupo(rascunhos[a.id]?.grupo ?? a.grupo));
+        const gb = ORDEM_GRUPOS.indexOf(normalizarGrupo(rascunhos[b.id]?.grupo ?? b.grupo));
         const oa = ga === -1 ? 99 : ga;
         const ob = gb === -1 ? 99 : gb;
         if (oa !== ob) return oa - ob;
         return a.nome.localeCompare(b.nome, "pt-BR");
       });
-  }, [produtos, grupoFiltro, lojaFiltro, alertaFiltro, busca]);
+  }, [produtos, rascunhos, grupoFiltro, lojaFiltro, alertaFiltro, busca]);
 
   const cadastrosPendentes = useMemo(
     () => cadastros.filter((item) => item.status !== "ENVIADO"),
@@ -2399,9 +2543,24 @@ function PainelEquipe({
             </div>
           ) : null}
 
-          <p className="text-sm text-ink/55">
-            {filtrados.length} de {produtos.length} produto{produtos.length === 1 ? "" : "s"}
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-ink/55">
+              {filtrados.length} de {produtos.length} produto{produtos.length === 1 ? "" : "s"}
+              {alterados.length > 0 ? ` · ${alterados.length} com alteração` : ""}
+            </p>
+            {alterados.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                <button type="button" className="border border-ink/15 px-3 py-2 text-sm" disabled={ocupado} onClick={descartarAlteracoes}>
+                  Descartar
+                </button>
+                <Button type="button" disabled={ocupado} onClick={() => void salvarTudo()}>
+                  {ocupado ? "Salvando…" : `Salvar tudo (${alterados.length})`}
+                </Button>
+              </div>
+            ) : (
+              <p className="text-xs text-ink/45">Edite os campos e salve tudo de uma vez.</p>
+            )}
+          </div>
 
           {filtrados.length === 0 ? (
             <p className="rounded-sm border border-dashed border-ink/20 px-4 py-8 text-center text-sm text-ink/60">
@@ -2409,17 +2568,38 @@ function PainelEquipe({
             </p>
           ) : (
             <div className="space-y-3">
-              {filtrados.map((produto) => (
-                <ProdutoEquipeCard
-                  key={produto.id}
-                  produto={produto}
-                  classes={classesParaSelect}
-                  onSave={onSalvar}
-                  onFoto={onFoto}
-                />
-              ))}
+              {filtrados.map((produto) => {
+                const rascunho = rascunhos[produto.id] ?? rascunhoDe(produto);
+                return (
+                  <ProdutoEquipeCard
+                    key={produto.id}
+                    produto={produto}
+                    rascunho={rascunho}
+                    sujo={rascunhoSujo(produto, rascunho)}
+                    classes={classesParaSelect}
+                    onChange={(patch) => atualizarRascunho(produto.id, patch)}
+                    onFoto={onFoto}
+                  />
+                );
+              })}
             </div>
           )}
+
+          {alterados.length > 0 ? (
+            <div className="sticky bottom-3 z-20 flex flex-wrap items-center justify-between gap-3 border border-forest/30 bg-paper/95 p-3 shadow-lg backdrop-blur">
+              <p className="text-sm text-ink/70">
+                {alterados.length === 1 ? "1 produto alterado" : `${alterados.length} produtos alterados`}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" className="border border-ink/15 px-3 py-2 text-sm" disabled={ocupado} onClick={descartarAlteracoes}>
+                  Descartar
+                </button>
+                <Button type="button" disabled={ocupado} onClick={() => void salvarTudo()}>
+                  {ocupado ? "Salvando…" : "Salvar tudo"}
+                </Button>
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
@@ -2568,88 +2748,66 @@ function PainelEquipe({
 
 function ProdutoEquipeCard({
   produto,
+  rascunho,
+  sujo,
   classes,
-  onSave,
+  onChange,
   onFoto,
 }: {
   produto: ProdutoEquipe;
+  rascunho: RascunhoProduto;
+  sujo: boolean;
   classes: string[];
-  onSave: (
-    produto: ProdutoEquipe,
-    patch: {
-      naLoja?: boolean;
-      exclusivo?: boolean;
-      preco?: number;
-      imagemUrl?: string | null;
-      descricao?: string;
-      aplicacao?: string;
-      estoque?: number | null;
-      grupo?: string;
-    },
-  ) => Promise<void>;
+  onChange: (patch: Partial<RascunhoProduto>) => void;
   onFoto: (produto: ProdutoEquipe, imagem: string) => Promise<string>;
 }) {
-  const grupoAtual = normalizarGrupo(produto.grupo);
-  const [preco, setPreco] = useState(produto.preco?.toString() ?? "");
   const [foto, setFoto] = useState(produto.imagemUrl ?? "");
   const [enviandoFoto, setEnviandoFoto] = useState(false);
-  const [descricao, setDescricao] = useState(produto.descricao);
-  const [aplicacao, setAplicacao] = useState(produto.aplicacao);
-  const [estoque, setEstoque] = useState(produto.estoque == null ? "" : String(produto.estoque));
-  const [grupoSelect, setGrupoSelect] = useState(classes.includes(grupoAtual) ? grupoAtual : "__outra__");
-  const [grupoCustom, setGrupoCustom] = useState(classes.includes(grupoAtual) ? "" : grupoAtual);
+  const grupo = normalizarGrupo(rascunho.grupo);
+  const classeNaLista = classes.includes(grupo);
+  const [modoOutra, setModoOutra] = useState(!classeNaLista);
   const peso = pesoDoItem(produto.nome, produto.peso, produto.unidade);
 
   useEffect(() => {
-    setPreco(produto.preco?.toString() ?? "");
     setFoto(produto.imagemUrl ?? "");
-    setDescricao(produto.descricao);
-    setAplicacao(produto.aplicacao);
-    setEstoque(produto.estoque == null ? "" : String(produto.estoque));
-    const atual = normalizarGrupo(produto.grupo);
-    if (classes.includes(atual)) {
-      setGrupoSelect(atual);
-      setGrupoCustom("");
-    } else {
-      setGrupoSelect("__outra__");
-      setGrupoCustom(atual);
-    }
-  }, [produto.id, produto.preco, produto.imagemUrl, produto.descricao, produto.aplicacao, produto.estoque, produto.grupo, classes]);
+  }, [produto.id, produto.imagemUrl]);
 
-  const salvarClasse = (valor: string) => {
-    const grupo = valor.trim().replace(/\s+/g, " ");
-    if (grupo.length < 2) {
-      toast.error("Informe um nome de classe.");
-      return;
-    }
-    if (grupo === grupoAtual) return;
-    void onSave(produto, { grupo });
-  };
+  useEffect(() => {
+    setModoOutra(!classes.includes(normalizarGrupo(rascunho.grupo)));
+  }, [produto.id, rascunho.grupo, classes]);
 
   return (
-    <article className={produto.naLoja ? "space-y-3 rounded-sm border border-ink/10 bg-white p-4" : "space-y-3 rounded-sm border border-dashed border-ink/20 bg-ink/[0.02] p-4"}>
+    <article
+      className={
+        sujo
+          ? "space-y-3 rounded-sm border border-forest/40 bg-white p-4"
+          : rascunho.naLoja
+            ? "space-y-3 rounded-sm border border-ink/10 bg-white p-4"
+            : "space-y-3 rounded-sm border border-dashed border-ink/20 bg-ink/[0.02] p-4"
+      }
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-xs uppercase tracking-wide text-ink/45">{grupoAtual}</p>
-            <span className={produto.naLoja ? "bg-forest/10 px-2 py-0.5 text-[11px] font-medium text-forest" : "bg-ink/10 px-2 py-0.5 text-[11px] font-medium text-ink/60"}>
-              {produto.naLoja ? "Ativo no site" : "Inativo"}
+            <p className="text-xs uppercase tracking-wide text-ink/45">{grupo || "Sem classe"}</p>
+            <span className={rascunho.naLoja ? "bg-forest/10 px-2 py-0.5 text-[11px] font-medium text-forest" : "bg-ink/10 px-2 py-0.5 text-[11px] font-medium text-ink/60"}>
+              {rascunho.naLoja ? "Ativo no site" : "Inativo"}
             </span>
-            {produto.exclusivo ? <span className="bg-ink/5 px-2 py-0.5 text-[11px] text-ink/60">Exclusivo</span> : null}
+            {sujo ? <span className="bg-amber-100 px-2 py-0.5 text-[11px] text-amber-900">Não salvo</span> : null}
+            {rascunho.exclusivo ? <span className="bg-ink/5 px-2 py-0.5 text-[11px] text-ink/60">Exclusivo</span> : null}
             {produto.estoque === 0 ? <span className="bg-amber-100 px-2 py-0.5 text-[11px] text-amber-900">Estoque 0</span> : null}
             {!produto.imagemUrl ? <span className="bg-amber-100 px-2 py-0.5 text-[11px] text-amber-900">Sem foto</span> : null}
-            {produto.preco == null || produto.preco <= 0 ? <span className="bg-amber-100 px-2 py-0.5 text-[11px] text-amber-900">Sem preço</span> : null}
           </div>
           <h3 className="mt-1 font-medium">{produto.nome}</h3>
           {peso ? <p className="mt-1 text-xs font-medium text-forest">Peso {peso}</p> : null}
-          {produto.exclusivo ? <p className="mt-1 text-xs text-ink/55">Só aparece para quem tem este produto na regra comercial.</p> : null}
+          {rascunho.exclusivo ? <p className="mt-1 text-xs text-ink/55">Só aparece para quem tem este produto na regra comercial.</p> : null}
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button type="button" size="sm" variant="outline" onClick={() => onSave(produto, { naLoja: !produto.naLoja })}>
-            {produto.naLoja ? "Tirar da loja" : "Colocar na loja"}
+          <Button type="button" size="sm" variant="outline" onClick={() => onChange({ naLoja: !rascunho.naLoja })}>
+            {rascunho.naLoja ? "Tirar da loja" : "Colocar na loja"}
           </Button>
-          <Button type="button" size="sm" variant="outline" onClick={() => onSave(produto, { exclusivo: !produto.exclusivo })}>
-            {produto.exclusivo ? "Visível para todos" : "Exclusivo"}
+          <Button type="button" size="sm" variant="outline" onClick={() => onChange({ exclusivo: !rascunho.exclusivo })}>
+            {rascunho.exclusivo ? "Visível para todos" : "Exclusivo"}
           </Button>
         </div>
       </div>
@@ -2657,12 +2815,15 @@ function ProdutoEquipeCard({
         <label className="text-sm md:col-span-2">
           Classe
           <select
-            value={grupoSelect}
+            value={modoOutra ? "__outra__" : grupo}
             onChange={(event) => {
               const valor = event.target.value;
-              setGrupoSelect(valor);
-              if (valor === "__outra__") return;
-              salvarClasse(valor);
+              if (valor === "__outra__") {
+                setModoOutra(true);
+                return;
+              }
+              setModoOutra(false);
+              onChange({ grupo: valor });
             }}
             className="mt-1 w-full border border-ink/15 bg-white px-2 py-2"
           >
@@ -2674,24 +2835,30 @@ function ProdutoEquipeCard({
             <option value="__outra__">Outra classe…</option>
           </select>
         </label>
-        {grupoSelect === "__outra__" ? (
+        {modoOutra ? (
           <label className="text-sm md:col-span-2">
-            Nova classe
-            <div className="mt-1 flex gap-2">
-              <input
-                value={grupoCustom}
-                onChange={(event) => setGrupoCustom(event.target.value)}
-                placeholder="Ex.: Temperos"
-                className="w-full border border-ink/15 px-2 py-2"
-              />
-              <Button type="button" size="sm" onClick={() => salvarClasse(grupoCustom)}>
-                Aplicar
-              </Button>
-            </div>
+            Nome da classe
+            <input
+              value={rascunho.grupo}
+              onChange={(event) => onChange({ grupo: event.target.value })}
+              placeholder="Ex.: Temperos"
+              className="mt-1 w-full border border-ink/15 px-2 py-2"
+            />
           </label>
         ) : null}
-        <label className="text-sm">Preço de tabela<input value={preco} onChange={(event) => setPreco(event.target.value)} className="mt-1 w-full border border-ink/15 px-2 py-2" /></label>
-        <label className="text-sm">Estoque<input value={estoque} onChange={(event) => setEstoque(event.target.value)} placeholder="vazio = sem limite" className="mt-1 w-full border border-ink/15 px-2 py-2" /></label>
+        <label className="text-sm">
+          Preço de tabela
+          <input value={rascunho.preco} onChange={(event) => onChange({ preco: event.target.value })} className="mt-1 w-full border border-ink/15 px-2 py-2" />
+        </label>
+        <label className="text-sm">
+          Estoque
+          <input
+            value={rascunho.estoque}
+            onChange={(event) => onChange({ estoque: event.target.value })}
+            placeholder="vazio = sem limite"
+            className="mt-1 w-full border border-ink/15 px-2 py-2"
+          />
+        </label>
         <div className="text-sm md:col-span-2">
           <span>Foto</span>
           <div className="mt-1 flex items-center gap-3">
@@ -2732,28 +2899,15 @@ function ProdutoEquipeCard({
             </label>
           </div>
         </div>
-        <label className="text-sm md:col-span-2">Característica<textarea value={descricao} onChange={(event) => setDescricao(event.target.value)} rows={2} className="mt-1 w-full border border-ink/15 px-2 py-2" /></label>
-        <label className="text-sm md:col-span-2">Aplicação<textarea value={aplicacao} onChange={(event) => setAplicacao(event.target.value)} rows={2} className="mt-1 w-full border border-ink/15 px-2 py-2" /></label>
+        <label className="text-sm md:col-span-2">
+          Característica
+          <textarea value={rascunho.descricao} onChange={(event) => onChange({ descricao: event.target.value })} rows={2} className="mt-1 w-full border border-ink/15 px-2 py-2" />
+        </label>
+        <label className="text-sm md:col-span-2">
+          Aplicação
+          <textarea value={rascunho.aplicacao} onChange={(event) => onChange({ aplicacao: event.target.value })} rows={2} className="mt-1 w-full border border-ink/15 px-2 py-2" />
+        </label>
       </div>
-      <Button
-        type="button"
-        size="sm"
-        onClick={() => {
-          const valor = Number(preco.replace(",", "."));
-          if (!Number.isFinite(valor) || valor <= 0) {
-            toast.error("Informe um preço maior que zero.");
-            return;
-          }
-          const quantidade = estoque.trim() === "" ? null : Number(estoque.replace(",", "."));
-          if (quantidade != null && (!Number.isFinite(quantidade) || quantidade < 0)) {
-            toast.error("O estoque precisa ser um número, ou ficar vazio.");
-            return;
-          }
-          void onSave(produto, { preco: valor, descricao, aplicacao, estoque: quantidade });
-        }}
-      >
-        Salvar
-      </Button>
     </article>
   );
 }
