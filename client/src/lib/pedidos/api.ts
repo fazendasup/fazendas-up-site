@@ -221,6 +221,9 @@ export const portalApi = {
   pedidos: () => request<{ pedidos: PedidoCliente[] }>("/pedidos"),
   endereco: () =>
     request<{
+      nome?: string;
+      email?: string;
+      documento?: string;
       endereco: {
         cep: string;
         logradouro: string;
@@ -232,6 +235,34 @@ export const portalApi = {
       };
       telefone: string;
     }>("/endereco"),
+  salvarEndereco: (body: {
+    telefone?: string;
+    endereco: {
+      cep: string;
+      logradouro: string;
+      numero: string;
+      complemento?: string;
+      bairro: string;
+      cidade: string;
+      estado: string;
+    };
+  }) =>
+    request<{
+      nome?: string;
+      email?: string;
+      documento?: string;
+      telefone: string;
+      endereco: {
+        cep: string;
+        logradouro: string;
+        numero: string;
+        complemento: string;
+        bairro: string;
+        cidade: string;
+        estado: string;
+      };
+      mensagem?: string;
+    }>("/endereco", { method: "PATCH", body: JSON.stringify(body) }),
   criarPedido: (body: {
     dataEntrega: string;
     observacoes?: string;

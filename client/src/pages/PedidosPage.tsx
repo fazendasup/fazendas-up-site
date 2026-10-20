@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ContaCliente } from "@/components/ContaCliente";
 import { ProgramacaoPedidos } from "@/components/ProgramacaoPedidos";
@@ -49,7 +49,23 @@ const enderecoVazio: EnderecoEntrega = {
   estado: "AM",
 };
 
-const ORDEM_GRUPOS = ["Folhas", "Microverdes", "Ervas", "Saladas", "Flores", "Legumes", "Processados", "Molhos", "Planos", "Da fazenda"];
+const ORDEM_GRUPOS = [
+  "Folhas",
+  "Microverdes",
+  "Ervas",
+  "Saladas",
+  "Flores",
+  "Legumes",
+  "Minimamente Processados",
+  "Molhos",
+  "Planos",
+  "Da fazenda",
+];
+
+/** Alinha o nome legado da API com o termo correto na loja e no painel. */
+function normalizarGrupo(grupo: string) {
+  return grupo === "Processados" ? "Minimamente Processados" : grupo;
+}
 
 const cadastroVazio: CadastroEmpresa = {
   nome: "",
@@ -70,6 +86,21 @@ const cadastroVazio: CadastroEmpresa = {
 
 function reais(valor: number) {
   return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+/** Mesma regra do backend: cartão acrescenta 5% sobre os produtos. */
+const TAXA_CARTAO = 0.05;
+
+function totalNoCartao(baseProdutos: number) {
+  return Math.round(baseProdutos * (1 + TAXA_CARTAO) * 100) / 100;
+}
+
+function totalNaForma(baseProdutos: number, forma: FormaPagamento) {
+  return forma === "cartao" ? totalNoCartao(baseProdutos) : Math.round(baseProdutos * 100) / 100;
+}
+
+function baseItensPedido(pedido: PedidoCliente) {
+  return Math.round(pedido.itens.reduce((soma, item) => soma + (item.preco ?? 0) * item.quantidade, 0) * 100) / 100;
 }
 
 function mensagem(error: unknown) {
@@ -120,41 +151,6 @@ function tituloEmAtraso(titulo: TituloCliente, hoje: string) {
   return Boolean(titulo.vencimento && titulo.vencimento.slice(0, 10) < hoje);
 }
 
-function dataCurta(ymd: string) {
-  const [ano, mes, dia] = ymd.split("-").map(Number);
-  return new Date(Date.UTC(ano, (mes ?? 1) - 1, dia ?? 1)).toLocaleDateString("pt-BR", {
-    day: "numeric",
-    month: "short",
-    timeZone: "UTC",
-  });
-}
-
-function resumoDaConta(pedidos: PedidoCliente[], titulos: TituloCliente[]) {
-  const hoje = hojeManaus();
-  const programados = pedidos
-    .filter((pedido) => pedido.programado ?? (pedido.dataEntrega.slice(0, 10) >= hoje && pedido.status !== "CANCELADO"))
-    .sort((a, b) => a.dataEntrega.localeCompare(b.dataEntrega));
-  const atrasados = titulos.filter((titulo) => tituloEmAtraso(titulo, hoje));
-  const idsAtraso = new Set(atrasados.map((titulo) => titulo.id));
-  const aVencer = titulos
-    .filter((titulo) => titulo.emAberto > 0.009 && !idsAtraso.has(titulo.id))
-    .sort((a, b) => (a.vencimento ?? "9999").localeCompare(b.vencimento ?? "9999"));
-  return {
-    programados: programados.length,
-    proximaEntrega: programados[0]?.dataEntrega.slice(0, 10) ?? null,
-    aguardando: programados.filter(
-      (pedido) =>
-        (pedido.doSite && pedido.status === "PENDENTE" && !pedido.pessoa) ||
-        pedido.pagamento?.status === "AGUARDANDO",
-    ).length,
-    atraso: atrasados.length,
-    valorAtraso: atrasados.reduce((soma, titulo) => soma + titulo.emAberto, 0),
-    aVencer: aVencer.length,
-    proximoVencimento: aVencer[0]?.vencimento?.slice(0, 10) ?? null,
-    valorProximo: aVencer[0]?.emAberto ?? 0,
-  };
-}
-
 function lerCarrinho(): Record<string, number> {
   try {
     const salvo = JSON.parse(localStorage.getItem("fazendas.pedido") ?? "{}") as Record<string, number>;
@@ -192,12 +188,24 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
   const [pessoa, setPessoa] = useState<CadastroPessoa>({ nome: "", cpf: "", email: "", telefone: "", senha: "" });
   const [pagamentoAberto, setPagamentoAberto] = useState<(PedidoPagamento & { pedidoId: string }) | null>(null);
   const [checkoutAberto, setCheckoutAberto] = useState(false);
+  /** Checkout em etapas: 1 entrega · 2 pagamento · 3 confirmar */
+  const [checkoutPasso, setCheckoutPasso] = useState<1 | 2 | 3>(1);
   const [endereco, setEndereco] = useState<EnderecoEntrega>(enderecoVazio);
   const [periodoEntrega, setPeriodoEntrega] = useState<PeriodoEntrega>("manha");
   const [formaPagamento, setFormaPagamento] = useState<FormaPagamento>("pix");
+  const itensCarrinho = useMemo(
+    () => Object.values(carrinho).reduce((soma, qtd) => soma + (qtd > 0 ? qtd : 0), 0),
+    [carrinho],
+  );
+  const pedidosAguardandoPagamento = useMemo(
+    () => pedidos.filter((p) => p.pagamento?.status === "AGUARDANDO" && p.status !== "CANCELADO").length,
+    [pedidos],
+  );
   const [buscandoCep, setBuscandoCep] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [enviando, setEnviando] = useState(false);
+  /** Evita double-click criar vários pedidos/cobranças no Conta Azul. */
+  const enviandoRef = useRef(false);
   const [produtosEquipe, setProdutosEquipe] = useState<ProdutoEquipe[]>([]);
   const [cadastros, setCadastros] = useState<Array<{ id: string; nome: string; cnpj: string; email: string; cidade: string; estado: string; status: string; erro: string | null }>>([]);
   const [emAtraso, setEmAtraso] = useState(false);
@@ -209,8 +217,8 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
 
   const total = catalogo.reduce((soma, produto) => soma + (produto.preco ?? 0) * (carrinho[produto.id] ?? 0), 0);
   const precoDaConta = Boolean(cliente);
-  const grupos = ORDEM_GRUPOS.filter((item) => catalogo.some((produto) => produto.grupo === item));
-  const visiveis = catalogo.filter((produto) => grupo === "Tudo" || produto.grupo === grupo);
+  const grupos = ORDEM_GRUPOS.filter((item) => catalogo.some((produto) => normalizarGrupo(produto.grupo) === item));
+  const visiveis = catalogo.filter((produto) => grupo === "Tudo" || normalizarGrupo(produto.grupo) === grupo);
 
   useEffect(() => {
     localStorage.setItem("fazendas.pedido", JSON.stringify(carrinho));
@@ -359,10 +367,13 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
     } catch {
       /* endereço vazio: preenche no checkout */
     }
+    setCheckoutPasso(1);
     setCheckoutAberto(true);
   };
 
   const lancarEmpresa = async (itens: Array<{ produtoId: string; quantidade: number }>) => {
+    if (enviandoRef.current) return;
+    enviandoRef.current = true;
     setEnviando(true);
     try {
       const criado = await portalApi.criarPedido({ dataEntrega, observacoes, itens });
@@ -374,11 +385,13 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
     } catch (error) {
       toast.error(mensagem(error));
     } finally {
+      enviandoRef.current = false;
       setEnviando(false);
     }
   };
 
   const concluirCheckoutPessoa = async () => {
+    if (enviandoRef.current) return;
     const cep = endereco.cep.replace(/\D/g, "");
     if (cep.length !== 8) {
       toast.error("Informe um CEP válido.");
@@ -395,6 +408,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
     const itens = Object.entries(carrinho)
       .filter(([, quantidade]) => quantidade > 0)
       .map(([produtoId, quantidade]) => ({ produtoId, quantidade }));
+    enviandoRef.current = true;
     setEnviando(true);
     try {
       const criado = await portalApi.criarPedido({
@@ -411,27 +425,42 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
       await Promise.all([carregarVitrine(), carregarConta()]);
       setVista("pedidos");
       if (criado.pagamento) {
-        setPagamentoAberto({ ...criado.pagamento, pedidoId: criado.id, linkPendente: criado.pagamento.linkPendente });
-        const url = criado.pagamento.pixUrl || criado.pagamento.cartaoUrl;
-        if (url) window.open(url, "_blank", "noopener,noreferrer");
-        else if (criado.pagamento.linkPendente) {
-          // Conta Azul libera o link com atraso — tenta de novo em alguns segundos.
+        const forma = criado.pagamento.formaPagamento ?? formaPagamento;
+        setPagamentoAberto({
+          ...criado.pagamento,
+          pixUrl: forma === "pix" ? criado.pagamento.pixUrl : null,
+          cartaoUrl: forma === "cartao" ? criado.pagamento.cartaoUrl : null,
+          formaPagamento: forma,
+          pedidoId: criado.id,
+          linkPendente: criado.pagamento.linkPendente,
+        });
+        if (criado.pagamento.linkPendente) {
           const id = criado.id;
           window.setTimeout(() => {
             void portalApi.pagamentoPedido(id).then((pagamento) => {
-              const pronto = pagamento.pixUrl || pagamento.cartaoUrl;
-              if (pronto) {
-                setPagamentoAberto({ ...pagamento, pedidoId: id, linkPendente: false });
-                window.open(pronto, "_blank", "noopener,noreferrer");
+              const formaOk =
+                pagamento.formaPagamento ??
+                (pagamento.pixUrl ? "pix" : pagamento.cartaoUrl ? "cartao" : forma);
+              const url = formaOk === "cartao" ? pagamento.cartaoUrl : pagamento.pixUrl;
+              if (url) {
+                setPagamentoAberto({
+                  ...pagamento,
+                  pixUrl: formaOk === "pix" ? pagamento.pixUrl : null,
+                  cartaoUrl: formaOk === "cartao" ? pagamento.cartaoUrl : null,
+                  formaPagamento: formaOk,
+                  pedidoId: id,
+                  linkPendente: false,
+                });
               }
             }).catch(() => undefined);
           }, 4000);
         }
       }
-      toast.success(criado.mensagem || "Pedido criado. Conclua o pagamento.");
+      toast.success(criado.mensagem || "Pedido criado. Conclua o pagamento para liberar a entrega.");
     } catch (error) {
       toast.error(mensagem(error));
     } finally {
+      enviandoRef.current = false;
       setEnviando(false);
     }
   };
@@ -533,82 +562,134 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
   return (
     <div className="min-h-screen bg-paper text-ink">
       <SiteHeader variant="subpage" />
-      <main className="container pb-24 pt-28">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <h1 className="display-head max-w-3xl text-[clamp(2.4rem,5vw,3.8rem)] leading-[1.02]">
-            {vista === "equipe" && !cliente ? "Acesso da equipe" : <>Da fazenda para a <em>cozinha</em>.</>}
-          </h1>
-          {cliente ? null : (
-            vista === "equipe" ? null : (
-            <div className="flex gap-4 text-sm">
-              <button type="button" className="text-ink/70" onClick={() => { setVista("loja"); setModoEquipe(false); }}>Entrar</button>
-              <button type="button" className="text-forest" onClick={() => { setTipoCadastro("pessoa"); setVista("cadastro"); }}>Criar conta</button>
+      <main className={`container pt-28 ${vista === "loja" && itensCarrinho > 0 ? "pb-32 lg:pb-24" : "pb-24"}`}>
+        {(vista === "loja" || vista === "cadastro" || vista === "equipe") ? (
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="max-w-3xl space-y-2">
+              <p className="text-sm font-medium tracking-[0.12em] text-forest uppercase">Fazendas UP</p>
+              <h1 className="display-head text-[clamp(2.2rem,4.5vw,3.4rem)] leading-[1.05]">
+                {vista === "equipe"
+                  ? equipe
+                    ? "Painel da equipe"
+                    : "Acesso da equipe"
+                  : vista === "cadastro"
+                    ? "Criar conta"
+                    : <>Da fazenda para a <em>cozinha</em>.</>}
+              </h1>
+              {vista === "equipe" && equipe ? (
+                <p className="max-w-xl text-sm text-ink/65">
+                  Catálogo, vitrine do site, cadastros e ações rápidas para administrar a loja.
+                </p>
+              ) : null}
+              {vista === "loja" && !cliente ? (
+                <p className="max-w-xl text-sm text-ink/65">
+                  Escolha os produtos, entre na conta e finalize em poucos passos — Pix sem taxa ou cartão.
+                </p>
+              ) : null}
+              {vista === "loja" && cliente && ehPessoa(cliente) ? (
+                <p className="max-w-xl text-sm text-ink/65">
+                  Monte o pedido na vitrine. Entrega e pagamento ficam no checkout.
+                </p>
+              ) : null}
             </div>
-            )
-          )}
-        </div>
+            {cliente || vista === "equipe" ? null : (
+              <div className="flex gap-4 text-sm">
+                <button type="button" className="text-ink/70" onClick={() => { setVista("loja"); setModoEquipe(false); document.getElementById("enviar-pedido")?.scrollIntoView({ behavior: "smooth", block: "center" }); }}>Entrar</button>
+                <button type="button" className="text-forest" onClick={() => { setTipoCadastro("pessoa"); setVista("cadastro"); }}>Criar conta</button>
+              </div>
+            )}
+          </div>
+        ) : null}
         {cliente ? (
-          <div className="mt-8 border border-ink/15 bg-white px-5 py-5">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-[0.18em] text-ink/45">Sua conta</p>
-              <p className="display-head text-[clamp(1.6rem,3vw,2.2rem)] leading-none">{cliente.nome}</p>
-            </div>
-            <nav className="flex flex-wrap gap-2">
-              {(
-                [
-                  ["loja", "Fazer pedido"],
-                  ...(cliente.recorrente && !ehPessoa(cliente) ? [["programacao", "Programação"] as const] : []),
-                  ["pedidos", "Meus pedidos"],
-                  ["pagamentos", "Pagamentos"],
-                  ...(!ehPessoa(cliente) ? [["conta", "Conta"] as const] : []),
-                ] as const
-              ).map(([id, rotulo]) => (
+          <div className="mt-6 space-y-3">
+            <div className="flex flex-col gap-3 border-b border-ink/10 pb-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-ink/65">
+                Olá, <span className="font-medium text-ink">{cliente.nome.split(" ")[0]}</span>
+              </p>
+              <nav className="flex flex-wrap gap-2">
+                {(
+                  [
+                    ["loja", itensCarrinho > 0 ? `Loja (${itensCarrinho})` : "Loja"],
+                    ...(cliente.recorrente && !ehPessoa(cliente) ? [["programacao", "Programação"] as const] : []),
+                    ["pedidos", pedidosAguardandoPagamento > 0 ? `Meus pedidos (${pedidosAguardandoPagamento})` : "Meus pedidos"],
+                    ...(!ehPessoa(cliente) ? [["pagamentos", "Pagamentos"] as const] : []),
+                    ["conta", "Minha conta"],
+                  ] as const
+                ).map(([id, rotulo]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    className={
+                      vista === id
+                        ? "bg-forest px-3 py-2 text-sm text-paper"
+                        : "border border-ink/15 px-3 py-2 text-sm text-ink"
+                    }
+                    onClick={() => {
+                      if (id === "pagamentos") setVerHistorico(false);
+                      if (id === "pedidos") setVerHistoricoPedidos(false);
+                      setVista(id);
+                      if (id === "loja") window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                  >
+                    {rotulo}
+                  </button>
+                ))}
+                {equipe ? (
+                  <button type="button" className="border border-ink/15 px-3 py-2 text-sm" onClick={() => setVista("equipe")}>
+                    Equipe
+                  </button>
+                ) : null}
                 <button
-                  key={id}
                   type="button"
-                  className={
-                    vista === id
-                      ? "bg-forest px-3 py-2 text-sm text-paper"
-                      : "border border-ink/15 px-3 py-2 text-sm text-ink"
-                  }
+                  className="border border-ink/15 px-3 py-2 text-sm"
                   onClick={() => {
-                    if (id === "pagamentos") setVerHistorico(false);
-                    if (id === "pedidos") setVerHistoricoPedidos(false);
-                    setVista(id);
-                    if (id === "loja") window.scrollTo({ top: 0, behavior: "smooth" });
+                    void portalApi.sair().finally(() => {
+                      setCliente(null);
+                      setPedidos([]);
+                      setTitulos([]);
+                      setAvisoPagamento("");
+                      setContaPronta(false);
+                      setVerHistorico(false);
+                      setVerHistoricoPedidos(false);
+                      setVista("loja");
+                      void carregarVitrine();
+                    });
                   }}
                 >
-                  {rotulo}
+                  Sair
                 </button>
-              ))}
-              {equipe ? (
-                <button type="button" className="border border-ink/15 px-3 py-2 text-sm" onClick={() => setVista("equipe")}>
-                  Loja
-                </button>
-              ) : null}
+              </nav>
+            </div>
+            {pedidosAguardandoPagamento > 0 && vista === "loja" ? (
               <button
                 type="button"
-                className="border border-ink/15 px-3 py-2 text-sm"
+                className="flex w-full items-center justify-between gap-3 border border-forest/30 bg-forest/5 px-4 py-3 text-left text-sm"
                 onClick={() => {
-                  void portalApi.sair().finally(() => {
-                    setCliente(null);
-                    setPedidos([]);
-                    setTitulos([]);
-                    setAvisoPagamento("");
-                    setContaPronta(false);
-                    setVerHistorico(false);
-                    setVerHistoricoPedidos(false);
-                    setVista("loja");
-                    void carregarVitrine();
-                  });
+                  setVerHistoricoPedidos(false);
+                  setVista("pedidos");
                 }}
               >
-                Sair
+                <span>
+                  {pedidosAguardandoPagamento === 1
+                    ? "Você tem 1 pedido aguardando pagamento."
+                    : `Você tem ${pedidosAguardandoPagamento} pedidos aguardando pagamento.`}
+                </span>
+                <span className="shrink-0 font-medium text-forest">Pagar agora →</span>
               </button>
-            </nav>
-            </div>
-            {contaPronta ? <IndicadoresConta pedidos={pedidos} titulos={titulos} onPedidos={() => { setVerHistoricoPedidos(false); setVista("pedidos"); }} onPagamentos={() => { setVerHistorico(false); setVista("pagamentos"); }} /> : null}
+            ) : null}
+            {emAtraso && !ehPessoa(cliente) && vista === "loja" ? (
+              <button
+                type="button"
+                className="flex w-full items-center justify-between gap-3 border border-red-800/25 bg-red-50 px-4 py-3 text-left text-sm text-red-900"
+                onClick={() => {
+                  setVerHistorico(false);
+                  setVista("pagamentos");
+                }}
+              >
+                <span>Há pagamento em atraso. Regularize para liberar novos pedidos.</span>
+                <span className="shrink-0 font-medium">Ver pagamentos →</span>
+              </button>
+            ) : null}
           </div>
         ) : null}
 
@@ -641,7 +722,9 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                 }}
               >
                 <h2 className="display-head text-2xl sm:col-span-2">Criar conta</h2>
-                <p className="text-sm text-ink/65 sm:col-span-2">Só o essencial. Depois você paga com Pix ou cartão.</p>
+                <p className="text-sm text-ink/65 sm:col-span-2">
+                  Cadastro rápido. No pedido você escolhe Pix (sem taxa) ou cartão (+5%). Pedido mínimo {reais(10)}.
+                </p>
                 <Campo label="Seu nome" value={pessoa.nome} onChange={(nome) => setPessoa({ ...pessoa, nome })} />
                 <Campo label="CPF" value={formatCpf(pessoa.cpf)} onChange={(cpf) => setPessoa({ ...pessoa, cpf })} inputMode="numeric" />
                 <Campo label="E-mail" value={pessoa.email} onChange={(email) => setPessoa({ ...pessoa, email })} type="email" />
@@ -708,44 +791,65 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
             verHistorico={verHistoricoPedidos}
             onHistorico={() => setVerHistoricoPedidos((atual) => !atual)}
             onLoja={() => { setVista("loja"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-            onAtualizar={() => void carregarConta()}
+            onAtualizar={() => carregarConta()}
             onPagamento={(pagamento) => setPagamentoAberto(pagamento)}
           />
         ) : null}
 
         {vista === "pagamentos" && cliente ? (
           <>
-          <Pagamentos
-            titulos={titulos}
-            aviso={avisoPagamento}
-            verHistorico={verHistorico}
-            baixandoDoc={baixandoDoc}
-            onHistorico={() => setVerHistorico((atual) => !atual)}
-            onBaixar={(id, tipo) => {
-              const chave = `${tipo}:${id}`;
-              setBaixandoDoc(chave);
-              void portalApi
-                .baixarDocumento(id, tipo)
-                .catch((error) => toast.error(mensagem(error)))
-                .finally(() => setBaixandoDoc((atual) => (atual === chave ? "" : atual)));
-            }}
-          />
+          {ehPessoa(cliente) ? (
+            <div className="mt-8 max-w-lg space-y-3 rounded-sm border border-ink/10 bg-white p-6">
+              <h2 className="display-head text-2xl">Pagamentos</h2>
+              <p className="text-sm text-ink/70">
+                Pix e cartão ficam em <span className="font-medium text-ink">Meus pedidos</span> — pague, troque a forma ou cancele por lá.
+              </p>
+              <Button type="button" onClick={() => { setVerHistoricoPedidos(false); setVista("pedidos"); }}>
+                Ir para Meus pedidos
+              </Button>
+            </div>
+          ) : (
+            <Pagamentos
+              titulos={titulos}
+              aviso={avisoPagamento}
+              verHistorico={verHistorico}
+              baixandoDoc={baixandoDoc}
+              onHistorico={() => setVerHistorico((atual) => !atual)}
+              onBaixar={(id, tipo) => {
+                const chave = `${tipo}:${id}`;
+                setBaixandoDoc(chave);
+                void portalApi
+                  .baixarDocumento(id, tipo)
+                  .catch((error) => toast.error(mensagem(error)))
+                  .finally(() => setBaixandoDoc((atual) => (atual === chave ? "" : atual)));
+              }}
+            />
+          )}
           <button type="button" className="mt-8 text-sm text-forest" onClick={() => { setVista("loja"); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Fazer pedido</button>
           </>
         ) : null}
 
         {vista === "conta" && cliente ? (
           <>
-          <ContaCliente
-            onMinimo={setMinimo}
-            onRecorrente={() => setCliente((atual) => (atual ? { ...atual, recorrente: true } : atual))}
-          />
+          {ehPessoa(cliente) ? (
+            <ContaPessoa
+              nome={cliente.nome}
+              onSalvo={() => {
+                void carregarConta().catch(() => undefined);
+              }}
+            />
+          ) : (
+            <ContaCliente
+              onMinimo={setMinimo}
+              onRecorrente={() => setCliente((atual) => (atual ? { ...atual, recorrente: true } : atual))}
+            />
+          )}
           <form
             className="mt-8 max-w-md space-y-3 rounded-sm border border-ink/10 bg-white p-5"
             onSubmit={(event) => {
               event.preventDefault();
-              if (senhaNova.length < 6 || senhaNova !== senha2) {
-                toast.error("A nova senha precisa ter pelo menos 6 caracteres e as duas precisam ser iguais.");
+              if (senhaNova.length < 8 || senhaNova !== senha2) {
+                toast.error("A nova senha precisa ter pelo menos 8 caracteres e as duas precisam ser iguais.");
                 return;
               }
               setEnviando(true);
@@ -761,7 +865,11 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
             }}
           >
             <h2 className="text-lg">Senha desta conta</h2>
-            <p className="text-sm text-ink/60">Se ainda não trocou, a senha atual são os 5 primeiros dígitos do CNPJ.</p>
+            <p className="text-sm text-ink/60">
+              {ehPessoa(cliente)
+                ? "Use a senha que você criou no cadastro."
+                : "Se ainda não trocou, a senha atual são os 5 primeiros dígitos do CNPJ."}
+            </p>
             <CampoSenha label="Senha atual" value={senhaAtual} onChange={setSenhaAtual} autoComplete="current-password" />
             <CampoSenha label="Nova senha" value={senhaNova} onChange={setSenhaNova} autoComplete="new-password" />
             <CampoSenha label="Repita a nova senha" value={senha2} onChange={setSenha2} autoComplete="new-password" />
@@ -788,45 +896,38 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                 <a href="/pedidos" className="block text-sm text-ink/55">Voltar aos produtos</a>
               </form>
             ) : (
-              <>
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <p className="text-sm text-ink/70">{equipe.nome}</p>
-                  <Button type="button" variant="outline" onClick={() => { void portalApi.equipeSair().finally(() => { setEquipe(null); setVista("loja"); }); }}>Sair da equipe</Button>
-                </div>
-                {cadastros.filter((item) => item.status !== "ENVIADO").length > 0 ? (
-                  <ul className="space-y-2 text-sm">
-                    {cadastros.filter((item) => item.status !== "ENVIADO").map((item) => (
-                      <li key={item.id} className="rounded-sm border border-ink/10 bg-white p-3">
-                        <strong>{item.nome}</strong> · {item.cnpj} · {item.cidade}/{item.estado}
-                        {item.erro ? <p className="text-ink/60">{item.erro}</p> : null}
-                        <Button type="button" size="sm" className="mt-2" onClick={() => { void portalApi.enviarCadastro(item.id).then(() => portalApi.cadastros().then((lista) => setCadastros(lista.cadastros))).catch((error) => toast.error(mensagem(error))); }}>Enviar de novo</Button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-                <div className="space-y-3">
-                  {produtosEquipe.map((produto) => (
-                    <ProdutoEquipeCard
-                      key={produto.id}
-                      produto={produto}
-                      onSave={salvarProduto}
-                      onFoto={async (item, imagem) => {
-                        const salvo = await portalApi.enviarFoto(item.id, imagem);
-                        setProdutosEquipe((atual) =>
-                          atual.map((produto) => (produto.id === item.id ? { ...produto, imagemUrl: salvo.imagemUrl } : produto)),
-                        );
-                        void carregarVitrine();
-                        return salvo.imagemUrl;
-                      }}
-                    />
-                  ))}
-                </div>
-              </>
+              <PainelEquipe
+                nome={equipe.nome}
+                produtos={produtosEquipe}
+                cadastros={cadastros}
+                onSair={() => {
+                  void portalApi.equipeSair().finally(() => {
+                    setEquipe(null);
+                    setVista("loja");
+                  });
+                }}
+                onAtualizar={async () => {
+                  const [lista, recebidos] = await Promise.all([portalApi.equipeProdutos(), portalApi.cadastros()]);
+                  setProdutosEquipe(lista.produtos);
+                  setCadastros(recebidos.cadastros);
+                  void carregarVitrine();
+                }}
+                onSalvar={salvarProduto}
+                onFoto={async (item, imagem) => {
+                  const salvo = await portalApi.enviarFoto(item.id, imagem);
+                  setProdutosEquipe((atual) =>
+                    atual.map((produto) => (produto.id === item.id ? { ...produto, imagemUrl: salvo.imagemUrl } : produto)),
+                  );
+                  void carregarVitrine();
+                  return salvo.imagemUrl;
+                }}
+                onCadastros={setCadastros}
+              />
             )}
           </section>
         ) : null}
 
-        {vista === "loja" || vista === "cadastro" ? (
+        {vista === "loja" ? (
           <section className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
             <div>
               <div className="mb-6 flex flex-wrap gap-x-5 gap-y-2 text-sm">
@@ -837,7 +938,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
               </div>
               {visiveis.length === 0 && !carregando ? <p className="text-ink/60">Nenhum produto nesta seleção.</p> : null}
               {(grupo === "Tudo" ? grupos : [grupo]).map((nome) => {
-                const itens = visiveis.filter((produto) => produto.grupo === nome);
+                const itens = visiveis.filter((produto) => normalizarGrupo(produto.grupo) === nome);
                 if (itens.length === 0) return null;
                 return (
                   <section key={nome} className="mb-10">
@@ -854,8 +955,15 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
             <aside id="enviar-pedido" className="space-y-4 rounded-sm border border-ink/10 bg-white p-5 lg:sticky lg:top-28">
               <h2 className="text-lg">Seu pedido</h2>
               {precoDaConta ? <p className="text-2xl font-medium tabular-nums">{reais(total)}</p> : <p className="text-sm text-ink/70">Entre para ver os preços e enviar o pedido.</p>}
+              {precoDaConta && ehPessoa(cliente) && total > 0 ? (
+                <div className="space-y-1 text-xs text-ink/60">
+                  <p>Pix: {reais(total)} · sem taxa</p>
+                  <p>Cartão: {reais(totalNoCartao(total))} · inclui +5% da operadora</p>
+                  {minimo > 0 ? <p>Pedido mínimo: {reais(minimo)}</p> : null}
+                </div>
+              ) : null}
               {total === 0 && Object.values(carrinho).every((quantidade) => quantidade <= 0) ? <p className="text-sm text-ink/55">Escolha a quantidade nos produtos.</p> : null}
-              {precoDaConta && minimo > 0 && total > 0 && total < minimo ? <p className="text-sm text-ink/65">Faltam {reais(minimo - total)} para a entrega.</p> : null}
+              {precoDaConta && minimo > 0 && total > 0 && total < minimo ? <p className="text-sm text-ink/65">Faltam {reais(minimo - total)} para atingir o pedido mínimo.</p> : null}
               {emAtraso && cliente && !ehPessoa(cliente) ? <p className="text-sm text-red-800">Há um pagamento em atraso nesta conta. O pedido fica bloqueado até a regularização.</p> : null}
               <ul className="space-y-3 text-sm">
                 {catalogo.filter((produto) => (carrinho[produto.id] ?? 0) > 0).map((produto) => {
@@ -880,23 +988,31 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                   );
                 })}
               </ul>
-              <label className="block text-sm">
-                Entrega
-                <select value={dataEntrega} onChange={(event) => setDataEntrega(event.target.value)} className="mt-1 w-full border border-ink/15 bg-white px-3 py-3">
-                  {datas.map((data) => <option key={data} value={data}>{formatLongDate(data)}</option>)}
-                </select>
-              </label>
-              <label className="block text-sm">
-                Observação
-                <textarea value={observacoes} onChange={(event) => setObservacoes(event.target.value)} rows={3} className="mt-1 w-full border border-ink/15 px-3 py-3" />
-              </label>
+              {cliente && !ehPessoa(cliente) ? (
+                <>
+                  <label className="block text-sm">
+                    Entrega
+                    <select value={dataEntrega} onChange={(event) => setDataEntrega(event.target.value)} className="mt-1 w-full border border-ink/15 bg-white px-3 py-3">
+                      {datas.map((data) => <option key={data} value={data}>{formatLongDate(data)}</option>)}
+                    </select>
+                  </label>
+                  <label className="block text-sm">
+                    Observação
+                    <textarea value={observacoes} onChange={(event) => setObservacoes(event.target.value)} rows={3} className="mt-1 w-full border border-ink/15 px-3 py-3" />
+                  </label>
+                </>
+              ) : null}
               {cliente ? (
                 <Button
                   type="button"
                   disabled={enviando || (emAtraso && !ehPessoa(cliente)) || (minimo > 0 && total < minimo) || total <= 0}
                   onClick={() => void abrirCheckout()}
                 >
-                  {ehPessoa(cliente) ? "Pedir e pagar" : "Enviar para aprovação"}
+                  {ehPessoa(cliente)
+                    ? total > 0
+                      ? `Continuar · ${reais(total)}`
+                      : "Escolha os produtos"
+                    : "Enviar para aprovação"}
                 </Button>
               ) : (
                 <form
@@ -940,115 +1056,209 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
           </section>
         ) : null}
         {checkoutAberto ? (
-          <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 p-4 sm:items-center">
+          <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 p-4 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="checkout-titulo">
             <div className="max-h-[90vh] w-full max-w-lg space-y-4 overflow-y-auto rounded-sm bg-paper p-6 shadow-lg">
-              <h2 className="display-head text-2xl">Finalizar pedido</h2>
-              <p className="text-sm text-ink/70">Total {reais(total)}. Informe a entrega e como prefere pagar.</p>
-
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Data e período</p>
-                <select value={dataEntrega} onChange={(event) => setDataEntrega(event.target.value)} className="w-full border border-ink/15 bg-white px-3 py-3">
-                  {datas.map((data) => (
-                    <option key={data} value={data}>{formatLongDate(data)}</option>
-                  ))}
-                </select>
-                <div className="grid grid-cols-2 gap-2">
-                  <button type="button" className={periodoEntrega === "manha" ? "bg-forest px-3 py-3 text-sm text-paper" : "border border-ink/15 px-3 py-3 text-sm"} onClick={() => setPeriodoEntrega("manha")}>
-                    Manhã · 8h–12h
-                  </button>
-                  <button type="button" className={periodoEntrega === "tarde" ? "bg-forest px-3 py-3 text-sm text-paper" : "border border-ink/15 px-3 py-3 text-sm"} onClick={() => setPeriodoEntrega("tarde")}>
-                    Tarde · 13h–17h
-                  </button>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h2 id="checkout-titulo" className="display-head text-2xl">Checkout</h2>
+                  <p className="mt-1 text-sm text-ink/60">
+                    {checkoutPasso === 1 ? "Passo 1 de 3 · Entrega" : checkoutPasso === 2 ? "Passo 2 de 3 · Pagamento" : "Passo 3 de 3 · Confirmar"}
+                  </p>
                 </div>
+                <button type="button" className="text-sm text-ink/50" disabled={enviando} onClick={() => setCheckoutAberto(false)}>Fechar</button>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <p className="text-sm font-medium sm:col-span-2">Endereço de entrega</p>
-                <label className="block text-sm sm:col-span-2">
-                  CEP
-                  <input value={endereco.cep} onChange={(event) => void preencherCep(event.target.value)} inputMode="numeric" className="mt-1 w-full border border-ink/15 px-3 py-3" />
-                  {buscandoCep ? <span className="text-xs text-ink/50">Buscando CEP…</span> : null}
-                </label>
-                <label className="block text-sm sm:col-span-2">
-                  Rua / avenida
-                  <input value={endereco.logradouro} onChange={(event) => setEndereco((atual) => ({ ...atual, logradouro: event.target.value }))} className="mt-1 w-full border border-ink/15 px-3 py-3" />
-                </label>
-                <label className="block text-sm">
-                  Número
-                  <input value={endereco.numero} onChange={(event) => setEndereco((atual) => ({ ...atual, numero: event.target.value }))} className="mt-1 w-full border border-ink/15 px-3 py-3" />
-                </label>
-                <label className="block text-sm">
-                  Complemento
-                  <input value={endereco.complemento} onChange={(event) => setEndereco((atual) => ({ ...atual, complemento: event.target.value }))} className="mt-1 w-full border border-ink/15 px-3 py-3" />
-                </label>
-                <label className="block text-sm sm:col-span-2">
-                  Bairro
-                  <input value={endereco.bairro} onChange={(event) => setEndereco((atual) => ({ ...atual, bairro: event.target.value }))} className="mt-1 w-full border border-ink/15 px-3 py-3" />
-                </label>
-                <label className="block text-sm">
-                  Cidade
-                  <input value={endereco.cidade} onChange={(event) => setEndereco((atual) => ({ ...atual, cidade: event.target.value }))} className="mt-1 w-full border border-ink/15 px-3 py-3" />
-                </label>
-                <label className="block text-sm">
-                  UF
-                  <input value={endereco.estado} onChange={(event) => setEndereco((atual) => ({ ...atual, estado: event.target.value.slice(0, 2).toUpperCase() }))} className="mt-1 w-full border border-ink/15 px-3 py-3" />
-                </label>
-              </div>
+              <ol className="grid grid-cols-3 gap-2 text-center text-xs">
+                {(["Entrega", "Pagamento", "Confirmar"] as const).map((rotulo, indice) => {
+                  const passo = (indice + 1) as 1 | 2 | 3;
+                  const ativo = checkoutPasso === passo;
+                  const feito = checkoutPasso > passo;
+                  return (
+                    <li key={rotulo} className={ativo ? "border-b-2 border-forest pb-2 font-medium text-ink" : feito ? "border-b border-forest/40 pb-2 text-forest" : "border-b border-ink/10 pb-2 text-ink/40"}>
+                      {rotulo}
+                    </li>
+                  );
+                })}
+              </ol>
 
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Pagamento</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <button type="button" className={formaPagamento === "pix" ? "bg-forest px-3 py-3 text-sm text-paper" : "border border-ink/15 px-3 py-3 text-sm"} onClick={() => setFormaPagamento("pix")}>
-                    Pix
-                  </button>
-                  <button type="button" className={formaPagamento === "cartao" ? "bg-forest px-3 py-3 text-sm text-paper" : "border border-ink/15 px-3 py-3 text-sm"} onClick={() => setFormaPagamento("cartao")}>
-                    Cartão
-                  </button>
+              {checkoutPasso === 1 ? (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Quando entregar?</p>
+                    <select value={dataEntrega} onChange={(event) => setDataEntrega(event.target.value)} className="w-full border border-ink/15 bg-white px-3 py-3">
+                      {datas.map((data) => (
+                        <option key={data} value={data}>{formatLongDate(data)}</option>
+                      ))}
+                    </select>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button type="button" className={periodoEntrega === "manha" ? "bg-forest px-3 py-3 text-sm text-paper" : "border border-ink/15 px-3 py-3 text-sm"} onClick={() => setPeriodoEntrega("manha")}>
+                        Manhã · 8h–12h
+                      </button>
+                      <button type="button" className={periodoEntrega === "tarde" ? "bg-forest px-3 py-3 text-sm text-paper" : "border border-ink/15 px-3 py-3 text-sm"} onClick={() => setPeriodoEntrega("tarde")}>
+                        Tarde · 13h–17h
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <p className="text-sm font-medium sm:col-span-2">Onde entregar?</p>
+                    <label className="block text-sm sm:col-span-2">
+                      CEP
+                      <input value={endereco.cep} onChange={(event) => void preencherCep(event.target.value)} inputMode="numeric" autoComplete="postal-code" className="mt-1 w-full border border-ink/15 px-3 py-3" />
+                      {buscandoCep ? <span className="text-xs text-ink/50">Buscando CEP…</span> : null}
+                    </label>
+                    <label className="block text-sm sm:col-span-2">
+                      Rua / avenida
+                      <input value={endereco.logradouro} onChange={(event) => setEndereco((atual) => ({ ...atual, logradouro: event.target.value }))} autoComplete="street-address" className="mt-1 w-full border border-ink/15 px-3 py-3" />
+                    </label>
+                    <label className="block text-sm">
+                      Número
+                      <input value={endereco.numero} onChange={(event) => setEndereco((atual) => ({ ...atual, numero: event.target.value }))} className="mt-1 w-full border border-ink/15 px-3 py-3" />
+                    </label>
+                    <label className="block text-sm">
+                      Complemento <span className="font-normal text-ink/45">(opcional)</span>
+                      <input value={endereco.complemento} onChange={(event) => setEndereco((atual) => ({ ...atual, complemento: event.target.value }))} className="mt-1 w-full border border-ink/15 px-3 py-3" />
+                    </label>
+                    <label className="block text-sm sm:col-span-2">
+                      Bairro
+                      <input value={endereco.bairro} onChange={(event) => setEndereco((atual) => ({ ...atual, bairro: event.target.value }))} className="mt-1 w-full border border-ink/15 px-3 py-3" />
+                    </label>
+                    <label className="block text-sm">
+                      Cidade
+                      <input value={endereco.cidade} onChange={(event) => setEndereco((atual) => ({ ...atual, cidade: event.target.value }))} className="mt-1 w-full border border-ink/15 px-3 py-3" />
+                    </label>
+                    <label className="block text-sm">
+                      UF
+                      <input value={endereco.estado} onChange={(event) => setEndereco((atual) => ({ ...atual, estado: event.target.value.slice(0, 2).toUpperCase() }))} className="mt-1 w-full border border-ink/15 px-3 py-3" maxLength={2} />
+                    </label>
+                  </div>
+                  <label className="block text-sm">
+                    Observação <span className="font-normal text-ink/45">(opcional)</span>
+                    <textarea value={observacoes} onChange={(event) => setObservacoes(event.target.value)} rows={2} placeholder="Ex.: portão azul, deixar com o porteiro" className="mt-1 w-full border border-ink/15 px-3 py-3" />
+                  </label>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      const cep = endereco.cep.replace(/\D/g, "");
+                      if (!dataEntrega) {
+                        toast.error("Escolha a data de entrega.");
+                        return;
+                      }
+                      if (cep.length !== 8) {
+                        toast.error("Informe um CEP válido.");
+                        return;
+                      }
+                      if (endereco.logradouro.trim().length < 2 || !endereco.numero.trim() || endereco.bairro.trim().length < 2) {
+                        toast.error("Complete o endereço de entrega.");
+                        return;
+                      }
+                      setCheckoutPasso(2);
+                    }}
+                  >
+                    Continuar para o pagamento
+                  </Button>
                 </div>
-              </div>
+              ) : null}
 
-              <label className="block text-sm">
-                Observação
-                <textarea value={observacoes} onChange={(event) => setObservacoes(event.target.value)} rows={2} className="mt-1 w-full border border-ink/15 px-3 py-3" />
-              </label>
+              {checkoutPasso === 2 ? (
+                <div className="space-y-4">
+                  <p className="text-sm text-ink/70">Escolha como pagar. A cobrança só é gerada no próximo passo.</p>
+                  <div className="grid gap-2">
+                    <button type="button" className={formaPagamento === "pix" ? "bg-forest px-4 py-4 text-left text-paper" : "border border-ink/15 px-4 py-4 text-left"} onClick={() => setFormaPagamento("pix")}>
+                      <span className="block text-base font-medium">Pix</span>
+                      <span className={formaPagamento === "pix" ? "text-sm text-paper/85" : "text-sm text-ink/60"}>{reais(total)} · sem taxa · recomendado</span>
+                    </button>
+                    <button type="button" className={formaPagamento === "cartao" ? "bg-forest px-4 py-4 text-left text-paper" : "border border-ink/15 px-4 py-4 text-left"} onClick={() => setFormaPagamento("cartao")}>
+                      <span className="block text-base font-medium">Cartão de crédito</span>
+                      <span className={formaPagamento === "cartao" ? "text-sm text-paper/85" : "text-sm text-ink/60"}>{reais(totalNoCartao(total))} · inclui +5% da operadora</span>
+                    </button>
+                  </div>
+                  {formaPagamento === "cartao" ? (
+                    <p className="text-xs text-ink/55">Os 5% cobrem a taxa da operadora. No Pix esse valor não é cobrado.</p>
+                  ) : (
+                    <p className="text-xs text-ink/55">Pagamento instantâneo. A entrega só libera depois da confirmação.</p>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    <button type="button" className="border border-ink/15 px-3 py-2 text-sm" onClick={() => setCheckoutPasso(1)}>Voltar</button>
+                    <Button type="button" onClick={() => setCheckoutPasso(3)}>Revisar e confirmar</Button>
+                  </div>
+                </div>
+              ) : null}
 
-              <Button type="button" disabled={enviando} onClick={() => void concluirCheckoutPessoa()}>
-                {enviando ? "Gerando pagamento…" : formaPagamento === "pix" ? "Confirmar e pagar com Pix" : "Confirmar e pagar com cartão"}
-              </Button>
-              <button type="button" className="block text-sm text-ink/55" onClick={() => setCheckoutAberto(false)} disabled={enviando}>
-                Voltar ao carrinho
-              </button>
+              {checkoutPasso === 3 ? (
+                <div className="space-y-4">
+                  <div className="space-y-2 rounded-sm border border-ink/10 bg-white p-4 text-sm">
+                    <p className="font-medium">Resumo</p>
+                    <p className="text-ink/70">Entrega {formatLongDate(dataEntrega)} · {periodoEntrega === "manha" ? "manhã" : "tarde"}</p>
+                    <p className="text-ink/70">{endereco.logradouro}, {endereco.numero}{endereco.complemento ? ` · ${endereco.complemento}` : ""} — {endereco.bairro}, {endereco.cidade}/{endereco.estado}</p>
+                    <div className="flex justify-between gap-3 border-t border-ink/10 pt-2">
+                      <span className="text-ink/65">Produtos</span>
+                      <span className="tabular-nums">{reais(total)}</span>
+                    </div>
+                    {formaPagamento === "cartao" ? (
+                      <div className="flex justify-between gap-3 text-ink/65">
+                        <span>Taxa do cartão (5%)</span>
+                        <span className="tabular-nums">{reais(totalNoCartao(total) - total)}</span>
+                      </div>
+                    ) : null}
+                    <div className="flex justify-between gap-3 border-t border-ink/10 pt-2 text-base font-medium">
+                      <span>{formaPagamento === "pix" ? "Total no Pix" : "Total no cartão"}</span>
+                      <span className="tabular-nums">{reais(totalNaForma(total, formaPagamento))}</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-ink/50">Pagamento seguro via Conta Azul. Depois você ainda pode trocar Pix/cartão ou cancelar enquanto estiver aguardando pagamento.</p>
+                  <div className="flex flex-wrap gap-2">
+                    <button type="button" className="border border-ink/15 px-3 py-2 text-sm" disabled={enviando} onClick={() => setCheckoutPasso(2)}>Voltar</button>
+                    <Button type="button" disabled={enviando || (minimo > 0 && total < minimo)} onClick={() => void concluirCheckoutPessoa()}>
+                      {enviando
+                        ? "Gerando pagamento…"
+                        : formaPagamento === "pix"
+                          ? `Confirmar e pagar ${reais(total)}`
+                          : `Confirmar e pagar ${reais(totalNoCartao(total))}`}
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
             </div>
           </div>
         ) : null}
 
         {pagamentoAberto ? (
-          <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 p-4 sm:items-center">
+          <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 p-4 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="pagamento-titulo">
             <div className="w-full max-w-md space-y-4 rounded-sm bg-paper p-6 shadow-lg">
-              <h2 className="display-head text-2xl">Pagar o pedido</h2>
-              <p className="text-sm text-ink/70">
-                {pagamentoAberto.total != null ? reais(pagamentoAberto.total) : "Pedido"} · conclua o pagamento para liberar a entrega.
-              </p>
+              <h2 id="pagamento-titulo" className="display-head text-2xl">
+                {pagamentoAberto.formaPagamento === "cartao" ? "Pagar no cartão" : "Pagar com Pix"}
+              </h2>
+              <div className="space-y-1 rounded-sm border border-ink/10 bg-white p-4 text-sm">
+                <div className="flex justify-between gap-3">
+                  <span className="text-ink/65">Valor da cobrança</span>
+                  <span className="text-base font-medium tabular-nums">{pagamentoAberto.total != null ? reais(pagamentoAberto.total) : "—"}</span>
+                </div>
+                {pagamentoAberto.formaPagamento === "cartao" ? (
+                  <p className="text-xs text-ink/55">Inclui taxa de 5% do cartão. A entrega só libera após a confirmação do pagamento.</p>
+                ) : (
+                  <p className="text-xs text-ink/55">Pix sem taxa. A entrega só libera após a confirmação do pagamento.</p>
+                )}
+              </div>
               {!pagamentoAberto.pixUrl && !pagamentoAberto.cartaoUrl ? (
-                <p className="text-sm text-ink/65">O Conta Azul ainda está liberando o link. Clique em atualizar em alguns segundos.</p>
+                <p className="text-sm text-ink/65">O link ainda está sendo liberado. Aguarde alguns segundos e toque em “Buscar link”.</p>
               ) : null}
               <div className="flex flex-col gap-2">
-                {pagamentoAberto.pixUrl ? (
+                {pagamentoAberto.formaPagamento !== "cartao" && pagamentoAberto.pixUrl ? (
                   <a
                     href={pagamentoAberto.pixUrl}
                     target="_blank"
                     rel="noreferrer"
                     className="bg-forest px-4 py-3 text-center text-sm text-paper"
                   >
-                    Abrir Pix
+                    Abrir Pix agora
                   </a>
                 ) : null}
-                {pagamentoAberto.cartaoUrl ? (
+                {pagamentoAberto.formaPagamento !== "pix" && pagamentoAberto.cartaoUrl ? (
                   <a
                     href={pagamentoAberto.cartaoUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="border border-ink/15 px-4 py-3 text-center text-sm"
+                    className="bg-forest px-4 py-3 text-center text-sm text-paper"
                   >
                     Abrir pagamento no cartão
                   </a>
@@ -1063,13 +1273,23 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                     .pagamentoPedido(id)
                     .then((pagamento) => {
                       if (pagamento.pago) {
-                        toast.success("Pagamento confirmado.");
+                        toast.success("Pagamento confirmado. Pedido liberado para a fazenda.");
                         setPagamentoAberto(null);
                         void carregarConta();
                         return;
                       }
-                      const url = pagamento.pixUrl || pagamento.cartaoUrl;
-                      setPagamentoAberto({ ...pagamento, pedidoId: id, linkPendente: !url });
+                      const forma =
+                        pagamento.formaPagamento ??
+                        (pagamento.pixUrl ? "pix" : pagamento.cartaoUrl ? "cartao" : null);
+                      const url = forma === "cartao" ? pagamento.cartaoUrl : pagamento.pixUrl;
+                      setPagamentoAberto({
+                        ...pagamento,
+                        pixUrl: forma === "pix" ? pagamento.pixUrl : null,
+                        cartaoUrl: forma === "cartao" ? pagamento.cartaoUrl : null,
+                        formaPagamento: forma,
+                        pedidoId: id,
+                        linkPendente: !url,
+                      });
                       if (url) {
                         toast.success("Link de pagamento pronto.");
                         window.open(url, "_blank", "noopener,noreferrer");
@@ -1080,8 +1300,11 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                     .catch((error) => toast.error(mensagem(error)));
                 }}
               >
-                {!pagamentoAberto.pixUrl && !pagamentoAberto.cartaoUrl ? "Buscar link de pagamento" : "Já paguei · atualizar"}
+                {!pagamentoAberto.pixUrl && !pagamentoAberto.cartaoUrl ? "Buscar link de pagamento" : "Já paguei · atualizar status"}
               </button>
+              <p className="text-xs text-ink/50">
+                Precisa trocar Pix/cartão ou cancelar? Feche e use as opções em “Meus pedidos”. A cobrança antiga deixa de valer.
+              </p>
               <button type="button" className="block text-sm text-ink/55" onClick={() => setPagamentoAberto(null)}>
                 Fechar
               </button>
@@ -1094,6 +1317,31 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
           </p>
         ) : null}
       </main>
+
+      {vista === "loja" && itensCarrinho > 0 && !checkoutAberto && !pagamentoAberto ? (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-ink/10 bg-paper/95 p-3 backdrop-blur lg:hidden">
+          <button
+            type="button"
+            className="flex w-full items-center justify-between gap-3 bg-forest px-4 py-3 text-sm text-paper disabled:opacity-50"
+            disabled={enviando || (emAtraso && Boolean(cliente) && !ehPessoa(cliente)) || (Boolean(cliente) && minimo > 0 && total < minimo)}
+            onClick={() => {
+              if (!cliente) {
+                document.getElementById("enviar-pedido")?.scrollIntoView({ behavior: "smooth", block: "center" });
+                return;
+              }
+              void abrirCheckout();
+            }}
+          >
+            <span>
+              {itensCarrinho} {itensCarrinho === 1 ? "item" : "itens"}
+              {precoDaConta ? ` · ${reais(total)}` : ""}
+            </span>
+            <span className="font-medium">
+              {!cliente ? "Entrar para pedir" : ehPessoa(cliente) ? "Continuar" : "Enviar pedido"}
+            </span>
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -1159,12 +1407,14 @@ function Campo({
   onChange,
   type = "text",
   inputMode,
+  readOnly = false,
 }: {
   label: string;
   value: string;
   onChange: (valor: string) => void;
   type?: string;
   inputMode?: "numeric" | "tel" | "email";
+  readOnly?: boolean;
 }) {
   return (
     <label className="block text-sm">
@@ -1172,9 +1422,10 @@ function Campo({
       <input
         type={type}
         inputMode={inputMode}
+        readOnly={readOnly}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="mt-1 w-full border border-ink/15 bg-white px-3 py-3"
+        className="mt-1 w-full border border-ink/15 bg-white px-3 py-3 read-only:bg-ink/5"
       />
     </label>
   );
@@ -1254,65 +1505,116 @@ async function arquivoParaJpeg(arquivo: File): Promise<string> {
   return blobParaJpeg(arquivo);
 }
 
-function IndicadoresConta({
-  pedidos,
-  titulos,
-  onPedidos,
-  onPagamentos,
-}: {
-  pedidos: PedidoCliente[];
-  titulos: TituloCliente[];
-  onPedidos: () => void;
-  onPagamentos: () => void;
-}) {
-  const resumo = resumoDaConta(pedidos, titulos);
-  const entrega =
-    resumo.proximaEntrega && resumo.aguardando
-      ? `Próxima em ${dataCurta(resumo.proximaEntrega)}. ${resumo.aguardando === 1 ? "1 aguardando aprovação." : `${resumo.aguardando} aguardando aprovação.`}`
-      : resumo.proximaEntrega
-        ? `Próxima em ${dataCurta(resumo.proximaEntrega)}.`
-        : resumo.aguardando
-          ? resumo.aguardando === 1
-            ? "1 aguardando aprovação."
-            : `${resumo.aguardando} aguardando aprovação.`
-          : "Nenhuma entrega marcada.";
-  const atraso = resumo.atraso > 0 ? reais(resumo.valorAtraso) : "Nada em atraso.";
-  const vencer = resumo.proximoVencimento
-    ? `${reais(resumo.valorProximo)} em ${dataCurta(resumo.proximoVencimento)}.`
-    : "Nenhum pagamento perto de vencer.";
+function ContaPessoa({ nome, onSalvo }: { nome: string; onSalvo: () => void }) {
+  const [telefone, setTelefone] = useState("");
+  const [email, setEmail] = useState("");
+  const [documento, setDocumento] = useState("");
+  const [endereco, setEndereco] = useState(enderecoVazio);
+  const [buscandoCep, setBuscandoCep] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+
+  useEffect(() => {
+    void portalApi
+      .endereco()
+      .then((dados) => {
+        setTelefone(dados.telefone || "");
+        setEmail(dados.email || "");
+        setDocumento(dados.documento || "");
+        setEndereco({ ...enderecoVazio, ...dados.endereco, complemento: dados.endereco.complemento || "" });
+      })
+      .catch((error) => toast.error(mensagem(error)));
+  }, []);
+
+  const preencherCep = async (valor: string) => {
+    const cep = formatarCep(valor);
+    setEndereco((atual) => ({ ...atual, cep }));
+    if (cep.replace(/\D/g, "").length !== 8) return;
+    setBuscandoCep(true);
+    try {
+      const achado = await buscarCep(cep);
+      if (!achado) {
+        toast.error("CEP não encontrado.");
+        return;
+      }
+      setEndereco((atual) => ({
+        ...atual,
+        cep: formatarCep(achado.cep),
+        logradouro: achado.logradouro || atual.logradouro,
+        bairro: achado.bairro || atual.bairro,
+        cidade: achado.cidade || atual.cidade,
+        estado: achado.estado || atual.estado,
+      }));
+    } catch {
+      toast.error("Não foi possível consultar o CEP.");
+    } finally {
+      setBuscandoCep(false);
+    }
+  };
 
   return (
-    <div className="mt-5 grid gap-2 sm:grid-cols-3">
-      <Indicador valor={resumo.programados} rotulo={resumo.programados === 1 ? "entrega programada" : "entregas programadas"} detalhe={entrega} onClick={onPedidos} />
-      <Indicador valor={resumo.atraso} rotulo={resumo.atraso === 1 ? "pagamento em atraso" : "pagamentos em atraso"} detalhe={atraso} destaque={resumo.atraso > 0} onClick={onPagamentos} />
-      <Indicador valor={resumo.aVencer} rotulo={resumo.aVencer === 1 ? "pagamento a vencer" : "pagamentos a vencer"} detalhe={vencer} onClick={onPagamentos} />
-    </div>
-  );
-}
-
-function Indicador({
-  valor,
-  rotulo,
-  detalhe,
-  destaque = false,
-  onClick,
-}: {
-  valor: number;
-  rotulo: string;
-  detalhe: string;
-  destaque?: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={destaque ? "bg-forest px-4 py-3 text-left text-paper" : "border border-ink/10 px-4 py-3 text-left"}
+    <form
+      className="mt-8 max-w-3xl space-y-4 rounded-sm border border-ink/10 bg-white p-6"
+      onSubmit={(event) => {
+        event.preventDefault();
+        setEnviando(true);
+        void portalApi
+          .salvarEndereco({
+            telefone,
+            endereco: {
+              ...endereco,
+              cep: endereco.cep.replace(/\D/g, ""),
+              estado: endereco.estado.toUpperCase().slice(0, 2),
+            },
+          })
+          .then((salvo) => {
+            setTelefone(salvo.telefone);
+            setEndereco({ ...enderecoVazio, ...salvo.endereco, complemento: salvo.endereco.complemento || "" });
+            toast.success(salvo.mensagem || "Dados salvos.");
+            onSalvo();
+          })
+          .catch((error) => toast.error(mensagem(error)))
+          .finally(() => setEnviando(false));
+      }}
     >
-      <p className="display-head text-3xl leading-none">{valor}</p>
-      <p className="mt-2 text-sm">{rotulo}</p>
-      <p className={`mt-1 text-xs ${destaque ? "text-paper/80" : "text-ink/55"}`}>{detalhe}</p>
-    </button>
+      <h2 className="display-head text-2xl">Minha conta</h2>
+      <p className="text-sm text-ink/65">Atualize telefone e endereço de entrega. Eles entram no próximo pedido e no pagamento.</p>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Campo label="Nome" value={nome} onChange={() => undefined} readOnly />
+        <Campo label="CPF" value={formatDocumento(documento)} onChange={() => undefined} readOnly />
+        <Campo label="E-mail" value={email} onChange={() => undefined} type="email" readOnly />
+        <Campo label="Telefone / WhatsApp" value={telefone} onChange={setTelefone} inputMode="tel" />
+        <label className="block text-sm sm:col-span-2">
+          CEP
+          <input value={endereco.cep} onChange={(event) => void preencherCep(event.target.value)} inputMode="numeric" className="mt-1 w-full border border-ink/15 px-3 py-3" />
+          {buscandoCep ? <span className="text-xs text-ink/50">Buscando CEP…</span> : null}
+        </label>
+        <label className="block text-sm sm:col-span-2">
+          Rua / avenida
+          <input value={endereco.logradouro} onChange={(event) => setEndereco((a) => ({ ...a, logradouro: event.target.value }))} className="mt-1 w-full border border-ink/15 px-3 py-3" />
+        </label>
+        <label className="block text-sm">
+          Número
+          <input value={endereco.numero} onChange={(event) => setEndereco((a) => ({ ...a, numero: event.target.value }))} className="mt-1 w-full border border-ink/15 px-3 py-3" />
+        </label>
+        <label className="block text-sm">
+          Complemento
+          <input value={endereco.complemento} onChange={(event) => setEndereco((a) => ({ ...a, complemento: event.target.value }))} className="mt-1 w-full border border-ink/15 px-3 py-3" />
+        </label>
+        <label className="block text-sm sm:col-span-2">
+          Bairro
+          <input value={endereco.bairro} onChange={(event) => setEndereco((a) => ({ ...a, bairro: event.target.value }))} className="mt-1 w-full border border-ink/15 px-3 py-3" />
+        </label>
+        <label className="block text-sm">
+          Cidade
+          <input value={endereco.cidade} onChange={(event) => setEndereco((a) => ({ ...a, cidade: event.target.value }))} className="mt-1 w-full border border-ink/15 px-3 py-3" />
+        </label>
+        <label className="block text-sm">
+          UF
+          <input value={endereco.estado} onChange={(event) => setEndereco((a) => ({ ...a, estado: event.target.value.slice(0, 2).toUpperCase() }))} className="mt-1 w-full border border-ink/15 px-3 py-3" maxLength={2} />
+        </label>
+      </div>
+      <Button type="submit" disabled={enviando}>{enviando ? "Salvando…" : "Salvar dados de entrega"}</Button>
+    </form>
   );
 }
 
@@ -1333,31 +1635,55 @@ function CartaoPedido({
     pedido.pagamento?.formaPagamento ??
     (pedido.pagamento?.pixUrl ? "pix" : pedido.pagamento?.cartaoUrl ? "cartao" : null);
   const outraForma: "pix" | "cartao" | null = formaAtual === "pix" ? "cartao" : formaAtual === "cartao" ? "pix" : null;
+  const baseProdutos = baseItensPedido(pedido);
+
+  const aguardando = pedido.pagamento?.status === "AGUARDANDO";
 
   return (
-    <article className="rounded-sm border border-ink/10 bg-white p-5">
-      <h3 className="text-lg">{formatLongDate(pedido.dataEntrega.slice(0, 10))}</h3>
-      <p className="text-sm text-ink/55">{statusPedido(pedido)}</p>
-      {formaAtual && pedido.pagamento?.status === "AGUARDANDO" ? (
-        <p className="mt-1 text-xs text-ink/50">Pagamento escolhido: {formaAtual === "pix" ? "Pix" : "cartão"}</p>
+    <article className={aguardando ? "rounded-sm border border-forest/35 bg-white p-5" : "rounded-sm border border-ink/10 bg-white p-5"}>
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <h3 className="text-lg">{formatLongDate(pedido.dataEntrega.slice(0, 10))}</h3>
+          <p className={aguardando ? "text-sm font-medium text-forest" : "text-sm text-ink/55"}>{statusPedido(pedido)}</p>
+        </div>
+        {aguardando && pedido.pagamento?.total != null ? (
+          <p className="text-lg font-medium tabular-nums">{reais(pedido.pagamento.total)}</p>
+        ) : null}
+      </div>
+      {formaAtual && aguardando ? (
+        <p className="mt-1 text-sm text-ink/70">
+          {formaAtual === "pix" ? "Pix · sem taxa" : "Cartão · inclui +5%"}
+        </p>
       ) : null}
       <ul className="mt-3 space-y-1 text-sm">
         {pedido.itens.map((item) => {
           const peso = pesoDoItem(item.nome, item.peso);
+          const linha = item.preco != null ? item.preco * item.quantidade : null;
           return (
-            <li key={`${pedido.id}-${item.nome}`}>
-              {item.quantidade} · {item.nome}
-              {peso ? ` · ${peso}` : ""}
-              {item.preco != null ? ` · ${reais(item.preco)}` : ""}
+            <li key={`${pedido.id}-${item.nome}`} className="flex justify-between gap-3">
+              <span>
+                {item.quantidade}× {item.nome}
+                {peso ? ` · ${peso}` : ""}
+              </span>
+              {linha != null ? <span className="shrink-0 tabular-nums text-ink/70">{reais(linha)}</span> : null}
             </li>
           );
         })}
       </ul>
-      {pedido.pagamento?.status === "AGUARDANDO" || podeCancelarPedido(pedido) ? (
+      {baseProdutos > 0 && !aguardando ? (
+        <p className="mt-2 text-xs text-ink/50">Produtos {reais(baseProdutos)}</p>
+      ) : null}
+      {aguardando || podeCancelarPedido(pedido) ? (
         <div className="mt-4 flex flex-wrap gap-2">
-          {pedido.pagamento?.status === "AGUARDANDO" && (pedido.pagamento.pixUrl || pedido.pagamento.cartaoUrl) ? (
-            <button type="button" className="bg-forest px-3 py-2 text-sm text-paper disabled:opacity-50" disabled={ocupado} onClick={() => onAbrirPagamento(pedido)}>
-              {pedido.pagamento.pixUrl ? "Abrir Pix" : "Abrir cartão"}
+          {aguardando ? (
+            <button type="button" className="bg-forest px-4 py-2.5 text-sm text-paper disabled:opacity-50" disabled={ocupado} onClick={() => onAbrirPagamento(pedido)}>
+              {formaAtual === "cartao" || (!formaAtual && pedido.pagamento?.cartaoUrl)
+                ? pedido.pagamento?.cartaoUrl
+                  ? "Pagar no cartão"
+                  : "Abrir pagamento"
+                : pedido.pagamento?.pixUrl
+                  ? "Pagar com Pix"
+                  : "Abrir pagamento"}
             </button>
           ) : null}
           {podeTrocarPagamento(pedido) && outraForma ? (
@@ -1367,12 +1693,14 @@ function CartaoPedido({
               disabled={ocupado}
               onClick={() => onTrocarPagamento(pedido, outraForma)}
             >
-              Trocar para {outraForma === "pix" ? "Pix" : "cartão"}
+              {outraForma === "pix"
+                ? `Trocar para Pix (${reais(baseProdutos)})`
+                : `Trocar para cartão (${reais(totalNoCartao(baseProdutos))})`}
             </button>
           ) : null}
           {podeCancelarPedido(pedido) ? (
             <button type="button" className="border border-ink/15 px-3 py-2 text-sm text-red-800 disabled:opacity-50" disabled={ocupado} onClick={() => onCancelar(pedido)}>
-              Cancelar pedido
+              Cancelar
             </button>
           ) : null}
         </div>
@@ -1393,68 +1721,136 @@ function PedidosCliente({
   verHistorico: boolean;
   onHistorico: () => void;
   onLoja: () => void;
-  onAtualizar: () => void;
+  onAtualizar: () => void | Promise<void>;
   onPagamento: (pagamento: PedidoPagamento & { pedidoId: string }) => void;
 }) {
   const [ocupadoId, setOcupadoId] = useState("");
+  const ocupadoRef = useRef(false);
   const hoje = hojeManaus();
   const programados = pedidos
     .filter((pedido) => pedido.programado ?? (pedido.dataEntrega.slice(0, 10) >= hoje && pedido.status !== "CANCELADO"))
-    .sort((a, b) => a.dataEntrega.localeCompare(b.dataEntrega));
+    .sort((a, b) => {
+      const aPay = a.pagamento?.status === "AGUARDANDO" ? 0 : 1;
+      const bPay = b.pagamento?.status === "AGUARDANDO" ? 0 : 1;
+      if (aPay !== bPay) return aPay - bPay;
+      return a.dataEntrega.localeCompare(b.dataEntrega);
+    });
   const historico = pedidos
     .filter((pedido) => !(pedido.programado ?? (pedido.dataEntrega.slice(0, 10) >= hoje && pedido.status !== "CANCELADO")))
     .sort((a, b) => b.dataEntrega.localeCompare(a.dataEntrega));
 
   const cancelar = async (pedido: PedidoCliente) => {
-    if (!window.confirm("Cancelar este pedido? A cobrança em aberto deixa de valer.")) return;
+    if (ocupadoRef.current) return;
+    const quando = formatLongDate(pedido.dataEntrega.slice(0, 10));
+    if (
+      !window.confirm(
+        `Cancelar o pedido de ${quando}?\n\nA cobrança em aberto deixa de valer e o estoque volta para a loja.`,
+      )
+    ) {
+      return;
+    }
+    ocupadoRef.current = true;
     setOcupadoId(pedido.id);
     try {
       await portalApi.cancelarPedido(pedido.id);
-      toast.success("Pedido cancelado.");
-      await Promise.resolve(onAtualizar());
+      toast.success("Pedido cancelado. Cobrança invalidada.");
+      await onAtualizar();
     } catch (error) {
       toast.error(mensagem(error) || "Não foi possível cancelar.");
     } finally {
+      ocupadoRef.current = false;
       setOcupadoId("");
     }
   };
 
   const trocarPagamento = async (pedido: PedidoCliente, forma: "pix" | "cartao") => {
+    if (ocupadoRef.current) return;
+    const base = baseItensPedido(pedido);
+    const atual = pedido.pagamento?.total ?? base;
+    const novo = totalNaForma(base, forma);
+    const ok = window.confirm(
+      forma === "cartao"
+        ? `Trocar para cartão?\n\nDe ${reais(atual)} para ${reais(novo)} (produtos + taxa de 5%).\nA cobrança Pix atual deixa de valer.`
+        : `Trocar para Pix?\n\nDe ${reais(atual)} para ${reais(novo)} (sem taxa de cartão).\nA cobrança no cartão atual deixa de valer.`,
+    );
+    if (!ok) return;
+    ocupadoRef.current = true;
     setOcupadoId(pedido.id);
-    toast.message(forma === "pix" ? "Gerando Pix…" : "Gerando link do cartão…");
+    toast.message(forma === "pix" ? "Gerando Pix…" : "Gerando link do cartão (+5%)…");
     try {
       const cobranca = await portalApi.alterarFormaPagamento(pedido.id, forma);
-      toast.success(cobranca.mensagem || (forma === "pix" ? "Agora é Pix." : "Agora é cartão."));
-      await Promise.resolve(onAtualizar());
+      const formaOk = cobranca.formaPagamento ?? forma;
+      const url = formaOk === "cartao" ? cobranca.cartaoUrl : cobranca.pixUrl;
+      const baseItens = base;
+      const esperado = totalNaForma(baseItens, formaOk);
+      // Não misturar forma nem valor (ex.: Pix com taxa de cartão).
+      if (
+        formaOk !== forma ||
+        (forma === "cartao" && cobranca.pixUrl && !cobranca.cartaoUrl) ||
+        (forma === "pix" && cobranca.cartaoUrl && !cobranca.pixUrl) ||
+        (baseItens > 0 && cobranca.total != null && Math.abs(cobranca.total - esperado) > 0.02)
+      ) {
+        toast.error("A troca não confirmou forma/valor corretos. Atualize a página e tente de novo.");
+        await onAtualizar();
+        return;
+      }
+      toast.success(
+        cobranca.mensagem ||
+          (formaOk === "pix" ? "Agora é Pix." : `Agora é cartão · ${reais(cobranca.total ?? 0)} (com taxa de 5%).`),
+      );
+      await onAtualizar();
       onPagamento({
         status: cobranca.status,
-        pixUrl: cobranca.pixUrl,
-        cartaoUrl: cobranca.cartaoUrl,
+        pixUrl: formaOk === "pix" ? cobranca.pixUrl : null,
+        cartaoUrl: formaOk === "cartao" ? cobranca.cartaoUrl : null,
         total: cobranca.total,
-        formaPagamento: cobranca.formaPagamento ?? forma,
+        formaPagamento: formaOk,
         pedidoId: pedido.id,
+        linkPendente: !url,
       });
-      const url = cobranca.pixUrl || cobranca.cartaoUrl;
-      if (url) window.open(url, "_blank", "noopener,noreferrer");
-      else toast.error("A cobrança foi criada, mas o link ainda não veio. Abra em Meus pedidos em instantes.");
+      if (!url) toast.message("Cobrança criada. O link ainda está sendo liberado — use Buscar link em instantes.");
     } catch (error) {
       toast.error(mensagem(error) || "Não foi possível alterar o pagamento.");
+      await onAtualizar().catch(() => undefined);
     } finally {
+      ocupadoRef.current = false;
       setOcupadoId("");
     }
   };
 
   const abrirPagamento = (pedido: PedidoCliente) => {
     if (!pedido.pagamento) return;
-    onPagamento({ ...pedido.pagamento, pedidoId: pedido.id });
-    const url = pedido.pagamento.pixUrl || pedido.pagamento.cartaoUrl;
-    if (url) window.open(url, "_blank", "noopener,noreferrer");
+    const forma =
+      pedido.pagamento.formaPagamento ??
+      (pedido.pagamento.pixUrl ? "pix" : pedido.pagamento.cartaoUrl ? "cartao" : null);
+    // Abre o modal; o cliente escolhe o botão de pagar (evita popup bloqueado / confusão).
+    onPagamento({
+      ...pedido.pagamento,
+      pixUrl: forma === "pix" ? pedido.pagamento.pixUrl : null,
+      cartaoUrl: forma === "cartao" ? pedido.pagamento.cartaoUrl : null,
+      formaPagamento: forma,
+      pedidoId: pedido.id,
+      linkPendente: !(forma === "cartao" ? pedido.pagamento.cartaoUrl : pedido.pagamento.pixUrl),
+    });
   };
 
   return (
     <section className="mt-8 space-y-4">
-      <h2 className="display-head text-3xl">Entregas programadas</h2>
-      {programados.length === 0 ? <p className="text-ink/60">Nenhuma entrega programada.</p> : null}
+      <h2 className="display-head text-3xl">Meus pedidos</h2>
+      <p className="text-sm text-ink/60">
+        Aqui você acompanha entregas, paga Pix/cartão, troca a forma de pagamento ou cancela enquanto estiver em aberto.
+      </p>
+      {programados.some((p) => p.pagamento?.status === "AGUARDANDO") ? (
+        <p className="border border-forest/25 bg-forest/5 px-4 py-3 text-sm text-ink">
+          Há pedido aguardando pagamento abaixo. Conclua para liberar a entrega.
+        </p>
+      ) : null}
+      {programados.length === 0 ? (
+        <div className="space-y-3 rounded-sm border border-dashed border-ink/20 bg-white/60 p-6">
+          <p className="text-ink/70">Nenhum pedido em aberto.</p>
+          <Button type="button" onClick={onLoja}>Ir para a loja</Button>
+        </div>
+      ) : null}
       {programados.map((pedido) => (
         <CartaoPedido
           key={pedido.id}
@@ -1465,12 +1861,17 @@ function PedidosCliente({
           onAbrirPagamento={abrirPagamento}
         />
       ))}
-      <button type="button" className="border border-ink/15 px-3 py-2 text-sm" onClick={onHistorico}>
-        {verHistorico ? "Ocultar entregas anteriores" : "Ver entregas anteriores"}
-      </button>
+      <div className="flex flex-wrap gap-3 pt-2">
+        <button type="button" className="border border-ink/15 px-3 py-2 text-sm" onClick={onHistorico}>
+          {verHistorico ? "Ocultar entregas anteriores" : "Ver entregas anteriores"}
+        </button>
+        {programados.length > 0 ? (
+          <button type="button" className="text-sm text-forest" onClick={onLoja}>Fazer outro pedido</button>
+        ) : null}
+      </div>
       {verHistorico ? (
         <div className="space-y-3">
-          <h2 className="display-head text-3xl">Entregas anteriores</h2>
+          <h2 className="display-head text-2xl">Entregas anteriores</h2>
           {historico.length === 0 ? <p className="text-ink/60">Nenhuma entrega anterior neste período.</p> : null}
           {historico.map((pedido) => (
             <CartaoPedido
@@ -1484,7 +1885,6 @@ function PedidosCliente({
           ))}
         </div>
       ) : null}
-      <button type="button" className="text-sm text-forest" onClick={onLoja}>Fazer pedido</button>
     </section>
   );
 }
@@ -1588,6 +1988,474 @@ function Pagamentos({
   );
 }
 
+type CadastroEquipe = {
+  id: string;
+  nome: string;
+  cnpj: string;
+  email: string;
+  cidade: string;
+  estado: string;
+  status: string;
+  erro: string | null;
+};
+
+type FiltroLojaEquipe = "todos" | "ativos" | "inativos";
+type AlertaCatalogo = "todos" | "semPreco" | "semFoto" | "estoqueZero" | "exclusivos";
+type AbaEquipe = "catalogo" | "cadastros" | "ferramentas";
+
+function kpisCatalogo(produtos: ProdutoEquipe[], cadastros: CadastroEquipe[]) {
+  return {
+    total: produtos.length,
+    ativos: produtos.filter((p) => p.naLoja).length,
+    inativos: produtos.filter((p) => !p.naLoja).length,
+    semPreco: produtos.filter((p) => p.preco == null || p.preco <= 0).length,
+    semFoto: produtos.filter((p) => !p.imagemUrl).length,
+    estoqueZero: produtos.filter((p) => p.estoque === 0).length,
+    exclusivos: produtos.filter((p) => p.exclusivo).length,
+    cadastrosPendentes: cadastros.filter((c) => c.status !== "ENVIADO").length,
+  };
+}
+
+function PainelEquipe({
+  nome,
+  produtos,
+  cadastros,
+  onSair,
+  onAtualizar,
+  onSalvar,
+  onFoto,
+  onCadastros,
+}: {
+  nome: string;
+  produtos: ProdutoEquipe[];
+  cadastros: CadastroEquipe[];
+  onSair: () => void;
+  onAtualizar: () => Promise<void>;
+  onSalvar: (
+    produto: ProdutoEquipe,
+    patch: { naLoja?: boolean; exclusivo?: boolean; preco?: number; imagemUrl?: string | null; descricao?: string; aplicacao?: string; estoque?: number | null },
+  ) => Promise<void>;
+  onFoto: (produto: ProdutoEquipe, imagem: string) => Promise<string>;
+  onCadastros: (lista: CadastroEquipe[]) => void;
+}) {
+  const [aba, setAba] = useState<AbaEquipe>("catalogo");
+  const [grupoFiltro, setGrupoFiltro] = useState("Tudo");
+  const [lojaFiltro, setLojaFiltro] = useState<FiltroLojaEquipe>("todos");
+  const [alertaFiltro, setAlertaFiltro] = useState<AlertaCatalogo>("todos");
+  const [busca, setBusca] = useState("");
+  const [ocupado, setOcupado] = useState(false);
+  const [emailConvite, setEmailConvite] = useState("");
+  const [linksConvite, setLinksConvite] = useState<Array<{ nome: string; email: string; link: string }>>([]);
+
+  const kpis = useMemo(() => kpisCatalogo(produtos, cadastros), [produtos, cadastros]);
+  const gruposDisponiveis = useMemo(() => {
+    const presentes = new Set(produtos.map((p) => normalizarGrupo(p.grupo)));
+    const ordenados = ORDEM_GRUPOS.filter((g) => presentes.has(g));
+    const extras = [...presentes].filter((g) => !ORDEM_GRUPOS.includes(g)).sort((a, b) => a.localeCompare(b, "pt-BR"));
+    return [...ordenados, ...extras];
+  }, [produtos]);
+
+  const filtrados = useMemo(() => {
+    const termo = busca.trim().toLocaleLowerCase("pt-BR");
+    return produtos
+      .filter((p) => (grupoFiltro === "Tudo" ? true : normalizarGrupo(p.grupo) === grupoFiltro))
+      .filter((p) => (lojaFiltro === "ativos" ? p.naLoja : lojaFiltro === "inativos" ? !p.naLoja : true))
+      .filter((p) => {
+        if (alertaFiltro === "semPreco") return p.preco == null || p.preco <= 0;
+        if (alertaFiltro === "semFoto") return !p.imagemUrl;
+        if (alertaFiltro === "estoqueZero") return p.estoque === 0;
+        if (alertaFiltro === "exclusivos") return p.exclusivo;
+        return true;
+      })
+      .filter((p) => {
+        if (!termo) return true;
+        const grupo = normalizarGrupo(p.grupo);
+        return (
+          p.nome.toLocaleLowerCase("pt-BR").includes(termo) ||
+          grupo.toLocaleLowerCase("pt-BR").includes(termo) ||
+          (p.categoria ?? "").toLocaleLowerCase("pt-BR").includes(termo)
+        );
+      })
+      .sort((a, b) => {
+        const ga = ORDEM_GRUPOS.indexOf(normalizarGrupo(a.grupo));
+        const gb = ORDEM_GRUPOS.indexOf(normalizarGrupo(b.grupo));
+        const oa = ga === -1 ? 99 : ga;
+        const ob = gb === -1 ? 99 : gb;
+        if (oa !== ob) return oa - ob;
+        return a.nome.localeCompare(b.nome, "pt-BR");
+      });
+  }, [produtos, grupoFiltro, lojaFiltro, alertaFiltro, busca]);
+
+  const cadastrosPendentes = useMemo(
+    () => cadastros.filter((item) => item.status !== "ENVIADO"),
+    [cadastros],
+  );
+
+  const aplicarKpi = (tipo: keyof ReturnType<typeof kpisCatalogo>) => {
+    setAba(tipo === "cadastrosPendentes" ? "cadastros" : "catalogo");
+    setBusca("");
+    setGrupoFiltro("Tudo");
+    if (tipo === "ativos") {
+      setLojaFiltro("ativos");
+      setAlertaFiltro("todos");
+    } else if (tipo === "inativos") {
+      setLojaFiltro("inativos");
+      setAlertaFiltro("todos");
+    } else if (tipo === "semPreco") {
+      setLojaFiltro("todos");
+      setAlertaFiltro("semPreco");
+    } else if (tipo === "semFoto") {
+      setLojaFiltro("todos");
+      setAlertaFiltro("semFoto");
+    } else if (tipo === "estoqueZero") {
+      setLojaFiltro("todos");
+      setAlertaFiltro("estoqueZero");
+    } else if (tipo === "exclusivos") {
+      setLojaFiltro("todos");
+      setAlertaFiltro("exclusivos");
+    } else if (tipo === "total") {
+      setLojaFiltro("todos");
+      setAlertaFiltro("todos");
+    }
+  };
+
+  const liberarTodos = async () => {
+    if (ocupado) return;
+    if (!window.confirm("Colocar todos os produtos elegíveis na loja?")) return;
+    setOcupado(true);
+    try {
+      const resposta = await portalApi.liberarProdutos();
+      toast.success(resposta.atualizados > 0 ? `${resposta.atualizados} produtos liberados na loja.` : "Nenhum produto novo para liberar.");
+      await onAtualizar();
+    } catch (error) {
+      toast.error(mensagem(error));
+    } finally {
+      setOcupado(false);
+    }
+  };
+
+  const gerarConvites = async (redefinir = false) => {
+    if (ocupado) return;
+    setOcupado(true);
+    try {
+      const resposta = await portalApi.convites({
+        email: emailConvite.trim() || undefined,
+        redefinir,
+      });
+      setLinksConvite(resposta.criados);
+      if (resposta.criados.length > 0) {
+        toast.success(`${resposta.criados.length} convite(s) gerado(s).`);
+      } else {
+        toast.message("Nenhum convite novo. Veja os ignorados.");
+      }
+      if (resposta.ignorados.length > 0) {
+        toast.message(`${resposta.ignorados.length} ignorado(s): ${resposta.ignorados.map((i) => i.motivo).slice(0, 2).join("; ")}`);
+      }
+    } catch (error) {
+      toast.error(mensagem(error));
+    } finally {
+      setOcupado(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink/10 pb-4">
+        <div>
+          <p className="text-sm font-medium text-ink">{nome}</p>
+          <p className="text-xs text-ink/55">Administração da loja e do catálogo</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={ocupado}
+            onClick={() => {
+              void onAtualizar()
+                .then(() => toast.success("Painel atualizado."))
+                .catch((error) => toast.error(mensagem(error)));
+            }}
+          >
+            Atualizar
+          </Button>
+          <Button type="button" variant="outline" size="sm" onClick={onSair}>
+            Sair da equipe
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        {(
+          [
+            ["total", "Produtos", kpis.total],
+            ["ativos", "Ativos no site", kpis.ativos],
+            ["inativos", "Inativos", kpis.inativos],
+            ["cadastrosPendentes", "Cadastros pendentes", kpis.cadastrosPendentes],
+            ["semPreco", "Sem preço", kpis.semPreco],
+            ["semFoto", "Sem foto", kpis.semFoto],
+            ["estoqueZero", "Estoque zerado", kpis.estoqueZero],
+            ["exclusivos", "Exclusivos", kpis.exclusivos],
+          ] as const
+        ).map(([chave, rotulo, valor]) => {
+          const destaque =
+            (chave === "ativos" && lojaFiltro === "ativos" && alertaFiltro === "todos" && aba === "catalogo") ||
+            (chave === "inativos" && lojaFiltro === "inativos" && alertaFiltro === "todos" && aba === "catalogo") ||
+            (chave === "semPreco" && alertaFiltro === "semPreco") ||
+            (chave === "semFoto" && alertaFiltro === "semFoto") ||
+            (chave === "estoqueZero" && alertaFiltro === "estoqueZero") ||
+            (chave === "exclusivos" && alertaFiltro === "exclusivos") ||
+            (chave === "total" && lojaFiltro === "todos" && alertaFiltro === "todos" && aba === "catalogo") ||
+            (chave === "cadastrosPendentes" && aba === "cadastros");
+          const alerta = (chave === "semPreco" || chave === "semFoto" || chave === "estoqueZero" || chave === "cadastrosPendentes") && valor > 0;
+          return (
+            <button
+              key={chave}
+              type="button"
+              onClick={() => aplicarKpi(chave)}
+              className={
+                destaque
+                  ? "border border-forest bg-forest/5 px-4 py-3 text-left"
+                  : alerta
+                    ? "border border-amber-700/25 bg-amber-50/60 px-4 py-3 text-left"
+                    : "border border-ink/10 bg-white px-4 py-3 text-left"
+              }
+            >
+              <p className="display-head text-2xl leading-none tabular-nums">{valor}</p>
+              <p className="mt-2 text-sm text-ink/70">{rotulo}</p>
+            </button>
+          );
+        })}
+      </div>
+
+      <nav className="flex flex-wrap gap-2">
+        {(
+          [
+            ["catalogo", "Catálogo"],
+            ["cadastros", kpis.cadastrosPendentes > 0 ? `Cadastros (${kpis.cadastrosPendentes})` : "Cadastros"],
+            ["ferramentas", "Ferramentas"],
+          ] as const
+        ).map(([id, rotulo]) => (
+          <button
+            key={id}
+            type="button"
+            className={aba === id ? "bg-forest px-3 py-2 text-sm text-paper" : "border border-ink/15 px-3 py-2 text-sm"}
+            onClick={() => setAba(id)}
+          >
+            {rotulo}
+          </button>
+        ))}
+      </nav>
+
+      {aba === "catalogo" ? (
+        <div className="space-y-4">
+          <div className="flex flex-col gap-3 rounded-sm border border-ink/10 bg-white p-4 lg:flex-row lg:items-end lg:justify-between">
+            <label className="block min-w-0 flex-1 text-sm">
+              Buscar produto
+              <input
+                value={busca}
+                onChange={(event) => setBusca(event.target.value)}
+                placeholder="Nome, classe ou categoria"
+                className="mt-1 w-full border border-ink/15 px-3 py-2"
+              />
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {(
+                [
+                  ["todos", "Todos"],
+                  ["ativos", "Ativos no site"],
+                  ["inativos", "Inativos"],
+                ] as const
+              ).map(([id, rotulo]) => (
+                <button
+                  key={id}
+                  type="button"
+                  className={lojaFiltro === id ? "bg-forest px-3 py-2 text-sm text-paper" : "border border-ink/15 px-3 py-2 text-sm"}
+                  onClick={() => setLojaFiltro(id)}
+                >
+                  {rotulo}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
+            <button type="button" className={grupoFiltro === "Tudo" ? "text-forest" : "text-ink/55"} onClick={() => setGrupoFiltro("Tudo")}>
+              Todas as classes
+            </button>
+            {gruposDisponiveis.map((item) => (
+              <button
+                key={item}
+                type="button"
+                className={grupoFiltro === item ? "text-forest" : "text-ink/55"}
+                onClick={() => setGrupoFiltro(item)}
+              >
+                {item}
+                <span className="ml-1 text-ink/40">
+                  ({produtos.filter((p) => normalizarGrupo(p.grupo) === item && (lojaFiltro === "ativos" ? p.naLoja : lojaFiltro === "inativos" ? !p.naLoja : true)).length})
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {alertaFiltro !== "todos" ? (
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <span className="text-ink/60">
+                Filtro ativo:{" "}
+                {alertaFiltro === "semPreco"
+                  ? "sem preço"
+                  : alertaFiltro === "semFoto"
+                    ? "sem foto"
+                    : alertaFiltro === "estoqueZero"
+                      ? "estoque zerado"
+                      : "exclusivos"}
+              </span>
+              <button type="button" className="text-forest" onClick={() => setAlertaFiltro("todos")}>
+                Limpar
+              </button>
+            </div>
+          ) : null}
+
+          <p className="text-sm text-ink/55">
+            {filtrados.length} de {produtos.length} produto{produtos.length === 1 ? "" : "s"}
+          </p>
+
+          {filtrados.length === 0 ? (
+            <p className="rounded-sm border border-dashed border-ink/20 px-4 py-8 text-center text-sm text-ink/60">
+              Nenhum produto com esses filtros.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {filtrados.map((produto) => (
+                <ProdutoEquipeCard key={produto.id} produto={produto} onSave={onSalvar} onFoto={onFoto} />
+              ))}
+            </div>
+          )}
+        </div>
+      ) : null}
+
+      {aba === "cadastros" ? (
+        <div className="space-y-4">
+          <p className="text-sm text-ink/65">Empresas que pediram cadastro e ainda precisam ser enviadas ao Conta Azul.</p>
+          {cadastrosPendentes.length === 0 ? (
+            <p className="rounded-sm border border-dashed border-ink/20 px-4 py-8 text-center text-sm text-ink/60">
+              Nenhum cadastro pendente.
+            </p>
+          ) : (
+            <ul className="space-y-2 text-sm">
+              {cadastrosPendentes.map((item) => (
+                <li key={item.id} className="rounded-sm border border-ink/10 bg-white p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="font-medium">{item.nome}</p>
+                      <p className="text-ink/60">
+                        {item.cnpj} · {item.cidade}/{item.estado} · {item.email}
+                      </p>
+                      <p className="mt-1 text-xs uppercase tracking-wide text-ink/45">Status: {item.status}</p>
+                      {item.erro ? <p className="mt-1 text-red-800">{item.erro}</p> : null}
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={ocupado}
+                      onClick={() => {
+                        setOcupado(true);
+                        void portalApi
+                          .enviarCadastro(item.id)
+                          .then(() => portalApi.cadastros())
+                          .then((lista) => {
+                            onCadastros(lista.cadastros);
+                            toast.success("Cadastro reenviado.");
+                          })
+                          .catch((error) => toast.error(mensagem(error)))
+                          .finally(() => setOcupado(false));
+                      }}
+                    >
+                      Enviar de novo
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ) : null}
+
+      {aba === "ferramentas" ? (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="space-y-3 rounded-sm border border-ink/10 bg-white p-5">
+            <h3 className="font-medium">Vitrine</h3>
+            <p className="text-sm text-ink/65">
+              Libera em massa produtos elegíveis para aparecerem na loja. Útil após sincronizar o catálogo.
+            </p>
+            <p className="text-sm text-ink/55">
+              Agora: {kpis.ativos} ativos · {kpis.inativos} fora do site
+            </p>
+            <Button type="button" disabled={ocupado} onClick={() => void liberarTodos()}>
+              Liberar produtos na loja
+            </Button>
+          </div>
+          <div className="space-y-3 rounded-sm border border-ink/10 bg-white p-5">
+            <h3 className="font-medium">Convites de empresa</h3>
+            <p className="text-sm text-ink/65">
+              Gera link para o cliente criar a senha. Deixe o e-mail vazio para processar a fila, ou informe um e-mail específico.
+            </p>
+            <Campo label="E-mail (opcional)" value={emailConvite} onChange={setEmailConvite} type="email" />
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" disabled={ocupado} onClick={() => void gerarConvites(false)}>
+                Gerar convites
+              </Button>
+              <Button type="button" variant="outline" disabled={ocupado} onClick={() => void gerarConvites(true)}>
+                Redefinir senha
+              </Button>
+            </div>
+            {linksConvite.length > 0 ? (
+              <ul className="space-y-2 border-t border-ink/10 pt-3 text-sm">
+                {linksConvite.map((item) => (
+                  <li key={`${item.email}-${item.link}`} className="break-all">
+                    <strong>{item.nome}</strong> · {item.email}
+                    <br />
+                    <a href={item.link} className="text-forest" target="_blank" rel="noreferrer">
+                      {item.link}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+          <div className="space-y-2 rounded-sm border border-ink/10 bg-white p-5 lg:col-span-2">
+            <h3 className="font-medium">Resumo por classe</h3>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {gruposDisponiveis.map((classe) => {
+                const itens = produtos.filter((p) => normalizarGrupo(p.grupo) === classe);
+                const ativos = itens.filter((p) => p.naLoja).length;
+                return (
+                  <button
+                    key={classe}
+                    type="button"
+                    className="border border-ink/10 px-3 py-3 text-left text-sm hover:border-forest/40"
+                    onClick={() => {
+                      setAba("catalogo");
+                      setGrupoFiltro(classe);
+                      setLojaFiltro("todos");
+                      setAlertaFiltro("todos");
+                    }}
+                  >
+                    <p className="font-medium">{classe}</p>
+                    <p className="mt-1 text-ink/55">
+                      {ativos}/{itens.length} no site
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function ProdutoEquipeCard({
   produto,
   onSave,
@@ -1605,12 +2473,29 @@ function ProdutoEquipeCard({
   const [estoque, setEstoque] = useState(produto.estoque == null ? "" : String(produto.estoque));
   const peso = pesoDoItem(produto.nome, produto.peso, produto.unidade);
 
+  useEffect(() => {
+    setPreco(produto.preco?.toString() ?? "");
+    setFoto(produto.imagemUrl ?? "");
+    setDescricao(produto.descricao);
+    setAplicacao(produto.aplicacao);
+    setEstoque(produto.estoque == null ? "" : String(produto.estoque));
+  }, [produto.id, produto.preco, produto.imagemUrl, produto.descricao, produto.aplicacao, produto.estoque]);
+
   return (
-    <article className="space-y-3 rounded-sm border border-ink/10 bg-white p-4">
+    <article className={produto.naLoja ? "space-y-3 rounded-sm border border-ink/10 bg-white p-4" : "space-y-3 rounded-sm border border-dashed border-ink/20 bg-ink/[0.02] p-4"}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-wide text-ink/45">{produto.grupo}</p>
-          <h3 className="font-medium">{produto.nome}</h3>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-xs uppercase tracking-wide text-ink/45">{normalizarGrupo(produto.grupo)}</p>
+            <span className={produto.naLoja ? "bg-forest/10 px-2 py-0.5 text-[11px] font-medium text-forest" : "bg-ink/10 px-2 py-0.5 text-[11px] font-medium text-ink/60"}>
+              {produto.naLoja ? "Ativo no site" : "Inativo"}
+            </span>
+            {produto.exclusivo ? <span className="bg-ink/5 px-2 py-0.5 text-[11px] text-ink/60">Exclusivo</span> : null}
+            {produto.estoque === 0 ? <span className="bg-amber-100 px-2 py-0.5 text-[11px] text-amber-900">Estoque 0</span> : null}
+            {!produto.imagemUrl ? <span className="bg-amber-100 px-2 py-0.5 text-[11px] text-amber-900">Sem foto</span> : null}
+            {produto.preco == null || produto.preco <= 0 ? <span className="bg-amber-100 px-2 py-0.5 text-[11px] text-amber-900">Sem preço</span> : null}
+          </div>
+          <h3 className="mt-1 font-medium">{produto.nome}</h3>
           {peso ? <p className="mt-1 text-xs font-medium text-forest">Peso {peso}</p> : null}
           {produto.exclusivo ? <p className="mt-1 text-xs text-ink/55">Só aparece para quem tem este produto na regra comercial.</p> : null}
         </div>
