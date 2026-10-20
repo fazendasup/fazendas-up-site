@@ -749,7 +749,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
               >
                 <h2 className="display-head text-2xl sm:col-span-2">Criar conta</h2>
                 <p className="text-sm text-ink/65 sm:col-span-2">
-                  Cadastro rápido. No pedido você escolhe Pix (sem taxa) ou cartão (+5%). Pedido mínimo {reais(10)}.
+                  Cadastro rápido. No pedido você escolhe Pix (sem taxa) ou cartão (+5%). Pedido mínimo {reais(200)}. Entrega a partir de 2 dias úteis (48h).
                 </p>
                 <Campo label="Seu nome" value={pessoa.nome} onChange={(nome) => setPessoa({ ...pessoa, nome })} />
                 <Campo label="CPF" value={formatCpf(pessoa.cpf)} onChange={(cpf) => setPessoa({ ...pessoa, cpf })} inputMode="numeric" />
@@ -1111,6 +1111,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <p className="text-sm font-medium">Quando entregar?</p>
+                    <p className="text-xs text-ink/55">Entrega a partir de 2 dias úteis (48h). Sábado, domingo e feriado de Manaus não entram na rota.</p>
                     <select value={dataEntrega} onChange={(event) => setDataEntrega(event.target.value)} className="w-full border border-ink/15 bg-white px-3 py-3">
                       {datas.map((data) => (
                         <option key={data} value={data}>{formatLongDate(data)}</option>
