@@ -18,7 +18,7 @@ import {
   type TituloCliente,
 } from "@/lib/pedidos/api";
 import { buscarCep, formatarCep } from "@/lib/pedidos/cep";
-import { pesoDoProduto } from "@/lib/pedidos/peso";
+import { nomeSemPeso, pesoDoProduto } from "@/lib/pedidos/peso";
 import { formatCnpj, formatCpf, formatDocumento, formatLongDate, isValidCnpj, isValidCpf } from "@/lib/pedidos/rules";
 
 function pesoDoItem(nome: string, peso?: string | null, unidade?: string | null) {
@@ -994,7 +994,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                   return (
                     <li key={produto.id} className="flex items-center gap-2">
                       <div className="min-w-0 flex-1">
-                        <p className="truncate">{produto.nome}</p>
+                        <p className="truncate">{nomeSemPeso(produto.nome)}</p>
                         <p className="text-xs text-ink/50">
                           {peso ? `Peso ${peso}` : null}
                           {peso && produto.preco != null ? " · " : null}
@@ -1394,7 +1394,7 @@ function CartaoProduto({
         <div className="aspect-[4/5] w-full bg-ink/5" />
       )}
       <div className="space-y-2 p-3">
-        <h3 className="text-[0.95rem] leading-tight">{produto.nome}</h3>
+        <h3 className="text-[0.95rem] leading-tight">{nomeSemPeso(produto.nome)}</h3>
         {peso ? <p className="text-xs font-medium text-forest">Peso {peso}</p> : null}
         <p className="line-clamp-2 text-xs leading-relaxed text-ink/70">{produto.descricao}</p>
         <p className="line-clamp-2 text-xs text-ink/50">{produto.aplicacao}</p>
@@ -1403,7 +1403,7 @@ function CartaoProduto({
             {produto.preco != null ? (
               <>
                 {reais(produto.preco)}
-                <span className="ml-1 text-xs font-normal text-ink/50">/{produto.unidade}{peso ? ` · ${peso}` : ""}</span>
+                <span className="ml-1 text-xs font-normal text-ink/50">/{produto.unidade}</span>
               </>
             ) : (
               "Entre para ver o preço"
@@ -1683,7 +1683,7 @@ function CartaoPedido({
           return (
             <li key={`${pedido.id}-${item.nome}`} className="flex justify-between gap-3">
               <span>
-                {item.quantidade}× {item.nome}
+                {item.quantidade}× {nomeSemPeso(item.nome)}
                 {peso ? ` · ${peso}` : ""}
               </span>
               {linha != null ? <span className="shrink-0 tabular-nums text-ink/70">{reais(linha)}</span> : null}
@@ -2798,7 +2798,7 @@ function ProdutoEquipeCard({
             {produto.estoque === 0 ? <span className="bg-amber-100 px-2 py-0.5 text-[11px] text-amber-900">Estoque 0</span> : null}
             {!produto.imagemUrl ? <span className="bg-amber-100 px-2 py-0.5 text-[11px] text-amber-900">Sem foto</span> : null}
           </div>
-          <h3 className="mt-1 font-medium">{produto.nome}</h3>
+          <h3 className="mt-1 font-medium">{nomeSemPeso(produto.nome)}</h3>
           {peso ? <p className="mt-1 text-xs font-medium text-forest">Peso {peso}</p> : null}
           {rascunho.exclusivo ? <p className="mt-1 text-xs text-ink/55">Só aparece para quem tem este produto na regra comercial.</p> : null}
         </div>

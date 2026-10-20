@@ -20,7 +20,18 @@ export function pesoDoProduto(nome: string, unidade?: string | null): string | n
   return null;
 }
 
+/** Título limpo: tira o peso do nome (ele já aparece na linha “Peso …”). */
+export function nomeSemPeso(nome: string): string {
+  return nome
+    .replace(/[-–—]?\s*\d+(?:[.,]\d+)?\s*(kg|g|gr|gramas?)\b/gi, "")
+    .replace(/\s*\bkg\b/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .replace(/\s*[-–—|,]\s*$/g, "")
+    .trim() || nome.trim();
+}
+
 export function rotuloComPeso(nome: string, peso?: string | null, unidade?: string | null): string {
+  const limpo = nomeSemPeso(nome);
   const resolvido = peso?.trim() || pesoDoProduto(nome, unidade);
-  return resolvido ? `${nome} · ${resolvido}` : nome;
+  return resolvido ? `${limpo} · ${resolvido}` : limpo;
 }
