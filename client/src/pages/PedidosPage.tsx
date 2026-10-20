@@ -217,7 +217,12 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
 
   const total = catalogo.reduce((soma, produto) => soma + (produto.preco ?? 0) * (carrinho[produto.id] ?? 0), 0);
   const precoDaConta = Boolean(cliente);
-  const grupos = ORDEM_GRUPOS.filter((item) => catalogo.some((produto) => normalizarGrupo(produto.grupo) === item));
+  const grupos = useMemo(() => {
+    const presentes = new Set(catalogo.map((produto) => normalizarGrupo(produto.grupo)).filter(Boolean));
+    const ordenados = ORDEM_GRUPOS.filter((item) => presentes.has(item));
+    const extras = [...presentes].filter((item) => !ORDEM_GRUPOS.includes(item)).sort((a, b) => a.localeCompare(b, "pt-BR"));
+    return [...ordenados, ...extras];
+  }, [catalogo]);
   const visiveis = catalogo.filter((produto) => grupo === "Tudo" || normalizarGrupo(produto.grupo) === grupo);
 
   useEffect(() => {
