@@ -609,7 +609,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
               ) : null}
               {vista === "loja" && !cliente ? (
                 <p className="max-w-xl text-sm text-ink/65">
-                  Escolha os produtos, entre na conta e finalize em poucos passos — Pix sem taxa ou cartão.
+                  Escolha os produtos, entre na conta e finalize em poucos passos.
                 </p>
               ) : null}
               {vista === "loja" && cliente && ehPessoa(cliente) ? (
