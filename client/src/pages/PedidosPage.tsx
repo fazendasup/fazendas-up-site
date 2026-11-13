@@ -126,6 +126,13 @@ function statusPedido(
   if (aguardandoAprovacaoPedido(pedido)) return "Pedido aguardando aprovação";
   if (pedido.pessoa && pedido.pagamento?.status === "AGUARDANDO") return "Aguardando pagamento";
   if (pedido.pessoa && pedido.pagamento?.status === "PAGO") return "Pago · na programação";
+  // PF aprovada sem linha de pagamento: não mascarar como "Programado".
+  if (pedido.pessoa && pedido.aprovado && !pedido.pagamento && pedido.status === "PENDENTE") {
+    return "Aguardando pagamento";
+  }
+  if (pedido.doSite && pedido.aprovado && !pedido.pessoa && pedido.status === "PENDENTE") {
+    return "Aprovado · na programação";
+  }
   if (pedido.status === "PENDENTE") return "Programado";
   if (pedido.status === "PRONTO") return "Separado";
   if (pedido.status === "ENTREGUE") return "Entregue";
@@ -476,7 +483,9 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
       setVista("pedidos");
       toast.success(
         criado.mensagem ||
-          "Pedido enviado para aprovação. O pagamento será liberado após a fazenda aprovar.",
+          (ehPessoa(cliente)
+            ? "Pedido enviado para aprovação. O pagamento será liberado após a fazenda aprovar."
+            : "Pedido enviado para aprovação da fazenda."),
       );
     } catch (error) {
       toast.error(mensagem(error));
@@ -908,6 +917,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
         {vista === "pedidos" && cliente ? (
           <PedidosCliente
             pedidos={pedidos}
+            clientePessoa={ehPessoa(cliente)}
             verHistorico={verHistoricoPedidos}
             onHistorico={() => setVerHistoricoPedidos((atual) => !atual)}
             onLoja={() => { setVista("loja"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
@@ -2020,6 +2030,7 @@ function CartaoPedido({
 
 function PedidosCliente({
   pedidos,
+  clientePessoa,
   verHistorico,
   onHistorico,
   onLoja,
@@ -2027,6 +2038,7 @@ function PedidosCliente({
   onPagamento,
 }: {
   pedidos: PedidoCliente[];
+  clientePessoa: boolean;
   verHistorico: boolean;
   onHistorico: () => void;
   onLoja: () => void;
@@ -2157,11 +2169,15 @@ function PedidosCliente({
     <section className="mt-8 space-y-4">
       <h2 className="display-head text-3xl">Meus pedidos</h2>
       <p className="text-sm text-ink/60">
-        Aqui você acompanha entregas, acompanha a aprovação da fazenda, paga Pix/cartão quando liberado, troca a forma ou cancela enquanto estiver em aberto.
+        {clientePessoa
+          ? "Acompanhe a aprovação da fazenda, pague Pix/cartão quando liberado, troque a forma ou cancele enquanto estiver em aberto."
+          : "Acompanhe a aprovação da fazenda e as entregas programadas. Contas em aberto ficam em Pagamentos."}
       </p>
       {programados.some((p) => aguardandoAprovacaoPedido(p)) ? (
         <p className="border border-ink/15 bg-white px-4 py-3 text-sm text-ink">
-          Há pedido aguardando aprovação da fazenda. O pagamento só libera depois que a equipe aprovar.
+          {clientePessoa || programados.some((p) => p.pessoa && aguardandoAprovacaoPedido(p))
+            ? "Há pedido aguardando aprovação da fazenda. O pagamento só libera depois que a equipe aprovar."
+            : "Há pedido aguardando aprovação da fazenda. Depois da aprovação ele entra na programação."}
         </p>
       ) : null}
       {programados.some((p) => p.pagamento?.status === "AGUARDANDO") ? (
