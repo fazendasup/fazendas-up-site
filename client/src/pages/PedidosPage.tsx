@@ -110,11 +110,23 @@ function mensagem(error: unknown) {
   return texto;
 }
 
-function statusPedido(pedido: Pick<PedidoCliente, "status" | "doSite" | "pessoa" | "pagamento">) {
+function aguardandoAprovacaoPedido(pedido: Pick<PedidoCliente, "status" | "doSite" | "pessoa" | "pagamento" | "aprovado" | "aguardandoAprovacao">) {
+  if (pedido.aguardandoAprovacao != null) return pedido.aguardandoAprovacao;
+  if (pedido.status !== "PENDENTE" || !pedido.doSite || pedido.aprovado) return false;
+  if (pedido.pessoa && (pedido.pagamento?.status === "AGUARDANDO" || pedido.pagamento?.status === "PAGO")) {
+    return false;
+  }
+  return true;
+}
+
+function statusPedido(
+  pedido: Pick<PedidoCliente, "status" | "doSite" | "pessoa" | "pagamento" | "aprovado" | "aguardandoAprovacao">,
+) {
   if (pedido.status === "CANCELADO" || pedido.pagamento?.status === "CANCELADO") return "Cancelado";
+  if (aguardandoAprovacaoPedido(pedido)) return "Pedido aguardando aprovação";
   if (pedido.pessoa && pedido.pagamento?.status === "AGUARDANDO") return "Aguardando pagamento";
   if (pedido.pessoa && pedido.pagamento?.status === "PAGO") return "Pago · na programação";
-  if (pedido.status === "PENDENTE") return pedido.doSite && !pedido.pessoa ? "Aguardando aprovação" : "Programado";
+  if (pedido.status === "PENDENTE") return "Programado";
   if (pedido.status === "PRONTO") return "Separado";
   if (pedido.status === "ENTREGUE") return "Entregue";
   return "Em andamento";
@@ -123,8 +135,8 @@ function statusPedido(pedido: Pick<PedidoCliente, "status" | "doSite" | "pessoa"
 function podeCancelarPedido(pedido: PedidoCliente) {
   if (pedido.status === "CANCELADO" || pedido.pagamento?.status === "CANCELADO") return false;
   if (pedido.pagamento?.status === "PAGO") return false;
+  if (aguardandoAprovacaoPedido(pedido)) return true;
   if (pedido.pessoa && pedido.pagamento?.status === "AGUARDANDO") return true;
-  if (pedido.doSite && !pedido.pessoa && pedido.status === "PENDENTE") return true;
   return false;
 }
 
@@ -202,6 +214,10 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
   );
   const pedidosAguardandoPagamento = useMemo(
     () => pedidos.filter((p) => p.pagamento?.status === "AGUARDANDO" && p.status !== "CANCELADO").length,
+    [pedidos],
+  );
+  const pedidosAguardandoAprovacao = useMemo(
+    () => pedidos.filter((p) => aguardandoAprovacaoPedido(p) && p.status !== "CANCELADO").length,
     [pedidos],
   );
   const [buscandoCep, setBuscandoCep] = useState(false);
@@ -321,7 +337,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
         setVista("loja");
         await Promise.all([carregarVitrine(), carregarConta()]);
         if (resposta.cliente.perfil === "pessoa") {
-          toast.success("Bem-vindo. Pague com Pix ou cartão ao enviar o pedido.");
+          toast.success("Bem-vindo. Envie o pedido e acompanhe a aprovação em Meus pedidos.");
         }
       }
     } catch (error) {
@@ -458,43 +474,9 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
       setCheckoutAberto(false);
       await Promise.all([carregarVitrine(), carregarConta()]);
       setVista("pedidos");
-      if (criado.pagamento) {
-        const forma = criado.pagamento.formaPagamento ?? formaPagamento;
-        setPagamentoAberto({
-          ...criado.pagamento,
-          pixUrl: forma === "pix" ? criado.pagamento.pixUrl : null,
-          cartaoUrl: forma === "cartao" ? criado.pagamento.cartaoUrl : null,
-          formaPagamento: forma,
-          pedidoId: criado.id,
-          linkPendente: criado.pagamento.linkPendente,
-        });
-        if (criado.pagamento.linkPendente) {
-          const id = criado.id;
-          window.setTimeout(() => {
-            void portalApi.pagamentoPedido(id).then((pagamento) => {
-              const formaOk =
-                pagamento.formaPagamento ??
-                (pagamento.pixUrl ? "pix" : pagamento.cartaoUrl ? "cartao" : forma);
-              const url = formaOk === "cartao" ? pagamento.cartaoUrl : pagamento.pixUrl;
-              if (url) {
-                setPagamentoAberto({
-                  ...pagamento,
-                  pixUrl: formaOk === "pix" ? pagamento.pixUrl : null,
-                  cartaoUrl: formaOk === "cartao" ? pagamento.cartaoUrl : null,
-                  formaPagamento: formaOk,
-                  pedidoId: id,
-                  linkPendente: false,
-                });
-              }
-            }).catch(() => undefined);
-          }, 4000);
-        }
-      }
       toast.success(
         criado.mensagem ||
-          (modalidadePedido === "retirada"
-            ? "Pedido criado. Conclua o pagamento para liberar a retirada."
-            : "Pedido criado. Conclua o pagamento para liberar a entrega."),
+          "Pedido enviado para aprovação. O pagamento será liberado após a fazenda aprovar.",
       );
     } catch (error) {
       toast.error(mensagem(error));
@@ -695,7 +677,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
               ) : null}
               {vista === "loja" && cliente && ehPessoa(cliente) ? (
                 <p className="max-w-xl text-sm text-ink/65">
-                  Monte o pedido na vitrine. Entrega e pagamento ficam no checkout.
+                  Monte o pedido na vitrine. No checkout você escolhe entrega e a forma preferida; o pagamento libera após a fazenda aprovar.
                 </p>
               ) : null}
             </div>
@@ -718,7 +700,12 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                   [
                     ["loja", itensCarrinho > 0 ? `Loja (${itensCarrinho})` : "Loja"],
                     ...(cliente.recorrente && !ehPessoa(cliente) ? [["programacao", "Programação"] as const] : []),
-                    ["pedidos", pedidosAguardandoPagamento > 0 ? `Meus pedidos (${pedidosAguardandoPagamento})` : "Meus pedidos"],
+                    [
+                      "pedidos",
+                      pedidosAguardandoPagamento + pedidosAguardandoAprovacao > 0
+                        ? `Meus pedidos (${pedidosAguardandoPagamento + pedidosAguardandoAprovacao})`
+                        : "Meus pedidos",
+                    ],
                     ...(!ehPessoa(cliente) ? [["pagamentos", "Pagamentos"] as const] : []),
                     ["conta", "Minha conta"],
                   ] as const
@@ -767,6 +754,23 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                 </button>
               </nav>
             </div>
+            {pedidosAguardandoAprovacao > 0 && vista === "loja" ? (
+              <button
+                type="button"
+                className="flex w-full items-center justify-between gap-3 border border-ink/20 bg-white px-4 py-3 text-left text-sm"
+                onClick={() => {
+                  setVerHistoricoPedidos(false);
+                  setVista("pedidos");
+                }}
+              >
+                <span>
+                  {pedidosAguardandoAprovacao === 1
+                    ? "Você tem 1 pedido aguardando aprovação da fazenda."
+                    : `Você tem ${pedidosAguardandoAprovacao} pedidos aguardando aprovação da fazenda.`}
+                </span>
+                <span className="shrink-0 text-forest">Ver pedidos</span>
+              </button>
+            ) : null}
             {pedidosAguardandoPagamento > 0 && vista === "loja" ? (
               <button
                 type="button"
@@ -1242,7 +1246,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                         ? "Passo 1 de 3 · Retirada"
                         : "Passo 1 de 3 · Entrega"
                       : checkoutPasso === 2
-                        ? "Passo 2 de 3 · Pagamento"
+                        ? "Passo 2 de 3 · Forma preferida"
                         : "Passo 3 de 3 · Confirmar"}
                   </p>
                 </div>
@@ -1250,7 +1254,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
               </div>
 
               <ol className="grid grid-cols-3 gap-2 text-center text-xs">
-                {([abaixoMinimoEntrega && modalidade === "retirada" ? "Retirada" : "Entrega", "Pagamento", "Confirmar"] as const).map((rotulo, indice) => {
+                {([abaixoMinimoEntrega && modalidade === "retirada" ? "Retirada" : "Entrega", "Forma", "Confirmar"] as const).map((rotulo, indice) => {
                   const passo = (indice + 1) as 1 | 2 | 3;
                   const ativo = checkoutPasso === passo;
                   const feito = checkoutPasso > passo;
@@ -1376,10 +1380,12 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                     </button>
                   </div>
                   {formaPagamento === "cartao" ? (
-                    <p className="text-xs text-ink/55">Os 5% cobrem a taxa da operadora. No Pix esse valor não é cobrado.</p>
+                    <p className="text-xs text-ink/55">
+                      Preferência registrada. Os 5% cobrem a taxa da operadora e só entram quando a cobrança for liberada após a aprovação.
+                    </p>
                   ) : (
                     <p className="text-xs text-ink/55">
-                      Pagamento instantâneo. {abaixoMinimoEntrega && modalidade === "retirada" ? "A retirada" : "A entrega"} só libera depois da confirmação.
+                      Preferência registrada. O Pix só é gerado depois que a fazenda aprovar o pedido.
                     </p>
                   )}
                   <div className="flex flex-wrap gap-2">
@@ -1418,19 +1424,17 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                       </div>
                     ) : null}
                     <div className="flex justify-between gap-3 border-t border-ink/10 pt-2 text-base font-medium">
-                      <span>{formaPagamento === "pix" ? "Total no Pix" : "Total no cartão"}</span>
+                      <span>{formaPagamento === "pix" ? "Total previsto no Pix" : "Total previsto no cartão"}</span>
                       <span className="tabular-nums">{reais(totalNaForma(totalComEntrega, formaPagamento))}</span>
                     </div>
                   </div>
-                  <p className="text-xs text-ink/50">Pagamento seguro via Conta Azul. Depois você ainda pode trocar Pix/cartão ou cancelar enquanto estiver aguardando pagamento.</p>
+                  <p className="text-xs text-ink/50">
+                    O pedido vai para a fazenda aprovar. Depois disso, Pix/cartão aparecem em Meus pedidos — você ainda pode trocar a forma ou cancelar enquanto estiver em aberto.
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     <button type="button" className="border border-ink/15 px-3 py-2 text-sm" disabled={enviando} onClick={() => setCheckoutPasso(2)}>Voltar</button>
                     <Button type="button" disabled={enviando} onClick={() => void concluirCheckoutPessoa()}>
-                      {enviando
-                        ? "Gerando pagamento…"
-                        : formaPagamento === "pix"
-                          ? `Confirmar e pagar ${reais(totalComEntrega)}`
-                          : `Confirmar e pagar ${reais(totalNoCartao(totalComEntrega))}`}
+                      {enviando ? "Enviando…" : "Enviar para aprovação"}
                     </Button>
                   </div>
                 </div>
@@ -1936,13 +1940,20 @@ function CartaoPedido({
   const baseProdutos = baseItensPedido(pedido);
 
   const aguardando = pedido.pagamento?.status === "AGUARDANDO";
+  const aguardandoAprovacao = aguardandoAprovacaoPedido(pedido);
+  const destaque = aguardando || aguardandoAprovacao;
 
   return (
-    <article className={aguardando ? "rounded-sm border border-forest/35 bg-white p-5" : "rounded-sm border border-ink/10 bg-white p-5"}>
+    <article className={destaque ? "rounded-sm border border-forest/35 bg-white p-5" : "rounded-sm border border-ink/10 bg-white p-5"}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <h3 className="text-lg">{formatLongDate(pedido.dataEntrega.slice(0, 10))}</h3>
-          <p className={aguardando ? "text-sm font-medium text-forest" : "text-sm text-ink/55"}>{statusPedido(pedido)}</p>
+          <p className={destaque ? "text-sm font-medium text-forest" : "text-sm text-ink/55"}>{statusPedido(pedido)}</p>
+          {aguardandoAprovacao ? (
+            <p className="mt-1 text-sm text-ink/65">
+              A fazenda ainda vai revisar este pedido. Pix e cartão liberam depois da aprovação.
+            </p>
+          ) : null}
         </div>
         {aguardando && pedido.pagamento?.total != null ? (
           <p className="text-lg font-medium tabular-nums">{reais(pedido.pagamento.total)}</p>
@@ -2028,9 +2039,13 @@ function PedidosCliente({
   const programados = pedidos
     .filter((pedido) => pedido.programado ?? (pedido.dataEntrega.slice(0, 10) >= hoje && pedido.status !== "CANCELADO"))
     .sort((a, b) => {
-      const aPay = a.pagamento?.status === "AGUARDANDO" ? 0 : 1;
-      const bPay = b.pagamento?.status === "AGUARDANDO" ? 0 : 1;
-      if (aPay !== bPay) return aPay - bPay;
+      const prioridade = (p: PedidoCliente) => {
+        if (p.pagamento?.status === "AGUARDANDO") return 0;
+        if (aguardandoAprovacaoPedido(p)) return 1;
+        return 2;
+      };
+      const diff = prioridade(a) - prioridade(b);
+      if (diff !== 0) return diff;
       return a.dataEntrega.localeCompare(b.dataEntrega);
     });
   const historico = pedidos
@@ -2042,7 +2057,9 @@ function PedidosCliente({
     const quando = formatLongDate(pedido.dataEntrega.slice(0, 10));
     if (
       !window.confirm(
-        `Cancelar o pedido de ${quando}?\n\nA cobrança em aberto deixa de valer e o estoque volta para a loja.`,
+        aguardandoAprovacaoPedido(pedido)
+          ? `Cancelar o pedido de ${quando}?\n\nEle ainda aguarda aprovação. O estoque volta para a loja.`
+          : `Cancelar o pedido de ${quando}?\n\nA cobrança em aberto deixa de valer e o estoque volta para a loja.`,
       )
     ) {
       return;
@@ -2051,7 +2068,11 @@ function PedidosCliente({
     setOcupadoId(pedido.id);
     try {
       await portalApi.cancelarPedido(pedido.id);
-      toast.success("Pedido cancelado. Cobrança invalidada.");
+      toast.success(
+        aguardandoAprovacaoPedido(pedido)
+          ? "Pedido cancelado."
+          : "Pedido cancelado. Cobrança invalidada.",
+      );
       await onAtualizar();
     } catch (error) {
       toast.error(mensagem(error) || "Não foi possível cancelar.");
@@ -2136,8 +2157,13 @@ function PedidosCliente({
     <section className="mt-8 space-y-4">
       <h2 className="display-head text-3xl">Meus pedidos</h2>
       <p className="text-sm text-ink/60">
-        Aqui você acompanha entregas, paga Pix/cartão, troca a forma de pagamento ou cancela enquanto estiver em aberto.
+        Aqui você acompanha entregas, acompanha a aprovação da fazenda, paga Pix/cartão quando liberado, troca a forma ou cancela enquanto estiver em aberto.
       </p>
+      {programados.some((p) => aguardandoAprovacaoPedido(p)) ? (
+        <p className="border border-ink/15 bg-white px-4 py-3 text-sm text-ink">
+          Há pedido aguardando aprovação da fazenda. O pagamento só libera depois que a equipe aprovar.
+        </p>
+      ) : null}
       {programados.some((p) => p.pagamento?.status === "AGUARDANDO") ? (
         <p className="border border-forest/25 bg-forest/5 px-4 py-3 text-sm text-ink">
           Há pedido aguardando pagamento abaixo. Conclua para liberar a entrega.

@@ -133,6 +133,10 @@ export type PedidoCliente = {
   programado?: boolean;
   doSite?: boolean;
   pessoa?: boolean;
+  /** Equipe já aprovou no operacional (marca nas observações). */
+  aprovado?: boolean;
+  /** Pedido do site ainda sem aprovação — pagamento bloqueado. */
+  aguardandoAprovacao?: boolean;
   pagamento?: PedidoPagamento | null;
   itens: Array<{ nome: string; quantidade: number; preco: number | null; peso?: string | null }>;
 };
