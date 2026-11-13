@@ -830,7 +830,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
               >
                 <h2 className="display-head text-2xl sm:col-span-2">Criar conta</h2>
                 <p className="text-sm text-ink/65 sm:col-span-2">
-                  Cadastro rápido. No pedido você escolhe Pix (sem taxa) ou cartão (+5%). Entrega grátis a partir de {reais(200)}; abaixo disso, retirada na fazenda ou taxa de {reais(20)}. Entrega a partir de 2 dias úteis (48h).
+                  Cadastro rápido. No pedido você escolhe Pix (sem taxa) ou cartão (+5%). Entrega grátis a partir de {reais(minimo)}; abaixo disso, retirada na fazenda ou taxa de {reais(taxaEntregaAbaixo)}. Entrega a partir de 2 dias úteis (48h).
                 </p>
                 <Campo label="Seu nome" value={pessoa.nome} onChange={(nome) => setPessoa({ ...pessoa, nome })} />
                 <Campo label="CPF" value={formatCpf(pessoa.cpf)} onChange={(cpf) => setPessoa({ ...pessoa, cpf })} inputMode="numeric" />
@@ -1076,13 +1076,13 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                 <div className="space-y-1 text-xs text-ink/60">
                   <p>Pix: {reais(totalComEntrega)} · sem taxa de cartão</p>
                   <p>Cartão: {reais(totalNoCartao(totalComEntrega))} · inclui +5% da operadora</p>
-                  {minimo > 0 ? <p>Entrega grátis a partir de {reais(minimo)}</p> : null}
+                  {minimo > 0 ? <p>Entrega grátis a partir de {reais(minimo)}.</p> : null}
                 </div>
               ) : null}
               {total === 0 && Object.values(carrinho).every((quantidade) => quantidade <= 0) ? <p className="text-sm text-ink/55">Escolha a quantidade nos produtos.</p> : null}
               {cliente && abaixoMinimoEntrega ? (
                 <div className="space-y-2 rounded-sm border border-ink/10 bg-paper/80 p-3 text-sm text-ink/75">
-                  <p>Abaixo de {reais(minimo)} para entrega grátis. Escolha:</p>
+                  <p>Entrega grátis a partir de {reais(minimo)}. Abaixo desse valor, escolha:</p>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
@@ -1203,7 +1203,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                 <button type="button" className="text-sm text-ink/50" disabled={enviando} onClick={() => setCheckoutAberto(false)}>Fechar</button>
               </div>
               <p className="text-sm text-ink/70">
-                Total dos produtos: {reais(total)}. Abaixo de {reais(minimo)} escolha retirada ou entrega com taxa de {reais(taxaEntregaAbaixo)}.
+                Total dos produtos: {reais(total)}. Entrega grátis a partir de {reais(minimo)}. Abaixo desse valor, escolha retirada ou entrega com taxa de {reais(taxaEntregaAbaixo)}.
               </p>
               <div className="grid grid-cols-2 gap-2">
                 <button type="button" className={modalidade === "retirada" ? "bg-forest px-3 py-3 text-sm text-paper" : "border border-ink/15 px-3 py-3 text-sm"} onClick={() => setModalidade("retirada")}>
@@ -1267,7 +1267,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                   {abaixoMinimoEntrega ? (
                     <div className="space-y-2">
                       <p className="text-sm font-medium">Como prefere receber?</p>
-                      <p className="text-xs text-ink/55">Pedido abaixo de {reais(minimo)}: retirada sem taxa, ou entrega com +{reais(taxaEntregaAbaixo)}.</p>
+                      <p className="text-xs text-ink/55">Entrega grátis a partir de {reais(minimo)}. Abaixo desse valor: retirada sem taxa, ou entrega com +{reais(taxaEntregaAbaixo)}.</p>
                       <div className="grid grid-cols-2 gap-2">
                         <button type="button" className={modalidade === "retirada" ? "bg-forest px-3 py-3 text-sm text-paper" : "border border-ink/15 px-3 py-3 text-sm"} onClick={() => setModalidade("retirada")}>
                           Retirada · sem taxa
