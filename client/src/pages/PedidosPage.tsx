@@ -484,8 +484,34 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
       setEndereco((atual) => ({
         ...atual,
         cep: formatarCep(achado.cep),
-        logradouro: achado.logradouro || atual.logradouro,
-        bairro: achado.bairro || atual.bairro,
+        logradouro: achado.logradouro,
+        bairro: achado.bairro,
+        cidade: achado.cidade || atual.cidade,
+        estado: achado.estado || atual.estado,
+      }));
+    } catch {
+      toast.error("Não foi possível consultar o CEP.");
+    } finally {
+      setBuscandoCep(false);
+    }
+  };
+
+  const preencherCepEmpresa = async (valor: string) => {
+    const cep = formatarCep(valor);
+    setEmpresa((atual) => ({ ...atual, cep }));
+    if (cep.replace(/\D/g, "").length !== 8) return;
+    setBuscandoCep(true);
+    try {
+      const achado = await buscarCep(cep);
+      if (!achado) {
+        toast.error("CEP não encontrado.");
+        return;
+      }
+      setEmpresa((atual) => ({
+        ...atual,
+        cep: formatarCep(achado.cep),
+        logradouro: achado.logradouro,
+        bairro: achado.bairro,
         cidade: achado.cidade || atual.cidade,
         estado: achado.estado || atual.estado,
       }));
@@ -779,7 +805,10 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                 <Campo label="E-mail" value={empresa.email} onChange={(valor) => setEmpresa({ ...empresa, email: valor })} type="email" />
                 <Campo label="Telefone" value={empresa.telefone} onChange={(telefone) => setEmpresa({ ...empresa, telefone })} inputMode="tel" />
                 <Campo label="Pessoa de contato" value={empresa.contato} onChange={(contato) => setEmpresa({ ...empresa, contato })} />
-                <Campo label="CEP" value={empresa.cep} onChange={(cep) => setEmpresa({ ...empresa, cep })} inputMode="numeric" />
+                <div className="sm:col-span-2">
+                  <Campo label="CEP" value={empresa.cep} onChange={(cep) => void preencherCepEmpresa(cep)} inputMode="numeric" />
+                  {buscandoCep ? <p className="mt-1 text-xs text-ink/50">Buscando CEP…</p> : null}
+                </div>
                 <Campo label="Logradouro" value={empresa.logradouro} onChange={(logradouro) => setEmpresa({ ...empresa, logradouro })} />
                 <Campo label="Número" value={empresa.numero} onChange={(numero) => setEmpresa({ ...empresa, numero })} />
                 <Campo label="Complemento" value={empresa.complemento ?? ""} onChange={(complemento) => setEmpresa({ ...empresa, complemento })} />
@@ -1567,8 +1596,8 @@ function ContaPessoa({ nome, onSalvo }: { nome: string; onSalvo: () => void }) {
       setEndereco((atual) => ({
         ...atual,
         cep: formatarCep(achado.cep),
-        logradouro: achado.logradouro || atual.logradouro,
-        bairro: achado.bairro || atual.bairro,
+        logradouro: achado.logradouro,
+        bairro: achado.bairro,
         cidade: achado.cidade || atual.cidade,
         estado: achado.estado || atual.estado,
       }));

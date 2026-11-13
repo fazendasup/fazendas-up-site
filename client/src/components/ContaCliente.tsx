@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { portalApi, type CadastroConta, type ContaPortal } from "@/lib/pedidos/api";
+import { buscarCep, formatarCep } from "@/lib/pedidos/cep";
 
 function mensagem(error: unknown): string {
   return error instanceof Error ? error.message : "Não foi possível concluir agora.";
@@ -72,6 +73,7 @@ export function ContaCliente({ onMinimo, onRecorrente }: { onMinimo: (valor: num
   const [conta, setConta] = useState<ContaPortal | null>(null);
   const [cadastro, setCadastro] = useState<CadastroConta>(vazio);
   const [enviando, setEnviando] = useState(false);
+  const [buscandoCep, setBuscandoCep] = useState(false);
   const [nomeAceite, setNomeAceite] = useState("");
   const [cpfAceite, setCpfAceite] = useState("");
   const [emailAceite, setEmailAceite] = useState("");
@@ -94,6 +96,32 @@ export function ContaCliente({ onMinimo, onRecorrente }: { onMinimo: (valor: num
 
   function alterar(parcial: Partial<CadastroConta>) {
     setCadastro((atual) => ({ ...atual, ...parcial }));
+  }
+
+  async function preencherCep(valor: string) {
+    const cep = formatarCep(valor);
+    alterar({ cep });
+    if (cep.replace(/\D/g, "").length !== 8) return;
+    setBuscandoCep(true);
+    try {
+      const achado = await buscarCep(cep);
+      if (!achado) {
+        toast.error("CEP não encontrado.");
+        return;
+      }
+      setCadastro((atual) => ({
+        ...atual,
+        cep: formatarCep(achado.cep),
+        logradouro: achado.logradouro,
+        bairro: achado.bairro,
+        cidade: achado.cidade || atual.cidade,
+        estado: achado.estado || atual.estado,
+      }));
+    } catch {
+      toast.error("Não foi possível consultar o CEP.");
+    } finally {
+      setBuscandoCep(false);
+    }
   }
 
   return (
@@ -125,7 +153,10 @@ export function ContaCliente({ onMinimo, onRecorrente }: { onMinimo: (valor: num
         <Campo label="E-mail" value={cadastro.email} onChange={(email) => alterar({ email })} type="email" />
         <Campo label="Telefone" value={cadastro.telefone} onChange={(telefone) => alterar({ telefone })} inputMode="tel" />
         <Campo label="Pessoa de contato" value={cadastro.contato} onChange={(contato) => alterar({ contato })} />
-        <Campo label="CEP" value={cadastro.cep} onChange={(cep) => alterar({ cep })} inputMode="numeric" />
+        <div className="sm:col-span-2">
+          <Campo label="CEP" value={cadastro.cep} onChange={(cep) => void preencherCep(cep)} inputMode="numeric" />
+          {buscandoCep ? <p className="mt-1 text-xs text-ink/50">Buscando CEP…</p> : null}
+        </div>
         <Campo label="Logradouro" value={cadastro.logradouro} onChange={(logradouro) => alterar({ logradouro })} />
         <Campo label="Número" value={cadastro.numero} onChange={(numero) => alterar({ numero })} />
         <Campo label="Complemento" value={cadastro.complemento} onChange={(complemento) => alterar({ complemento })} />
