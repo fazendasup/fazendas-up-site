@@ -82,6 +82,7 @@ const cadastroVazio: CadastroEmpresa = {
   cidade: "Manaus",
   estado: "AM",
   inscricaoEstadual: "",
+  senha: "",
 };
 
 function reais(valor: number) {
@@ -556,18 +557,39 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
       toast.error("Confira o CNPJ.");
       return;
     }
+    if (empresa.senha.length < 8) {
+      toast.error("A senha precisa ter pelo menos 8 caracteres.");
+      return;
+    }
+    if (empresa.senha !== senha2) {
+      toast.error("A senha e a confirmação precisam ser iguais.");
+      return;
+    }
+    const cnpjDigitos = empresa.cnpj.replace(/\D/g, "");
+    if (empresa.senha === cnpjDigitos.slice(0, 5)) {
+      toast.error("Escolha uma senha diferente dos 5 primeiros dígitos do CNPJ.");
+      return;
+    }
     setEnviando(true);
     try {
       const resposta = await portalApi.cadastrar({
         ...empresa,
-        cnpj: empresa.cnpj.replace(/\D/g, ""),
+        cnpj: cnpjDigitos,
         estado: empresa.estado.toUpperCase(),
       });
       toast.success(resposta.mensagem);
       if (!resposta.pendente) {
-        setCnpj(empresa.cnpj);
+        const login = await portalApi.entrar(cnpjDigitos, empresa.senha);
+        setCliente(login.cliente);
+        setCnpj(cnpjDigitos);
+        setSenha("");
+        setSenha2("");
+        setEmpresa(cadastroVazio);
         setVista("loja");
         setModoEquipe(false);
+        await Promise.all([carregarVitrine(), carregarConta()]);
+      } else {
+        setSenha2("");
       }
     } catch (error) {
       toast.error(mensagem(error));
@@ -797,7 +819,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                 }}
               >
                 <h2 className="display-head text-2xl sm:col-span-2">Cadastro da empresa</h2>
-                <p className="text-sm text-ink/65 sm:col-span-2">Pedidos B2B passam por aprovação da fazenda. As regras de pagamento ficam por cliente.</p>
+                <p className="text-sm text-ink/65 sm:col-span-2">Pedidos B2B passam por aprovação da fazenda. Crie sua senha para entrar depois com o CNPJ.</p>
                 <Campo label="Razão social" value={empresa.nome} onChange={(nome) => setEmpresa({ ...empresa, nome })} />
                 <Campo label="Nome fantasia" value={empresa.nomeFantasia ?? ""} onChange={(nomeFantasia) => setEmpresa({ ...empresa, nomeFantasia })} />
                 <Campo label="CNPJ" value={formatCnpj(empresa.cnpj)} onChange={(valor) => setEmpresa({ ...empresa, cnpj: valor })} inputMode="numeric" />
@@ -815,6 +837,12 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                 <Campo label="Bairro" value={empresa.bairro} onChange={(bairro) => setEmpresa({ ...empresa, bairro })} />
                 <Campo label="Cidade" value={empresa.cidade} onChange={(cidade) => setEmpresa({ ...empresa, cidade })} />
                 <Campo label="Estado" value={empresa.estado} onChange={(estado) => setEmpresa({ ...empresa, estado: estado.slice(0, 2).toUpperCase() })} />
+                <div className="sm:col-span-2">
+                  <CampoSenha label="Senha (mín. 8)" value={empresa.senha} onChange={(senha) => setEmpresa({ ...empresa, senha })} autoComplete="new-password" />
+                </div>
+                <div className="sm:col-span-2">
+                  <CampoSenha label="Repita a senha" value={senha2} onChange={setSenha2} autoComplete="new-password" />
+                </div>
                 <div className="sm:col-span-2">
                   <Button type="submit" disabled={enviando}>Enviar cadastro</Button>
                 </div>

@@ -114,6 +114,7 @@ export type CadastroEmpresa = {
   cidade: string;
   estado: string;
   inscricaoEstadual?: string;
+  senha: string;
 };
 
 export type PedidoPagamento = {
