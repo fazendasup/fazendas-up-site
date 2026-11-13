@@ -189,7 +189,7 @@ export function ForChefsSection() {
                 Solicitar proposta comercial
                 <ArrowUpRight className="size-4 shrink-0" />
               </a>
-              <span className="min-w-0 text-[0.85rem] text-muted-foreground">Entrega em até 48h úteis</span>
+              <span className="min-w-0 text-[0.85rem] text-muted-foreground">Entrega em até 24h úteis</span>
             </div>
           </div>
         </div>

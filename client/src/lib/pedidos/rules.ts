@@ -1,7 +1,7 @@
 /** Regras comerciais da Fazendas Up para encomenda B2B. */
 
 export const MIN_ORDER_CENTS = 30_000;
-export const LEAD_BUSINESS_DAYS = 2;
+export const LEAD_BUSINESS_DAYS = 1;
 export const TIMEZONE = "America/Manaus";
 
 /** Feriados nacionais e de Manaus/AM usados no calendário de entrega. */
@@ -82,7 +82,7 @@ export function addBusinessDays(ymd: string, businessDays: number): string {
 }
 
 /**
- * Entrega só a partir de 2 dias úteis (48h em dia útil).
+ * Entrega só a partir de 1 dia útil (24h em dia útil).
  * Fim de semana e feriado não contam e não recebem entrega.
  */
 export function earliestDeliveryYmd(now = new Date()): string {
