@@ -194,6 +194,8 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
   const [endereco, setEndereco] = useState<EnderecoEntrega>(enderecoVazio);
   const [periodoEntrega, setPeriodoEntrega] = useState<PeriodoEntrega>("manha");
   const [formaPagamento, setFormaPagamento] = useState<FormaPagamento>("pix");
+  const [modalidade, setModalidade] = useState<"entrega" | "retirada">("entrega");
+  const [taxaEntregaAbaixo, setTaxaEntregaAbaixo] = useState(20);
   const itensCarrinho = useMemo(
     () => Object.values(carrinho).reduce((soma, qtd) => soma + (qtd > 0 ? qtd : 0), 0),
     [carrinho],
@@ -217,6 +219,9 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
   const [baixandoDoc, setBaixandoDoc] = useState("");
 
   const total = catalogo.reduce((soma, produto) => soma + (produto.preco ?? 0) * (carrinho[produto.id] ?? 0), 0);
+  const abaixoMinimoEntrega = minimo > 0 && total > 0 && total < minimo;
+  const taxaEntregaPedido = abaixoMinimoEntrega && modalidade === "entrega" ? taxaEntregaAbaixo : 0;
+  const totalComEntrega = Math.round((total + taxaEntregaPedido) * 100) / 100;
   const precoDaConta = Boolean(cliente);
   const grupos = useMemo(() => {
     const presentes = new Set(catalogo.map((produto) => normalizarGrupo(produto.grupo)).filter(Boolean));
@@ -244,6 +249,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
     setCatalogo(loja.itens);
     setDatas(loja.datas);
     setMinimo(loja.minimoReais);
+    if (loja.taxaEntregaAbaixoMinimoReais != null) setTaxaEntregaAbaixo(loja.taxaEntregaAbaixoMinimoReais);
     setDataEntrega((atual) => atual || loja.datas[0] || "");
   };
 
@@ -359,12 +365,14 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
       toast.error("Inclua ao menos um produto.");
       return;
     }
-    if (minimo > 0 && total < minimo) {
-      toast.error(`O pedido mínimo para entrega é ${reais(minimo)}.`);
-      return;
-    }
+    if (!abaixoMinimoEntrega) setModalidade("entrega");
     if (!ehPessoa(cliente)) {
-      await lancarEmpresa(itens);
+      if (abaixoMinimoEntrega) {
+        setCheckoutPasso(1);
+        setCheckoutAberto(true);
+        return;
+      }
+      await lancarEmpresa(itens, "entrega");
       return;
     }
     try {
@@ -377,14 +385,27 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
     setCheckoutAberto(true);
   };
 
-  const lancarEmpresa = async (itens: Array<{ produtoId: string; quantidade: number }>) => {
+  const lancarEmpresa = async (
+    itens: Array<{ produtoId: string; quantidade: number }>,
+    modalidadePedido: "entrega" | "retirada" = modalidade,
+  ) => {
     if (enviandoRef.current) return;
+    if (!dataEntrega) {
+      toast.error("Escolha a data.");
+      return;
+    }
     enviandoRef.current = true;
     setEnviando(true);
     try {
-      const criado = await portalApi.criarPedido({ dataEntrega, observacoes, itens });
+      const criado = await portalApi.criarPedido({
+        dataEntrega,
+        observacoes,
+        modalidade: modalidadePedido,
+        itens,
+      });
       setCarrinho({});
       setObservacoes("");
+      setCheckoutAberto(false);
       await Promise.all([carregarVitrine(), carregarConta()]);
       setVista("pedidos");
       toast.success(criado.mensagem || "Pedido enviado para aprovação.");
@@ -398,17 +419,20 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
 
   const concluirCheckoutPessoa = async () => {
     if (enviandoRef.current) return;
-    const cep = endereco.cep.replace(/\D/g, "");
-    if (cep.length !== 8) {
-      toast.error("Informe um CEP válido.");
-      return;
-    }
-    if (endereco.logradouro.trim().length < 2 || !endereco.numero.trim() || endereco.bairro.trim().length < 2) {
-      toast.error("Complete o endereço de entrega.");
-      return;
+    const modalidadePedido = abaixoMinimoEntrega ? modalidade : "entrega";
+    if (modalidadePedido === "entrega") {
+      const cep = endereco.cep.replace(/\D/g, "");
+      if (cep.length !== 8) {
+        toast.error("Informe um CEP válido.");
+        return;
+      }
+      if (endereco.logradouro.trim().length < 2 || !endereco.numero.trim() || endereco.bairro.trim().length < 2) {
+        toast.error("Complete o endereço de entrega.");
+        return;
+      }
     }
     if (!dataEntrega) {
-      toast.error("Escolha a data de entrega.");
+      toast.error(modalidadePedido === "retirada" ? "Escolha a data de retirada." : "Escolha a data de entrega.");
       return;
     }
     const itens = Object.entries(carrinho)
@@ -417,12 +441,16 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
     enviandoRef.current = true;
     setEnviando(true);
     try {
+      const cep = endereco.cep.replace(/\D/g, "");
       const criado = await portalApi.criarPedido({
         dataEntrega,
         observacoes,
         periodoEntrega,
         formaPagamento,
-        endereco: { ...endereco, cep, estado: endereco.estado.toUpperCase().slice(0, 2) },
+        modalidade: modalidadePedido,
+        ...(modalidadePedido === "entrega"
+          ? { endereco: { ...endereco, cep, estado: endereco.estado.toUpperCase().slice(0, 2) } }
+          : {}),
         itens,
       });
       setCarrinho({});
@@ -462,7 +490,12 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
           }, 4000);
         }
       }
-      toast.success(criado.mensagem || "Pedido criado. Conclua o pagamento para liberar a entrega.");
+      toast.success(
+        criado.mensagem ||
+          (modalidadePedido === "retirada"
+            ? "Pedido criado. Conclua o pagamento para liberar a retirada."
+            : "Pedido criado. Conclua o pagamento para liberar a entrega."),
+      );
     } catch (error) {
       toast.error(mensagem(error));
     } finally {
@@ -797,7 +830,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
               >
                 <h2 className="display-head text-2xl sm:col-span-2">Criar conta</h2>
                 <p className="text-sm text-ink/65 sm:col-span-2">
-                  Cadastro rápido. No pedido você escolhe Pix (sem taxa) ou cartão (+5%). Pedido mínimo {reais(200)}. Entrega a partir de 2 dias úteis (48h).
+                  Cadastro rápido. No pedido você escolhe Pix (sem taxa) ou cartão (+5%). Entrega grátis a partir de {reais(200)}; abaixo disso, retirada na fazenda ou taxa de {reais(20)}. Entrega a partir de 2 dias úteis (48h).
                 </p>
                 <Campo label="Seu nome" value={pessoa.nome} onChange={(nome) => setPessoa({ ...pessoa, nome })} />
                 <Campo label="CPF" value={formatCpf(pessoa.cpf)} onChange={(cpf) => setPessoa({ ...pessoa, cpf })} inputMode="numeric" />
@@ -1037,22 +1070,41 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
             </div>
             <aside id="enviar-pedido" className="space-y-4 rounded-sm border border-ink/10 bg-white p-5 lg:sticky lg:top-28">
               <h2 className="text-lg">Seu pedido</h2>
-              <p className="text-2xl font-medium tabular-nums">{reais(total)}</p>
+              <p className="text-2xl font-medium tabular-nums">{reais(totalComEntrega)}</p>
               {!cliente ? <p className="text-sm text-ink/70">Entre na conta para enviar o pedido.</p> : null}
               {precoDaConta && ehPessoa(cliente) && total > 0 ? (
                 <div className="space-y-1 text-xs text-ink/60">
-                  <p>Pix: {reais(total)} · sem taxa</p>
-                  <p>Cartão: {reais(totalNoCartao(total))} · inclui +5% da operadora</p>
-                  {minimo > 0 ? <p>Pedido mínimo: {reais(minimo)}</p> : null}
+                  <p>Pix: {reais(totalComEntrega)} · sem taxa de cartão</p>
+                  <p>Cartão: {reais(totalNoCartao(totalComEntrega))} · inclui +5% da operadora</p>
+                  {minimo > 0 ? <p>Entrega grátis a partir de {reais(minimo)}</p> : null}
                 </div>
               ) : null}
               {total === 0 && Object.values(carrinho).every((quantidade) => quantidade <= 0) ? <p className="text-sm text-ink/55">Escolha a quantidade nos produtos.</p> : null}
-              {cliente && minimo > 0 && total > 0 && total < minimo ? <p className="text-sm text-ink/65">Faltam {reais(minimo - total)} para atingir o pedido mínimo.</p> : null}
+              {cliente && abaixoMinimoEntrega ? (
+                <div className="space-y-2 rounded-sm border border-ink/10 bg-paper/80 p-3 text-sm text-ink/75">
+                  <p>Abaixo de {reais(minimo)} para entrega grátis. Escolha:</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      className={modalidade === "retirada" ? "bg-forest px-2 py-2 text-xs text-paper" : "border border-ink/15 px-2 py-2 text-xs"}
+                      onClick={() => setModalidade("retirada")}
+                    >
+                      Retirada · sem taxa
+                    </button>
+                    <button
+                      type="button"
+                      className={modalidade === "entrega" ? "bg-forest px-2 py-2 text-xs text-paper" : "border border-ink/15 px-2 py-2 text-xs"}
+                      onClick={() => setModalidade("entrega")}
+                    >
+                      Entrega · +{reais(taxaEntregaAbaixo)}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
               {emAtraso && cliente && !ehPessoa(cliente) ? <p className="text-sm text-red-800">Há um pagamento em atraso nesta conta. O pedido fica bloqueado até a regularização.</p> : null}
               <ul className="space-y-3 text-sm">
                 {catalogo.filter((produto) => (carrinho[produto.id] ?? 0) > 0).map((produto) => {
                   const qtd = carrinho[produto.id] ?? 0;
-                  const noTeto = produto.estoque != null && qtd >= produto.estoque;
                   const peso = pesoDoItem(produto.nome, produto.peso, produto.unidade);
                   return (
                     <li key={produto.id} className="flex items-center gap-2">
@@ -1064,9 +1116,13 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                           {produto.preco != null ? reais(produto.preco * qtd) : `${qtd} ${produto.unidade}`}
                         </p>
                       </div>
-                      <button type="button" className="h-8 w-8 border border-ink/15" onClick={() => definirQtd(produto, qtd - 1)} aria-label={`Diminuir ${produto.nome}`}>−</button>
-                      <span className="w-6 text-center tabular-nums">{qtd}</span>
-                      <button type="button" className="h-8 w-8 border border-ink/15 disabled:opacity-40" onClick={() => definirQtd(produto, qtd + 1)} disabled={noTeto} aria-label={`Aumentar ${produto.nome}`}>+</button>
+                      <QuantidadeInput
+                        compact
+                        value={qtd}
+                        max={produto.estoque}
+                        nome={produto.nome}
+                        onChange={(proxima) => definirQtd(produto, proxima)}
+                      />
                       <button type="button" className="h-8 w-8 text-ink/55" onClick={() => definirQtd(produto, 0)} aria-label={`Excluir ${produto.nome}`}>×</button>
                     </li>
                   );
@@ -1075,7 +1131,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
               {cliente && !ehPessoa(cliente) ? (
                 <>
                   <label className="block text-sm">
-                    Entrega
+                    {abaixoMinimoEntrega && modalidade === "retirada" ? "Retirada" : "Entrega"}
                     <select value={dataEntrega} onChange={(event) => setDataEntrega(event.target.value)} className="mt-1 w-full border border-ink/15 bg-white px-3 py-3">
                       {datas.map((data) => <option key={data} value={data}>{formatLongDate(data)}</option>)}
                     </select>
@@ -1089,12 +1145,12 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
               {cliente ? (
                 <Button
                   type="button"
-                  disabled={enviando || (emAtraso && !ehPessoa(cliente)) || (minimo > 0 && total < minimo) || total <= 0}
+                  disabled={enviando || (emAtraso && !ehPessoa(cliente)) || total <= 0}
                   onClick={() => void abrirCheckout()}
                 >
                   {ehPessoa(cliente)
                     ? total > 0
-                      ? `Continuar · ${reais(total)}`
+                      ? `Continuar · ${reais(totalComEntrega)}`
                       : "Escolha os produtos"
                     : "Enviar para aprovação"}
                 </Button>
@@ -1139,21 +1195,62 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
             </aside>
           </section>
         ) : null}
-        {checkoutAberto ? (
+        {checkoutAberto && cliente && !ehPessoa(cliente) ? (
+          <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 p-4 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="checkout-empresa-titulo">
+            <div className="w-full max-w-md space-y-4 rounded-sm bg-paper p-6 shadow-lg">
+              <div className="flex items-start justify-between gap-3">
+                <h2 id="checkout-empresa-titulo" className="display-head text-2xl">Enviar pedido</h2>
+                <button type="button" className="text-sm text-ink/50" disabled={enviando} onClick={() => setCheckoutAberto(false)}>Fechar</button>
+              </div>
+              <p className="text-sm text-ink/70">
+                Total dos produtos: {reais(total)}. Abaixo de {reais(minimo)} escolha retirada ou entrega com taxa de {reais(taxaEntregaAbaixo)}.
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" className={modalidade === "retirada" ? "bg-forest px-3 py-3 text-sm text-paper" : "border border-ink/15 px-3 py-3 text-sm"} onClick={() => setModalidade("retirada")}>
+                  Retirada · sem taxa
+                </button>
+                <button type="button" className={modalidade === "entrega" ? "bg-forest px-3 py-3 text-sm text-paper" : "border border-ink/15 px-3 py-3 text-sm"} onClick={() => setModalidade("entrega")}>
+                  Entrega · +{reais(taxaEntregaAbaixo)}
+                </button>
+              </div>
+              <p className="text-base font-medium tabular-nums">Total: {reais(totalComEntrega)}</p>
+              <Button
+                type="button"
+                disabled={enviando || total <= 0}
+                onClick={() => {
+                  const itens = Object.entries(carrinho)
+                    .filter(([, quantidade]) => quantidade > 0)
+                    .map(([produtoId, quantidade]) => ({ produtoId, quantidade }));
+                  void lancarEmpresa(itens, modalidade);
+                }}
+              >
+                {enviando ? "Enviando…" : "Enviar para aprovação"}
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
+        {checkoutAberto && (!cliente || ehPessoa(cliente)) ? (
           <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 p-4 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="checkout-titulo">
             <div className="max-h-[90vh] w-full max-w-lg space-y-4 overflow-y-auto rounded-sm bg-paper p-6 shadow-lg">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h2 id="checkout-titulo" className="display-head text-2xl">Checkout</h2>
                   <p className="mt-1 text-sm text-ink/60">
-                    {checkoutPasso === 1 ? "Passo 1 de 3 · Entrega" : checkoutPasso === 2 ? "Passo 2 de 3 · Pagamento" : "Passo 3 de 3 · Confirmar"}
+                    {checkoutPasso === 1
+                      ? abaixoMinimoEntrega && modalidade === "retirada"
+                        ? "Passo 1 de 3 · Retirada"
+                        : "Passo 1 de 3 · Entrega"
+                      : checkoutPasso === 2
+                        ? "Passo 2 de 3 · Pagamento"
+                        : "Passo 3 de 3 · Confirmar"}
                   </p>
                 </div>
                 <button type="button" className="text-sm text-ink/50" disabled={enviando} onClick={() => setCheckoutAberto(false)}>Fechar</button>
               </div>
 
               <ol className="grid grid-cols-3 gap-2 text-center text-xs">
-                {(["Entrega", "Pagamento", "Confirmar"] as const).map((rotulo, indice) => {
+                {([abaixoMinimoEntrega && modalidade === "retirada" ? "Retirada" : "Entrega", "Pagamento", "Confirmar"] as const).map((rotulo, indice) => {
                   const passo = (indice + 1) as 1 | 2 | 3;
                   const ativo = checkoutPasso === passo;
                   const feito = checkoutPasso > passo;
@@ -1167,9 +1264,23 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
 
               {checkoutPasso === 1 ? (
                 <div className="space-y-4">
+                  {abaixoMinimoEntrega ? (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium">Como prefere receber?</p>
+                      <p className="text-xs text-ink/55">Pedido abaixo de {reais(minimo)}: retirada sem taxa, ou entrega com +{reais(taxaEntregaAbaixo)}.</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button type="button" className={modalidade === "retirada" ? "bg-forest px-3 py-3 text-sm text-paper" : "border border-ink/15 px-3 py-3 text-sm"} onClick={() => setModalidade("retirada")}>
+                          Retirada · sem taxa
+                        </button>
+                        <button type="button" className={modalidade === "entrega" ? "bg-forest px-3 py-3 text-sm text-paper" : "border border-ink/15 px-3 py-3 text-sm"} onClick={() => setModalidade("entrega")}>
+                          Entrega · +{reais(taxaEntregaAbaixo)}
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
                   <div className="space-y-2">
-                    <p className="text-sm font-medium">Quando entregar?</p>
-                    <p className="text-xs text-ink/55">Entrega a partir de 2 dias úteis (48h). Sábado, domingo e feriado de Manaus não entram na rota.</p>
+                    <p className="text-sm font-medium">{modalidade === "retirada" && abaixoMinimoEntrega ? "Quando retirar?" : "Quando entregar?"}</p>
+                    <p className="text-xs text-ink/55">A partir de 2 dias úteis (48h). Sábado, domingo e feriado de Manaus não entram na rota.</p>
                     <select value={dataEntrega} onChange={(event) => setDataEntrega(event.target.value)} className="w-full border border-ink/15 bg-white px-3 py-3">
                       {datas.map((data) => (
                         <option key={data} value={data}>{formatLongDate(data)}</option>
@@ -1184,38 +1295,42 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                       </button>
                     </div>
                   </div>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <p className="text-sm font-medium sm:col-span-2">Onde entregar?</p>
-                    <label className="block text-sm sm:col-span-2">
-                      CEP
-                      <input value={endereco.cep} onChange={(event) => void preencherCep(event.target.value)} inputMode="numeric" autoComplete="postal-code" className="mt-1 w-full border border-ink/15 px-3 py-3" />
-                      {buscandoCep ? <span className="text-xs text-ink/50">Buscando CEP…</span> : null}
-                    </label>
-                    <label className="block text-sm sm:col-span-2">
-                      Rua / avenida
-                      <input value={endereco.logradouro} onChange={(event) => setEndereco((atual) => ({ ...atual, logradouro: event.target.value }))} autoComplete="street-address" className="mt-1 w-full border border-ink/15 px-3 py-3" />
-                    </label>
-                    <label className="block text-sm">
-                      Número
-                      <input value={endereco.numero} onChange={(event) => setEndereco((atual) => ({ ...atual, numero: event.target.value }))} className="mt-1 w-full border border-ink/15 px-3 py-3" />
-                    </label>
-                    <label className="block text-sm">
-                      Complemento <span className="font-normal text-ink/45">(opcional)</span>
-                      <input value={endereco.complemento} onChange={(event) => setEndereco((atual) => ({ ...atual, complemento: event.target.value }))} className="mt-1 w-full border border-ink/15 px-3 py-3" />
-                    </label>
-                    <label className="block text-sm sm:col-span-2">
-                      Bairro
-                      <input value={endereco.bairro} onChange={(event) => setEndereco((atual) => ({ ...atual, bairro: event.target.value }))} className="mt-1 w-full border border-ink/15 px-3 py-3" />
-                    </label>
-                    <label className="block text-sm">
-                      Cidade
-                      <input value={endereco.cidade} onChange={(event) => setEndereco((atual) => ({ ...atual, cidade: event.target.value }))} className="mt-1 w-full border border-ink/15 px-3 py-3" />
-                    </label>
-                    <label className="block text-sm">
-                      UF
-                      <input value={endereco.estado} onChange={(event) => setEndereco((atual) => ({ ...atual, estado: event.target.value.slice(0, 2).toUpperCase() }))} className="mt-1 w-full border border-ink/15 px-3 py-3" maxLength={2} />
-                    </label>
-                  </div>
+                  {!(abaixoMinimoEntrega && modalidade === "retirada") ? (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <p className="text-sm font-medium sm:col-span-2">Onde entregar?</p>
+                      <label className="block text-sm sm:col-span-2">
+                        CEP
+                        <input value={endereco.cep} onChange={(event) => void preencherCep(event.target.value)} inputMode="numeric" autoComplete="postal-code" className="mt-1 w-full border border-ink/15 px-3 py-3" />
+                        {buscandoCep ? <span className="text-xs text-ink/50">Buscando CEP…</span> : null}
+                      </label>
+                      <label className="block text-sm sm:col-span-2">
+                        Rua / avenida
+                        <input value={endereco.logradouro} onChange={(event) => setEndereco((atual) => ({ ...atual, logradouro: event.target.value }))} autoComplete="street-address" className="mt-1 w-full border border-ink/15 px-3 py-3" />
+                      </label>
+                      <label className="block text-sm">
+                        Número
+                        <input value={endereco.numero} onChange={(event) => setEndereco((atual) => ({ ...atual, numero: event.target.value }))} className="mt-1 w-full border border-ink/15 px-3 py-3" />
+                      </label>
+                      <label className="block text-sm">
+                        Complemento <span className="font-normal text-ink/45">(opcional)</span>
+                        <input value={endereco.complemento} onChange={(event) => setEndereco((atual) => ({ ...atual, complemento: event.target.value }))} className="mt-1 w-full border border-ink/15 px-3 py-3" />
+                      </label>
+                      <label className="block text-sm sm:col-span-2">
+                        Bairro
+                        <input value={endereco.bairro} onChange={(event) => setEndereco((atual) => ({ ...atual, bairro: event.target.value }))} className="mt-1 w-full border border-ink/15 px-3 py-3" />
+                      </label>
+                      <label className="block text-sm">
+                        Cidade
+                        <input value={endereco.cidade} onChange={(event) => setEndereco((atual) => ({ ...atual, cidade: event.target.value }))} className="mt-1 w-full border border-ink/15 px-3 py-3" />
+                      </label>
+                      <label className="block text-sm">
+                        UF
+                        <input value={endereco.estado} onChange={(event) => setEndereco((atual) => ({ ...atual, estado: event.target.value.slice(0, 2).toUpperCase() }))} className="mt-1 w-full border border-ink/15 px-3 py-3" maxLength={2} />
+                      </label>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-ink/65">Retirada na fazenda — sem endereço de entrega.</p>
+                  )}
                   <label className="block text-sm">
                     Observação <span className="font-normal text-ink/45">(opcional)</span>
                     <textarea value={observacoes} onChange={(event) => setObservacoes(event.target.value)} rows={2} placeholder="Ex.: portão azul, deixar com o porteiro" className="mt-1 w-full border border-ink/15 px-3 py-3" />
@@ -1223,18 +1338,21 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                   <Button
                     type="button"
                     onClick={() => {
+                      const precisaEndereco = !(abaixoMinimoEntrega && modalidade === "retirada");
                       const cep = endereco.cep.replace(/\D/g, "");
                       if (!dataEntrega) {
-                        toast.error("Escolha a data de entrega.");
+                        toast.error(precisaEndereco ? "Escolha a data de entrega." : "Escolha a data de retirada.");
                         return;
                       }
-                      if (cep.length !== 8) {
-                        toast.error("Informe um CEP válido.");
-                        return;
-                      }
-                      if (endereco.logradouro.trim().length < 2 || !endereco.numero.trim() || endereco.bairro.trim().length < 2) {
-                        toast.error("Complete o endereço de entrega.");
-                        return;
+                      if (precisaEndereco) {
+                        if (cep.length !== 8) {
+                          toast.error("Informe um CEP válido.");
+                          return;
+                        }
+                        if (endereco.logradouro.trim().length < 2 || !endereco.numero.trim() || endereco.bairro.trim().length < 2) {
+                          toast.error("Complete o endereço de entrega.");
+                          return;
+                        }
                       }
                       setCheckoutPasso(2);
                     }}
@@ -1250,17 +1368,19 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                   <div className="grid gap-2">
                     <button type="button" className={formaPagamento === "pix" ? "bg-forest px-4 py-4 text-left text-paper" : "border border-ink/15 px-4 py-4 text-left"} onClick={() => setFormaPagamento("pix")}>
                       <span className="block text-base font-medium">Pix</span>
-                      <span className={formaPagamento === "pix" ? "text-sm text-paper/85" : "text-sm text-ink/60"}>{reais(total)} · sem taxa · recomendado</span>
+                      <span className={formaPagamento === "pix" ? "text-sm text-paper/85" : "text-sm text-ink/60"}>{reais(totalComEntrega)} · sem taxa · recomendado</span>
                     </button>
                     <button type="button" className={formaPagamento === "cartao" ? "bg-forest px-4 py-4 text-left text-paper" : "border border-ink/15 px-4 py-4 text-left"} onClick={() => setFormaPagamento("cartao")}>
                       <span className="block text-base font-medium">Cartão de crédito</span>
-                      <span className={formaPagamento === "cartao" ? "text-sm text-paper/85" : "text-sm text-ink/60"}>{reais(totalNoCartao(total))} · inclui +5% da operadora</span>
+                      <span className={formaPagamento === "cartao" ? "text-sm text-paper/85" : "text-sm text-ink/60"}>{reais(totalNoCartao(totalComEntrega))} · inclui +5% da operadora</span>
                     </button>
                   </div>
                   {formaPagamento === "cartao" ? (
                     <p className="text-xs text-ink/55">Os 5% cobrem a taxa da operadora. No Pix esse valor não é cobrado.</p>
                   ) : (
-                    <p className="text-xs text-ink/55">Pagamento instantâneo. A entrega só libera depois da confirmação.</p>
+                    <p className="text-xs text-ink/55">
+                      Pagamento instantâneo. {abaixoMinimoEntrega && modalidade === "retirada" ? "A retirada" : "A entrega"} só libera depois da confirmação.
+                    </p>
                   )}
                   <div className="flex flex-wrap gap-2">
                     <button type="button" className="border border-ink/15 px-3 py-2 text-sm" onClick={() => setCheckoutPasso(1)}>Voltar</button>
@@ -1273,32 +1393,44 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                 <div className="space-y-4">
                   <div className="space-y-2 rounded-sm border border-ink/10 bg-white p-4 text-sm">
                     <p className="font-medium">Resumo</p>
-                    <p className="text-ink/70">Entrega {formatLongDate(dataEntrega)} · {periodoEntrega === "manha" ? "manhã" : "tarde"}</p>
-                    <p className="text-ink/70">{endereco.logradouro}, {endereco.numero}{endereco.complemento ? ` · ${endereco.complemento}` : ""} — {endereco.bairro}, {endereco.cidade}/{endereco.estado}</p>
+                    <p className="text-ink/70">
+                      {abaixoMinimoEntrega && modalidade === "retirada" ? "Retirada" : "Entrega"} {formatLongDate(dataEntrega)} · {periodoEntrega === "manha" ? "manhã" : "tarde"}
+                    </p>
+                    {abaixoMinimoEntrega && modalidade === "retirada" ? (
+                      <p className="text-ink/70">Retirada na fazenda</p>
+                    ) : (
+                      <p className="text-ink/70">{endereco.logradouro}, {endereco.numero}{endereco.complemento ? ` · ${endereco.complemento}` : ""} — {endereco.bairro}, {endereco.cidade}/{endereco.estado}</p>
+                    )}
                     <div className="flex justify-between gap-3 border-t border-ink/10 pt-2">
                       <span className="text-ink/65">Produtos</span>
                       <span className="tabular-nums">{reais(total)}</span>
                     </div>
+                    {taxaEntregaPedido > 0 ? (
+                      <div className="flex justify-between gap-3 text-ink/65">
+                        <span>Taxa de entrega</span>
+                        <span className="tabular-nums">{reais(taxaEntregaPedido)}</span>
+                      </div>
+                    ) : null}
                     {formaPagamento === "cartao" ? (
                       <div className="flex justify-between gap-3 text-ink/65">
                         <span>Taxa do cartão (5%)</span>
-                        <span className="tabular-nums">{reais(totalNoCartao(total) - total)}</span>
+                        <span className="tabular-nums">{reais(totalNoCartao(totalComEntrega) - totalComEntrega)}</span>
                       </div>
                     ) : null}
                     <div className="flex justify-between gap-3 border-t border-ink/10 pt-2 text-base font-medium">
                       <span>{formaPagamento === "pix" ? "Total no Pix" : "Total no cartão"}</span>
-                      <span className="tabular-nums">{reais(totalNaForma(total, formaPagamento))}</span>
+                      <span className="tabular-nums">{reais(totalNaForma(totalComEntrega, formaPagamento))}</span>
                     </div>
                   </div>
                   <p className="text-xs text-ink/50">Pagamento seguro via Conta Azul. Depois você ainda pode trocar Pix/cartão ou cancelar enquanto estiver aguardando pagamento.</p>
                   <div className="flex flex-wrap gap-2">
                     <button type="button" className="border border-ink/15 px-3 py-2 text-sm" disabled={enviando} onClick={() => setCheckoutPasso(2)}>Voltar</button>
-                    <Button type="button" disabled={enviando || (minimo > 0 && total < minimo)} onClick={() => void concluirCheckoutPessoa()}>
+                    <Button type="button" disabled={enviando} onClick={() => void concluirCheckoutPessoa()}>
                       {enviando
                         ? "Gerando pagamento…"
                         : formaPagamento === "pix"
-                          ? `Confirmar e pagar ${reais(total)}`
-                          : `Confirmar e pagar ${reais(totalNoCartao(total))}`}
+                          ? `Confirmar e pagar ${reais(totalComEntrega)}`
+                          : `Confirmar e pagar ${reais(totalNoCartao(totalComEntrega))}`}
                     </Button>
                   </div>
                 </div>
@@ -1408,7 +1540,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
           <button
             type="button"
             className="flex w-full items-center justify-between gap-3 bg-forest px-4 py-3 text-sm text-paper disabled:opacity-50"
-            disabled={enviando || (emAtraso && Boolean(cliente) && !ehPessoa(cliente)) || (Boolean(cliente) && minimo > 0 && total < minimo)}
+            disabled={enviando || (emAtraso && Boolean(cliente) && !ehPessoa(cliente))}
             onClick={() => {
               if (!cliente) {
                 document.getElementById("enviar-pedido")?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -1419,7 +1551,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
           >
             <span>
               {itensCarrinho} {itensCarrinho === 1 ? "item" : "itens"}
-              {total > 0 ? ` · ${reais(total)}` : ""}
+              {total > 0 ? ` · ${reais(totalComEntrega)}` : ""}
             </span>
             <span className="font-medium">
               {!cliente ? "Entrar para pedir" : ehPessoa(cliente) ? "Continuar" : "Enviar pedido"}
@@ -1460,6 +1592,11 @@ function CartaoProduto({
       <div className="space-y-2 p-3">
         <h3 className="text-[0.95rem] leading-tight">{nomeSemPeso(produto.nome)}</h3>
         {peso ? <p className="text-xs font-medium text-forest">Peso {peso}</p> : null}
+        {produto.estoque != null ? (
+          <p className={`text-xs font-medium ${esgotado ? "text-red-800" : "text-forest"}`}>
+            {esgotado ? "Esgotado" : `Disponível: ${produto.estoque} ${produto.unidade}`}
+          </p>
+        ) : null}
         <p className="line-clamp-2 text-xs leading-relaxed text-ink/70">{produto.descricao}</p>
         <p className="line-clamp-2 text-xs text-ink/50">{produto.aplicacao}</p>
         <div className="flex items-end justify-between gap-2">
@@ -1475,14 +1612,90 @@ function CartaoProduto({
           </p>
           {produto.precoEspecial ? <p className="text-[0.65rem] text-forest">Preço combinado</p> : null}
         </div>
-        {produto.estoque != null ? <p className="text-[0.65rem] text-ink/50">{esgotado ? "Esgotado" : `Disponível: ${produto.estoque} ${produto.unidade}`}</p> : null}
-        <div className="flex items-center gap-2">
-          <Button type="button" variant="outline" size="sm" onClick={() => onQtd(produto, qtd - 1)} disabled={qtd <= 0}>−</Button>
-          <span className="w-6 text-center text-sm tabular-nums">{qtd}</span>
-          <Button type="button" size="sm" onClick={() => onQtd(produto, qtd + 1)} disabled={esgotado || (produto.estoque != null && qtd >= produto.estoque)}>+</Button>
-        </div>
+        <QuantidadeInput
+          value={qtd}
+          max={produto.estoque}
+          disabled={esgotado}
+          nome={produto.nome}
+          onChange={(proxima) => onQtd(produto, proxima)}
+        />
       </div>
     </article>
+  );
+}
+
+function QuantidadeInput({
+  value,
+  onChange,
+  max,
+  disabled = false,
+  nome,
+  compact = false,
+}: {
+  value: number;
+  onChange: (qtd: number) => void;
+  max?: number | null;
+  disabled?: boolean;
+  nome: string;
+  compact?: boolean;
+}) {
+  const [texto, setTexto] = useState(String(value));
+  useEffect(() => {
+    setTexto(String(value));
+  }, [value]);
+
+  const aplicar = (raw: string) => {
+    const limpo = raw.replace(/\D/g, "");
+    if (limpo === "") {
+      onChange(0);
+      setTexto("0");
+      return;
+    }
+    let qtd = Number.parseInt(limpo, 10);
+    if (!Number.isFinite(qtd) || qtd < 0) qtd = 0;
+    if (max != null && qtd > max) qtd = max;
+    onChange(qtd);
+    setTexto(String(qtd));
+  };
+
+  const noTeto = max != null && value >= max;
+  const btn = compact ? "h-8 w-8 border border-ink/15 disabled:opacity-40" : undefined;
+
+  return (
+    <div className="flex items-center gap-1">
+      {compact ? (
+        <button type="button" className={btn} disabled={disabled || value <= 0} onClick={() => onChange(Math.max(0, value - 1))} aria-label={`Diminuir ${nome}`}>−</button>
+      ) : (
+        <Button type="button" variant="outline" size="sm" onClick={() => onChange(Math.max(0, value - 1))} disabled={disabled || value <= 0}>−</Button>
+      )}
+      <input
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        value={texto}
+        disabled={disabled}
+        aria-label={`Quantidade de ${nome}`}
+        onChange={(event) => setTexto(event.target.value.replace(/\D/g, ""))}
+        onBlur={() => aplicar(texto)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            aplicar(texto);
+            (event.target as HTMLInputElement).blur();
+          }
+        }}
+        className={
+          compact
+            ? "h-8 w-12 border border-ink/15 bg-white text-center text-sm tabular-nums disabled:opacity-40"
+            : "h-9 w-14 border border-ink/15 bg-white text-center text-sm tabular-nums disabled:opacity-40"
+        }
+      />
+      {compact ? (
+        <button type="button" className={btn} disabled={disabled || noTeto} onClick={() => onChange(value + 1)} aria-label={`Aumentar ${nome}`}>+</button>
+      ) : (
+        <Button type="button" size="sm" onClick={() => onChange(value + 1)} disabled={disabled || noTeto}>+</Button>
+      )}
+    </div>
   );
 }
 

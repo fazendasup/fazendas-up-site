@@ -199,7 +199,7 @@ export const portalApi = {
       body: JSON.stringify({ token, senha }),
     }),
   vitrine: () =>
-    request<{ minimoReais: number; datas: string[]; itens: ProdutoLoja[] }>("/vitrine"),
+    request<{ minimoReais: number; taxaEntregaAbaixoMinimoReais?: number; datas: string[]; itens: ProdutoLoja[] }>("/vitrine"),
   conta: () => request<ContaPortal>("/conta"),
   salvarConta: (body: CadastroConta) =>
     request<ContaPortal & { aviso: string | null }>("/conta", { method: "PATCH", body: JSON.stringify(body) }),
@@ -269,6 +269,7 @@ export const portalApi = {
     observacoes?: string;
     periodoEntrega?: "manha" | "tarde";
     formaPagamento?: "pix" | "cartao";
+    modalidade?: "entrega" | "retirada";
     endereco?: {
       cep: string;
       logradouro: string;
@@ -284,6 +285,8 @@ export const portalApi = {
       id: string;
       dataEntrega: string;
       total: number;
+      taxaEntrega?: number;
+      modalidade?: "entrega" | "retirada";
       perfil?: "empresa" | "pessoa";
       mensagem?: string;
       pagamento?: PedidoPagamento & { formaPagamento?: "pix" | "cartao" };
