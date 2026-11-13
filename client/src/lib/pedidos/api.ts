@@ -132,7 +132,12 @@ export type PedidoCliente = {
   status: string;
   programado?: boolean;
   doSite?: boolean;
+  /** @deprecated use pagaAVista — true quando o site cobra Pix/cartão. */
   pessoa?: boolean;
+  /** À vista no portal (PF ou PJ sem regra faturada). */
+  pagaAVista?: boolean;
+  /** PJ com regra comercial faturada (prazo boleto) — sem paywall. */
+  faturado?: boolean;
   /** Equipe já aprovou no operacional (marca nas observações). */
   aprovado?: boolean;
   /** Pedido do site ainda sem aprovação — pagamento bloqueado. */

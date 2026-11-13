@@ -110,27 +110,37 @@ function mensagem(error: unknown) {
   return texto;
 }
 
-function aguardandoAprovacaoPedido(pedido: Pick<PedidoCliente, "status" | "doSite" | "pessoa" | "pagamento" | "aprovado" | "aguardandoAprovacao">) {
+function pedidoPagaAVista(pedido: Pick<PedidoCliente, "pessoa" | "pagaAVista" | "faturado">) {
+  if (pedido.faturado) return false;
+  if (pedido.pagaAVista != null) return pedido.pagaAVista;
+  return Boolean(pedido.pessoa);
+}
+
+function aguardandoAprovacaoPedido(pedido: Pick<PedidoCliente, "status" | "doSite" | "pessoa" | "pagaAVista" | "faturado" | "pagamento" | "aprovado" | "aguardandoAprovacao">) {
   if (pedido.aguardandoAprovacao != null) return pedido.aguardandoAprovacao;
   if (pedido.status !== "PENDENTE" || !pedido.doSite || pedido.aprovado) return false;
-  if (pedido.pessoa && (pedido.pagamento?.status === "AGUARDANDO" || pedido.pagamento?.status === "PAGO")) {
+  if (pedidoPagaAVista(pedido) && (pedido.pagamento?.status === "AGUARDANDO" || pedido.pagamento?.status === "PAGO")) {
     return false;
   }
   return true;
 }
 
 function statusPedido(
-  pedido: Pick<PedidoCliente, "status" | "doSite" | "pessoa" | "pagamento" | "aprovado" | "aguardandoAprovacao">,
+  pedido: Pick<PedidoCliente, "status" | "doSite" | "pessoa" | "pagaAVista" | "faturado" | "pagamento" | "aprovado" | "aguardandoAprovacao">,
 ) {
   if (pedido.status === "CANCELADO" || pedido.pagamento?.status === "CANCELADO") return "Cancelado";
   if (aguardandoAprovacaoPedido(pedido)) return "Pedido aguardando aprovação";
-  if (pedido.pessoa && pedido.pagamento?.status === "AGUARDANDO") return "Aguardando pagamento";
-  if (pedido.pessoa && pedido.pagamento?.status === "PAGO") return "Pago · na programação";
-  // PF aprovada sem linha de pagamento: não mascarar como "Programado".
-  if (pedido.pessoa && pedido.aprovado && !pedido.pagamento && pedido.status === "PENDENTE") {
+  const aVista = pedidoPagaAVista(pedido);
+  if (aVista && pedido.pagamento?.status === "AGUARDANDO") return "Aguardando pagamento";
+  if (aVista && pedido.pagamento?.status === "PAGO") return "Pago · na programação";
+  // À vista aprovada sem cobrança ainda (Conta Azul só no clique): não mascarar como "Programado".
+  if (aVista && pedido.aprovado && !pedido.pagamento && pedido.status === "PENDENTE") {
     return "Aguardando pagamento";
   }
-  if (pedido.doSite && pedido.aprovado && !pedido.pessoa && pedido.status === "PENDENTE") {
+  if (pedido.faturado && pedido.aprovado && pedido.status === "PENDENTE") {
+    return "Aprovado · faturado";
+  }
+  if (pedido.doSite && pedido.aprovado && !aVista && pedido.status === "PENDENTE") {
     return "Aprovado · na programação";
   }
   if (pedido.status === "PENDENTE") return "Programado";
@@ -143,12 +153,25 @@ function podeCancelarPedido(pedido: PedidoCliente) {
   if (pedido.status === "CANCELADO" || pedido.pagamento?.status === "CANCELADO") return false;
   if (pedido.pagamento?.status === "PAGO") return false;
   if (aguardandoAprovacaoPedido(pedido)) return true;
-  if (pedido.pessoa && pedido.pagamento?.status === "AGUARDANDO") return true;
+  if (pedidoPagaAVista(pedido) && (pedido.pagamento?.status === "AGUARDANDO" || (pedido.aprovado && !pedido.pagamento))) {
+    return true;
+  }
   return false;
 }
 
 function podeTrocarPagamento(pedido: PedidoCliente) {
-  return Boolean(pedido.pessoa && pedido.pagamento?.status === "AGUARDANDO");
+  return Boolean(pedidoPagaAVista(pedido) && pedido.pagamento?.status === "AGUARDANDO");
+}
+
+/** Liberado para iniciar/abrir Pix ou cartão (após aprovação; Conta Azul sob demanda). */
+function podePagarPedido(pedido: PedidoCliente) {
+  if (!pedidoPagaAVista(pedido) || pedido.faturado) return false;
+  if (aguardandoAprovacaoPedido(pedido)) return false;
+  if (pedido.status === "CANCELADO" || pedido.pagamento?.status === "CANCELADO" || pedido.pagamento?.status === "PAGO") {
+    return false;
+  }
+  if (!pedido.aprovado && pedido.pagamento?.status !== "AGUARDANDO") return false;
+  return pedido.pagamento?.status === "AGUARDANDO" || (Boolean(pedido.aprovado) && !pedido.pagamento);
 }
 
 function ehPessoa(cliente: ClienteSessao | null) {
@@ -220,7 +243,13 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
     [carrinho],
   );
   const pedidosAguardandoPagamento = useMemo(
-    () => pedidos.filter((p) => p.pagamento?.status === "AGUARDANDO" && p.status !== "CANCELADO").length,
+    () =>
+      pedidos.filter(
+        (p) =>
+          p.status !== "CANCELADO" &&
+          (p.pagamento?.status === "AGUARDANDO" ||
+            (podePagarPedido(p) && !p.pagamento)),
+      ).length,
     [pedidos],
   );
   const pedidosAguardandoAprovacao = useMemo(
@@ -1951,7 +1980,9 @@ function CartaoPedido({
 
   const aguardando = pedido.pagamento?.status === "AGUARDANDO";
   const aguardandoAprovacao = aguardandoAprovacaoPedido(pedido);
-  const destaque = aguardando || aguardandoAprovacao;
+  const podePagar = podePagarPedido(pedido);
+  const semCobrancaAinda = podePagar && !pedido.pagamento;
+  const destaque = aguardando || aguardandoAprovacao || semCobrancaAinda;
 
   return (
     <article className={destaque ? "rounded-sm border border-forest/35 bg-white p-5" : "rounded-sm border border-ink/10 bg-white p-5"}>
@@ -1964,9 +1995,22 @@ function CartaoPedido({
               A fazenda ainda vai revisar este pedido. Pix e cartão liberam depois da aprovação.
             </p>
           ) : null}
+          {semCobrancaAinda ? (
+            <p className="mt-1 text-sm text-ink/65">
+              Escolha Pix ou cartão para gerar o pagamento agora.
+            </p>
+          ) : null}
+          {pedido.faturado && pedido.aprovado && !aguardandoAprovacao ? (
+            <p className="mt-1 text-sm text-ink/65">
+              Pedido faturado — a cobrança segue pelo fluxo comercial da fazenda.
+            </p>
+          ) : null}
         </div>
         {aguardando && pedido.pagamento?.total != null ? (
           <p className="text-lg font-medium tabular-nums">{reais(pedido.pagamento.total)}</p>
+        ) : null}
+        {semCobrancaAinda && baseProdutos > 0 ? (
+          <p className="text-lg font-medium tabular-nums">{reais(baseProdutos)}</p>
         ) : null}
       </div>
       {formaAtual && aguardando ? (
@@ -1989,12 +2033,31 @@ function CartaoPedido({
           );
         })}
       </ul>
-      {baseProdutos > 0 && !aguardando ? (
+      {baseProdutos > 0 && !aguardando && !semCobrancaAinda ? (
         <p className="mt-2 text-xs text-ink/50">Produtos {reais(baseProdutos)}</p>
       ) : null}
-      {aguardando || podeCancelarPedido(pedido) ? (
+      {podePagar || podeCancelarPedido(pedido) ? (
         <div className="mt-4 flex flex-wrap gap-2">
-          {aguardando ? (
+          {semCobrancaAinda ? (
+            <>
+              <button
+                type="button"
+                className="bg-forest px-4 py-2.5 text-sm text-paper disabled:opacity-50"
+                disabled={ocupado}
+                onClick={() => onTrocarPagamento(pedido, "pix")}
+              >
+                Pagar com Pix ({reais(baseProdutos)})
+              </button>
+              <button
+                type="button"
+                className="border border-ink/15 px-3 py-2 text-sm disabled:opacity-50"
+                disabled={ocupado}
+                onClick={() => onTrocarPagamento(pedido, "cartao")}
+              >
+                Pagar no cartão ({reais(totalNoCartao(baseProdutos))})
+              </button>
+            </>
+          ) : aguardando ? (
             <button type="button" className="bg-forest px-4 py-2.5 text-sm text-paper disabled:opacity-50" disabled={ocupado} onClick={() => onAbrirPagamento(pedido)}>
               {formaAtual === "cartao" || (!formaAtual && pedido.pagamento?.cartaoUrl)
                 ? pedido.pagamento?.cartaoUrl
@@ -2052,7 +2115,7 @@ function PedidosCliente({
     .filter((pedido) => pedido.programado ?? (pedido.dataEntrega.slice(0, 10) >= hoje && pedido.status !== "CANCELADO"))
     .sort((a, b) => {
       const prioridade = (p: PedidoCliente) => {
-        if (p.pagamento?.status === "AGUARDANDO") return 0;
+        if (p.pagamento?.status === "AGUARDANDO" || (podePagarPedido(p) && !p.pagamento)) return 0;
         if (aguardandoAprovacaoPedido(p)) return 1;
         return 2;
       };
@@ -2099,10 +2162,15 @@ function PedidosCliente({
     const base = baseItensPedido(pedido);
     const atual = pedido.pagamento?.total ?? base;
     const novo = totalNaForma(base, forma);
+    const primeiraCobranca = !pedido.pagamento || pedido.pagamento.status === "CANCELADO";
     const ok = window.confirm(
-      forma === "cartao"
-        ? `Trocar para cartão?\n\nDe ${reais(atual)} para ${reais(novo)} (produtos + taxa de 5%).\nA cobrança Pix atual deixa de valer.`
-        : `Trocar para Pix?\n\nDe ${reais(atual)} para ${reais(novo)} (sem taxa de cartão).\nA cobrança no cartão atual deixa de valer.`,
+      primeiraCobranca
+        ? forma === "cartao"
+          ? `Pagar no cartão?\n\nTotal ${reais(novo)} (produtos + taxa de 5%).\nO link de pagamento será gerado agora.`
+          : `Pagar com Pix?\n\nTotal ${reais(novo)} (sem taxa).\nO Pix será gerado agora.`
+        : forma === "cartao"
+          ? `Trocar para cartão?\n\nDe ${reais(atual)} para ${reais(novo)} (produtos + taxa de 5%).\nA cobrança Pix atual deixa de valer.`
+          : `Trocar para Pix?\n\nDe ${reais(atual)} para ${reais(novo)} (sem taxa de cartão).\nA cobrança no cartão atual deixa de valer.`,
     );
     if (!ok) return;
     ocupadoRef.current = true;
@@ -2169,18 +2237,20 @@ function PedidosCliente({
     <section className="mt-8 space-y-4">
       <h2 className="display-head text-3xl">Meus pedidos</h2>
       <p className="text-sm text-ink/60">
-        {clientePessoa
+        {clientePessoa || programados.some((p) => pedidoPagaAVista(p))
           ? "Acompanhe a aprovação da fazenda, pague Pix/cartão quando liberado, troque a forma ou cancele enquanto estiver em aberto."
           : "Acompanhe a aprovação da fazenda e as entregas programadas. Contas em aberto ficam em Pagamentos."}
       </p>
       {programados.some((p) => aguardandoAprovacaoPedido(p)) ? (
         <p className="border border-ink/15 bg-white px-4 py-3 text-sm text-ink">
-          {clientePessoa || programados.some((p) => p.pessoa && aguardandoAprovacaoPedido(p))
+          {clientePessoa || programados.some((p) => pedidoPagaAVista(p) && aguardandoAprovacaoPedido(p))
             ? "Há pedido aguardando aprovação da fazenda. O pagamento só libera depois que a equipe aprovar."
             : "Há pedido aguardando aprovação da fazenda. Depois da aprovação ele entra na programação."}
         </p>
       ) : null}
-      {programados.some((p) => p.pagamento?.status === "AGUARDANDO") ? (
+      {programados.some(
+        (p) => p.pagamento?.status === "AGUARDANDO" || (podePagarPedido(p) && !p.pagamento),
+      ) ? (
         <p className="border border-forest/25 bg-forest/5 px-4 py-3 text-sm text-ink">
           Há pedido aguardando pagamento abaixo. Conclua para liberar a entrega.
         </p>
