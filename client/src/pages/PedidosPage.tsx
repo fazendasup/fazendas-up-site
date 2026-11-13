@@ -980,7 +980,8 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
             </div>
             <aside id="enviar-pedido" className="space-y-4 rounded-sm border border-ink/10 bg-white p-5 lg:sticky lg:top-28">
               <h2 className="text-lg">Seu pedido</h2>
-              {precoDaConta ? <p className="text-2xl font-medium tabular-nums">{reais(total)}</p> : <p className="text-sm text-ink/70">Entre para ver os preços e enviar o pedido.</p>}
+              <p className="text-2xl font-medium tabular-nums">{reais(total)}</p>
+              {!cliente ? <p className="text-sm text-ink/70">Entre na conta para enviar o pedido.</p> : null}
               {precoDaConta && ehPessoa(cliente) && total > 0 ? (
                 <div className="space-y-1 text-xs text-ink/60">
                   <p>Pix: {reais(total)} · sem taxa</p>
@@ -989,7 +990,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                 </div>
               ) : null}
               {total === 0 && Object.values(carrinho).every((quantidade) => quantidade <= 0) ? <p className="text-sm text-ink/55">Escolha a quantidade nos produtos.</p> : null}
-              {precoDaConta && minimo > 0 && total > 0 && total < minimo ? <p className="text-sm text-ink/65">Faltam {reais(minimo - total)} para atingir o pedido mínimo.</p> : null}
+              {cliente && minimo > 0 && total > 0 && total < minimo ? <p className="text-sm text-ink/65">Faltam {reais(minimo - total)} para atingir o pedido mínimo.</p> : null}
               {emAtraso && cliente && !ehPessoa(cliente) ? <p className="text-sm text-red-800">Há um pagamento em atraso nesta conta. O pedido fica bloqueado até a regularização.</p> : null}
               <ul className="space-y-3 text-sm">
                 {catalogo.filter((produto) => (carrinho[produto.id] ?? 0) > 0).map((produto) => {
@@ -1361,7 +1362,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
           >
             <span>
               {itensCarrinho} {itensCarrinho === 1 ? "item" : "itens"}
-              {precoDaConta ? ` · ${reais(total)}` : ""}
+              {total > 0 ? ` · ${reais(total)}` : ""}
             </span>
             <span className="font-medium">
               {!cliente ? "Entrar para pedir" : ehPessoa(cliente) ? "Continuar" : "Enviar pedido"}
@@ -1412,7 +1413,7 @@ function CartaoProduto({
                 <span className="ml-1 text-xs font-normal text-ink/50">/{produto.unidade}</span>
               </>
             ) : (
-              "Entre para ver o preço"
+              "Preço sob consulta"
             )}
           </p>
           {produto.precoEspecial ? <p className="text-[0.65rem] text-forest">Preço combinado</p> : null}
