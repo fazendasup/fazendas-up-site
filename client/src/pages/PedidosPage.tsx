@@ -1069,7 +1069,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                   </button>
                   <button
                     type="button"
-                    className="block text-sm text-ink/55"
+                    className="block text-sm text-forest"
                     onClick={() => {
                       setTipoCadastro("empresa");
                       setVista("cadastro");
