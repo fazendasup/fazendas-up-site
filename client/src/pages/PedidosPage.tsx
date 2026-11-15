@@ -721,7 +721,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
               {vista === "loja" && (!cliente || !cliente.recorrente) ? (
                 <p className="mt-3 max-w-2xl border-l-4 border-forest bg-forest/5 py-3 pl-4 pr-3 text-[0.95rem] font-medium leading-snug text-forest sm:text-[1.05rem]">
                   Feche uma recorrência para sua cozinha e tenha acesso a{" "}
-                  <em className="font-display italic text-ink">valores especiais</em>.
+                  <span className="font-semibold text-ink">valores especiais</span>.
                   {cliente && !ehPessoa(cliente) ? (
                     <>
                       {" "}
@@ -2539,6 +2539,7 @@ function PainelEquipe({
   const [busca, setBusca] = useState("");
   const [ocupado, setOcupado] = useState(false);
   const [margemPct, setMargemPct] = useState("");
+  const [selecionadosMargem, setSelecionadosMargem] = useState<Record<string, boolean>>({});
   const [emailConvite, setEmailConvite] = useState("");
   const [linksConvite, setLinksConvite] = useState<Array<{ nome: string; email: string; link: string }>>([]);
   const [nomesClasse, setNomesClasse] = useState<Record<string, string>>({});
@@ -2735,7 +2736,33 @@ function PainelEquipe({
       });
   }, [produtos, rascunhos, grupoFiltro, lojaFiltro, alertaFiltro, busca]);
 
-  const aplicarMargemNosAtivos = async () => {
+  const idsSelecionadosMargem = useMemo(
+    () => Object.entries(selecionadosMargem).filter(([, marcado]) => marcado).map(([id]) => id),
+    [selecionadosMargem],
+  );
+
+  const alternarSelecaoMargem = (id: string, marcado: boolean) => {
+    setSelecionadosMargem((atual) => {
+      if (!marcado) {
+        const proximo = { ...atual };
+        delete proximo[id];
+        return proximo;
+      }
+      return { ...atual, [id]: true };
+    });
+  };
+
+  const selecionarTodosFiltradosMargem = () => {
+    setSelecionadosMargem((atual) => {
+      const proximo = { ...atual };
+      for (const produto of filtrados) proximo[produto.id] = true;
+      return proximo;
+    });
+  };
+
+  const limparSelecaoMargem = () => setSelecionadosMargem({});
+
+  const aplicarMargemSelecionados = async () => {
     if (ocupado) return;
     const margem = Number(margemPct.replace(",", "."));
     if (!Number.isFinite(margem) || margem === 0) {
@@ -2747,20 +2774,20 @@ function PainelEquipe({
       return;
     }
     const fator = 1 + margem / 100;
-    const alvos = filtrados.filter((produto) => {
+    const alvos = produtos.filter((produto) => {
+      if (!selecionadosMargem[produto.id]) return false;
       const rascunho = rascunhos[produto.id] ?? rascunhoDe(produto);
-      if (!rascunho.naLoja) return false;
       const preco = Number(rascunho.preco.replace(",", "."));
       return Number.isFinite(preco) && preco > 0;
     });
     if (alvos.length === 0) {
-      toast.error("Nenhum produto ativo com preço nesta lista.");
+      toast.error("Selecione ao menos um produto com preço.");
       return;
     }
     const sinal = margem > 0 ? `+${margem}` : `${margem}`;
     if (
       !window.confirm(
-        `Aplicar margem de ${sinal.replace(".", ",")}% em ${alvos.length} produto${alvos.length === 1 ? "" : "s"} ativo${alvos.length === 1 ? "" : "s"} desta página e salvar agora?`,
+        `Aplicar margem de ${sinal.replace(".", ",")}% em ${alvos.length} produto${alvos.length === 1 ? "" : "s"} selecionado${alvos.length === 1 ? "" : "s"} e salvar agora?`,
       )
     ) {
       return;
@@ -2805,6 +2832,7 @@ function PainelEquipe({
           : `Margem de ${sinal.replace(".", ",")}% aplicada em ${ok} produtos.`,
       );
       setMargemPct("");
+      setSelecionadosMargem({});
     }
     if (falhas.length > 0) toast.error(falhas.slice(0, 2).join(" · "));
   };
@@ -3040,10 +3068,10 @@ function PainelEquipe({
           ) : null}
 
           <div className="flex flex-col gap-3 rounded-sm border border-ink/10 bg-paper/70 p-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
-            <label className="block text-sm">
-              Margem % nos ativos desta lista
+            <div className="block text-sm">
+              <p className="font-medium">Margem % nos selecionados</p>
               <span className="mt-0.5 block text-xs font-normal text-ink/50">
-                Aumenta (ou reduz) o preço de todos os produtos ativos visíveis nesta página.
+                Marque os produtos abaixo, informe a % e aplique. Só os selecionados mudam de preço.
               </span>
               <div className="mt-1 flex flex-wrap items-center gap-2">
                 <input
@@ -3055,11 +3083,24 @@ function PainelEquipe({
                   aria-label="Margem em porcentagem"
                 />
                 <span className="text-sm text-ink/55">%</span>
-                <Button type="button" size="sm" disabled={ocupado || !margemPct.trim()} onClick={() => void aplicarMargemNosAtivos()}>
-                  {ocupado ? "Aplicando…" : "Aplicar margem"}
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={ocupado || !margemPct.trim() || idsSelecionadosMargem.length === 0}
+                  onClick={() => void aplicarMargemSelecionados()}
+                >
+                  {ocupado ? "Aplicando…" : `Aplicar margem (${idsSelecionadosMargem.length})`}
                 </Button>
+                <button type="button" className="text-sm text-forest" disabled={ocupado || filtrados.length === 0} onClick={selecionarTodosFiltradosMargem}>
+                  Selecionar lista
+                </button>
+                {idsSelecionadosMargem.length > 0 ? (
+                  <button type="button" className="text-sm text-ink/55" disabled={ocupado} onClick={limparSelecaoMargem}>
+                    Limpar seleção
+                  </button>
+                ) : null}
               </div>
-            </label>
+            </div>
             <div className="flex flex-wrap items-center gap-2">
               <p className="text-sm text-ink/55">
                 {filtrados.length} de {produtos.length} produto{produtos.length === 1 ? "" : "s"}
@@ -3094,6 +3135,8 @@ function PainelEquipe({
                     produto={produto}
                     rascunho={rascunho}
                     sujo={rascunhoSujo(produto, rascunho)}
+                    selecionadoMargem={Boolean(selecionadosMargem[produto.id])}
+                    onSelecionadoMargem={(marcado) => alternarSelecaoMargem(produto.id, marcado)}
                     classes={classesParaSelect}
                     onChange={(patch) => atualizarRascunho(produto.id, patch)}
                     onFoto={onFoto}
@@ -3268,6 +3311,8 @@ function ProdutoEquipeCard({
   produto,
   rascunho,
   sujo,
+  selecionadoMargem,
+  onSelecionadoMargem,
   classes,
   onChange,
   onFoto,
@@ -3275,6 +3320,8 @@ function ProdutoEquipeCard({
   produto: ProdutoEquipe;
   rascunho: RascunhoProduto;
   sujo: boolean;
+  selecionadoMargem: boolean;
+  onSelecionadoMargem: (marcado: boolean) => void;
   classes: string[];
   onChange: (patch: Partial<RascunhoProduto>) => void;
   onFoto: (produto: ProdutoEquipe, imagem: string) => Promise<string>;
@@ -3297,15 +3344,26 @@ function ProdutoEquipeCard({
   return (
     <article
       className={
-        sujo
-          ? "space-y-3 rounded-sm border border-forest/40 bg-white p-4"
-          : rascunho.naLoja
-            ? "space-y-3 rounded-sm border border-ink/10 bg-white p-4"
-            : "space-y-3 rounded-sm border border-dashed border-ink/20 bg-ink/[0.02] p-4"
+        selecionadoMargem
+          ? "space-y-3 rounded-sm border border-forest bg-forest/[0.03] p-4"
+          : sujo
+            ? "space-y-3 rounded-sm border border-forest/40 bg-white p-4"
+            : rascunho.naLoja
+              ? "space-y-3 rounded-sm border border-ink/10 bg-white p-4"
+              : "space-y-3 rounded-sm border border-dashed border-ink/20 bg-ink/[0.02] p-4"
       }
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
+        <div className="min-w-0 flex-1">
+          <label className="mb-2 inline-flex cursor-pointer items-center gap-2 text-sm text-ink/80">
+            <input
+              type="checkbox"
+              checked={selecionadoMargem}
+              onChange={(event) => onSelecionadoMargem(event.target.checked)}
+              className="size-4 accent-forest"
+            />
+            Incluir na margem
+          </label>
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-xs uppercase tracking-wide text-ink/45">{grupo || "Sem classe"}</p>
             <span className={rascunho.naLoja ? "bg-forest/10 px-2 py-0.5 text-[11px] font-medium text-forest" : "bg-ink/10 px-2 py-0.5 text-[11px] font-medium text-ink/60"}>
