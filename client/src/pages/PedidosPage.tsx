@@ -2506,6 +2506,7 @@ function PainelEquipe({
   const [alertaFiltro, setAlertaFiltro] = useState<AlertaCatalogo>("todos");
   const [busca, setBusca] = useState("");
   const [ocupado, setOcupado] = useState(false);
+  const [margemPct, setMargemPct] = useState("");
   const [emailConvite, setEmailConvite] = useState("");
   const [linksConvite, setLinksConvite] = useState<Array<{ nome: string; email: string; link: string }>>([]);
   const [nomesClasse, setNomesClasse] = useState<Record<string, string>>({});
@@ -2701,6 +2702,80 @@ function PainelEquipe({
         return a.nome.localeCompare(b.nome, "pt-BR");
       });
   }, [produtos, rascunhos, grupoFiltro, lojaFiltro, alertaFiltro, busca]);
+
+  const aplicarMargemNosAtivos = async () => {
+    if (ocupado) return;
+    const margem = Number(margemPct.replace(",", "."));
+    if (!Number.isFinite(margem) || margem === 0) {
+      toast.error("Informe a margem em % (ex.: 10 ou -5).");
+      return;
+    }
+    if (margem < -90 || margem > 500) {
+      toast.error("Use uma margem entre -90% e 500%.");
+      return;
+    }
+    const fator = 1 + margem / 100;
+    const alvos = filtrados.filter((produto) => {
+      const rascunho = rascunhos[produto.id] ?? rascunhoDe(produto);
+      if (!rascunho.naLoja) return false;
+      const preco = Number(rascunho.preco.replace(",", "."));
+      return Number.isFinite(preco) && preco > 0;
+    });
+    if (alvos.length === 0) {
+      toast.error("Nenhum produto ativo com preço nesta lista.");
+      return;
+    }
+    const sinal = margem > 0 ? `+${margem}` : `${margem}`;
+    if (
+      !window.confirm(
+        `Aplicar margem de ${sinal.replace(".", ",")}% em ${alvos.length} produto${alvos.length === 1 ? "" : "s"} ativo${alvos.length === 1 ? "" : "s"} desta página e salvar agora?`,
+      )
+    ) {
+      return;
+    }
+    const proximos: Record<string, RascunhoProduto> = { ...rascunhos };
+    const payloads: Array<{ id: string; nome: string; preco: number }> = [];
+    for (const produto of alvos) {
+      const base = proximos[produto.id] ?? rascunhoDe(produto);
+      const atual = Number(base.preco.replace(",", "."));
+      const novo = Math.round(atual * fator * 100) / 100;
+      if (!(novo > 0)) continue;
+      proximos[produto.id] = { ...base, preco: novo.toFixed(2) };
+      payloads.push({ id: produto.id, nome: produto.nome, preco: novo });
+    }
+    if (payloads.length === 0) {
+      toast.error("Nenhum preço válido para atualizar.");
+      return;
+    }
+    setRascunhos(proximos);
+    setOcupado(true);
+    let ok = 0;
+    const falhas: string[] = [];
+    for (const item of payloads) {
+      try {
+        await portalApi.salvarProduto(item.id, { preco: item.preco });
+        ok += 1;
+      } catch (error) {
+        falhas.push(`${item.nome}: ${mensagem(error)}`);
+      }
+    }
+    try {
+      await onAtualizar();
+    } catch (error) {
+      toast.error(mensagem(error));
+    } finally {
+      setOcupado(false);
+    }
+    if (ok > 0) {
+      toast.success(
+        ok === 1
+          ? `Margem de ${sinal.replace(".", ",")}% aplicada em 1 produto.`
+          : `Margem de ${sinal.replace(".", ",")}% aplicada em ${ok} produtos.`,
+      );
+      setMargemPct("");
+    }
+    if (falhas.length > 0) toast.error(falhas.slice(0, 2).join(" · "));
+  };
 
   const cadastrosPendentes = useMemo(
     () => cadastros.filter((item) => item.status !== "ENVIADO"),
@@ -2932,23 +3007,45 @@ function PainelEquipe({
             </div>
           ) : null}
 
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm text-ink/55">
-              {filtrados.length} de {produtos.length} produto{produtos.length === 1 ? "" : "s"}
-              {alterados.length > 0 ? ` · ${alterados.length} com alteração` : ""}
-            </p>
-            {alterados.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                <button type="button" className="border border-ink/15 px-3 py-2 text-sm" disabled={ocupado} onClick={descartarAlteracoes}>
-                  Descartar
-                </button>
-                <Button type="button" disabled={ocupado} onClick={() => void salvarTudo()}>
-                  {ocupado ? "Salvando…" : `Salvar tudo (${alterados.length})`}
+          <div className="flex flex-col gap-3 rounded-sm border border-ink/10 bg-paper/70 p-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+            <label className="block text-sm">
+              Margem % nos ativos desta lista
+              <span className="mt-0.5 block text-xs font-normal text-ink/50">
+                Aumenta (ou reduz) o preço de todos os produtos ativos visíveis nesta página.
+              </span>
+              <div className="mt-1 flex flex-wrap items-center gap-2">
+                <input
+                  value={margemPct}
+                  onChange={(event) => setMargemPct(event.target.value.replace(/[^\d.,\-]/g, ""))}
+                  inputMode="decimal"
+                  placeholder="Ex.: 10"
+                  className="w-28 border border-ink/15 bg-white px-3 py-2"
+                  aria-label="Margem em porcentagem"
+                />
+                <span className="text-sm text-ink/55">%</span>
+                <Button type="button" size="sm" disabled={ocupado || !margemPct.trim()} onClick={() => void aplicarMargemNosAtivos()}>
+                  {ocupado ? "Aplicando…" : "Aplicar margem"}
                 </Button>
               </div>
-            ) : (
-              <p className="text-xs text-ink/45">Edite os campos e salve tudo de uma vez.</p>
-            )}
+            </label>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm text-ink/55">
+                {filtrados.length} de {produtos.length} produto{produtos.length === 1 ? "" : "s"}
+                {alterados.length > 0 ? ` · ${alterados.length} com alteração` : ""}
+              </p>
+              {alterados.length > 0 ? (
+                <>
+                  <button type="button" className="border border-ink/15 px-3 py-2 text-sm" disabled={ocupado} onClick={descartarAlteracoes}>
+                    Descartar
+                  </button>
+                  <Button type="button" disabled={ocupado} onClick={() => void salvarTudo()}>
+                    {ocupado ? "Salvando…" : `Salvar tudo (${alterados.length})`}
+                  </Button>
+                </>
+              ) : (
+                <p className="text-xs text-ink/45">Edite os campos e salve tudo de uma vez.</p>
+              )}
+            </div>
           </div>
 
           {filtrados.length === 0 ? (
