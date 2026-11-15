@@ -718,6 +718,38 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                   Monte o pedido na vitrine. No checkout você escolhe entrega e a forma preferida; o pagamento libera após a fazenda aprovar.
                 </p>
               ) : null}
+              {vista === "loja" && (!cliente || !cliente.recorrente) ? (
+                <p className="mt-3 max-w-2xl border-l-4 border-forest bg-forest/5 py-3 pl-4 pr-3 text-[0.95rem] font-medium leading-snug text-forest sm:text-[1.05rem]">
+                  Feche uma recorrência para sua cozinha e tenha acesso a{" "}
+                  <em className="font-display italic text-ink">valores especiais</em>.
+                  {cliente && !ehPessoa(cliente) ? (
+                    <>
+                      {" "}
+                      <button
+                        type="button"
+                        className="underline decoration-forest/40 underline-offset-2 hover:decoration-forest"
+                        onClick={() => setVista("conta")}
+                      >
+                        Ver contrato na conta
+                      </button>
+                    </>
+                  ) : !cliente ? (
+                    <>
+                      {" "}
+                      <button
+                        type="button"
+                        className="underline decoration-forest/40 underline-offset-2 hover:decoration-forest"
+                        onClick={() => {
+                          setTipoCadastro("empresa");
+                          setVista("cadastro");
+                        }}
+                      >
+                        Cadastrar empresa
+                      </button>
+                    </>
+                  ) : null}
+                </p>
+              ) : null}
             </div>
             {cliente || vista === "equipe" ? null : (
               <div className="flex gap-4 text-sm">
