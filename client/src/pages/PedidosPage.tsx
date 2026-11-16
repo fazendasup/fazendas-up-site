@@ -816,17 +816,6 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                   Monte o pedido na vitrine. No checkout você escolhe entrega e a forma preferida; o pagamento libera após a fazenda aprovar.
                 </p>
               ) : null}
-              {vista === "loja" ? (
-                <p className="mt-3 max-w-2xl border-l-4 border-forest bg-forest/10 py-3 pl-4 pr-3 text-[1.05rem] font-semibold leading-snug text-ink sm:text-[1.15rem]">
-                  Prazo de entrega:{" "}
-                  <span className="text-forest">
-                    a partir de {LEAD_BUSINESS_DAYS} dia útil (24h)
-                  </span>
-                  <span className="mt-1 block text-sm font-normal text-ink/65">
-                    Sábado, domingo e feriado de Manaus não entram na rota.
-                  </span>
-                </p>
-              ) : null}
               {vista === "loja" && (!cliente || !cliente.recorrente) ? (
                 <p className="mt-3 max-w-2xl border-l-4 border-forest bg-forest/5 py-3 pl-4 pr-3 text-[0.95rem] font-medium leading-snug text-forest sm:text-[1.05rem]">
                   Feche uma recorrência para sua cozinha e tenha acesso a{" "}
