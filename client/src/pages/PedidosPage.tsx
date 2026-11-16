@@ -94,7 +94,11 @@ const WHATSAPP_FAZENDA = "5592984040397";
 
 function montarMensagemWhatsAppPedido(input: {
   itens: Array<{ nome: string; quantidade: number; unidade: string; peso?: string | null; preco?: number | null }>;
+  totalProdutos: number;
+  taxaEntrega: number;
   total: number;
+  modalidade: "entrega" | "retirada";
+  minimoEntregaGratis: number;
   nomeCliente?: string | null;
 }) {
   const linhas = input.itens.map((item) => {
@@ -109,15 +113,31 @@ function montarMensagemWhatsAppPedido(input: {
   const saudacao = input.nomeCliente?.trim()
     ? `Olá! Sou ${input.nomeCliente.trim().split(/\s+/)[0]}.`
     : "Olá!";
+  const entregaGratis = input.totalProdutos >= input.minimoEntregaGratis && input.minimoEntregaGratis > 0;
+  const linhaModalidade =
+    input.modalidade === "retirada"
+      ? "Modalidade: retirada na fazenda (sem taxa de entrega)"
+      : entregaGratis
+        ? `Modalidade: entrega — grátis (pedido a partir de ${reais(input.minimoEntregaGratis)})`
+        : `Modalidade: entrega — taxa de ${reais(input.taxaEntrega)} (abaixo de ${reais(input.minimoEntregaGratis)})`;
+  const fechamento =
+    input.modalidade === "retirada"
+      ? "Pode me confirmar disponibilidade e horário de retirada?"
+      : "Pode me confirmar disponibilidade e entrega?";
   return [
     `${saudacao} Gostaria de fechar um pedido pela Fazendas UP:`,
     "",
     ...linhas,
     "",
+    `Produtos: ${reais(input.totalProdutos)}`,
+    linhaModalidade,
+    input.taxaEntrega > 0 ? `Taxa de entrega: ${reais(input.taxaEntrega)}` : null,
     `Total estimado: ${reais(input.total)}`,
     "",
-    "Pode me confirmar disponibilidade e entrega?",
-  ].join("\n");
+    fechamento,
+  ]
+    .filter((linha) => linha != null)
+    .join("\n");
 }
 
 function linkWhatsAppPedido(texto: string) {
@@ -405,9 +425,18 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
       toast.error("Escolha ao menos um produto para fechar pelo WhatsApp.");
       return;
     }
+    if (abaixoMinimoEntrega && modalidade !== "entrega" && modalidade !== "retirada") {
+      toast.error("Escolha retirada ou entrega.");
+      return;
+    }
+    const modalidadePedido = abaixoMinimoEntrega ? modalidade : "entrega";
     const texto = montarMensagemWhatsAppPedido({
       itens,
+      totalProdutos: total,
+      taxaEntrega: taxaEntregaPedido,
       total: totalComEntrega > 0 ? totalComEntrega : total,
+      modalidade: modalidadePedido,
+      minimoEntregaGratis: minimo,
       nomeCliente: cliente?.nome,
     });
     window.open(linkWhatsAppPedido(texto), "_blank", "noopener,noreferrer");
@@ -1203,7 +1232,15 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
             <aside id="enviar-pedido" className="space-y-4 rounded-sm border border-ink/10 bg-white p-5 lg:sticky lg:top-28">
               <h2 className="text-lg">Seu pedido</h2>
               <p className="text-2xl font-medium tabular-nums">{reais(totalComEntrega)}</p>
-              {!cliente ? <p className="text-sm text-ink/70">Entre na conta para enviar o pedido.</p> : null}
+              {total > 0 && taxaEntregaPedido > 0 ? (
+                <p className="text-xs text-ink/55">
+                  Produtos {reais(total)} + entrega {reais(taxaEntregaPedido)}
+                </p>
+              ) : null}
+              {total > 0 && !abaixoMinimoEntrega && minimo > 0 ? (
+                <p className="text-xs font-medium text-forest">Entrega grátis a partir de {reais(minimo)} · você já atingiu.</p>
+              ) : null}
+              {!cliente ? <p className="text-sm text-ink/70">Pode fechar pelo WhatsApp ou entrar na conta para pedir pelo site.</p> : null}
               {precoDaConta && ehPessoa(cliente) && total > 0 ? (
                 <div className="space-y-1 text-xs text-ink/60">
                   <p>Pix: {reais(totalComEntrega)} · sem taxa de cartão</p>
@@ -1212,7 +1249,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                 </div>
               ) : null}
               {total === 0 && Object.values(carrinho).every((quantidade) => quantidade <= 0) ? <p className="text-sm text-ink/55">Escolha a quantidade nos produtos.</p> : null}
-              {cliente && abaixoMinimoEntrega ? (
+              {abaixoMinimoEntrega ? (
                 <div className="space-y-2 rounded-sm border border-ink/10 bg-paper/80 p-3 text-sm text-ink/75">
                   <p>Entrega grátis a partir de {reais(minimo)}. Abaixo desse valor, escolha:</p>
                   <div className="grid grid-cols-2 gap-2">
@@ -1285,7 +1322,10 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                     Feche pelo WhatsApp
                   </Button>
                   <p className="text-xs text-ink/50">
-                    Abre o WhatsApp da fazenda com seus itens e quantidades já preenchidos · (92) 98404-0397
+                    A mensagem leva itens, quantidades e se é retirada ou entrega
+                    {abaixoMinimoEntrega && modalidade === "entrega" ? ` (+${reais(taxaEntregaAbaixo)})` : ""}
+                    {!abaixoMinimoEntrega && total > 0 ? " (entrega grátis)" : ""}
+                    {" "}· (92) 98404-0397
                   </p>
                 </div>
               ) : null}
