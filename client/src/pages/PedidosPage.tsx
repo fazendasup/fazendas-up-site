@@ -99,6 +99,8 @@ function montarMensagemWhatsAppPedido(input: {
   total: number;
   modalidade: "entrega" | "retirada";
   minimoEntregaGratis: number;
+  dataEntrega: string;
+  periodoEntrega: "manha" | "tarde";
   nomeCliente?: string | null;
 }) {
   const linhas = input.itens.map((item) => {
@@ -114,6 +116,11 @@ function montarMensagemWhatsAppPedido(input: {
     ? `Olá! Sou ${input.nomeCliente.trim().split(/\s+/)[0]}.`
     : "Olá!";
   const entregaGratis = input.totalProdutos >= input.minimoEntregaGratis && input.minimoEntregaGratis > 0;
+  const periodoRotulo = input.periodoEntrega === "manha" ? "manhã (8h–12h)" : "tarde (13h–17h)";
+  const linhaData =
+    input.modalidade === "retirada"
+      ? `Retirada: ${formatLongDate(input.dataEntrega)} · ${periodoRotulo}`
+      : `Entrega: ${formatLongDate(input.dataEntrega)} · ${periodoRotulo}`;
   const linhaModalidade =
     input.modalidade === "retirada"
       ? "Modalidade: retirada na fazenda (sem taxa de entrega)"
@@ -131,6 +138,7 @@ function montarMensagemWhatsAppPedido(input: {
     "",
     `Produtos: ${reais(input.totalProdutos)}`,
     linhaModalidade,
+    linhaData,
     input.taxaEntrega > 0 ? `Taxa de entrega: ${reais(input.taxaEntrega)}` : null,
     `Total estimado: ${reais(input.total)}`,
     "",
@@ -425,6 +433,11 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
       toast.error("Escolha ao menos um produto para fechar pelo WhatsApp.");
       return;
     }
+    if (!dataEntrega || !datas.includes(dataEntrega)) {
+      toast.error("Escolha o dia de entrega (ou retirada) antes de ir ao WhatsApp.");
+      document.getElementById("selecao-data-entrega")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     if (abaixoMinimoEntrega && modalidade !== "entrega" && modalidade !== "retirada") {
       toast.error("Escolha retirada ou entrega.");
       return;
@@ -437,6 +450,8 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
       total: totalComEntrega > 0 ? totalComEntrega : total,
       modalidade: modalidadePedido,
       minimoEntregaGratis: minimo,
+      dataEntrega,
+      periodoEntrega,
       nomeCliente: cliente?.nome,
     });
     window.open(linkWhatsAppPedido(texto), "_blank", "noopener,noreferrer");
@@ -1308,35 +1323,73 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                   );
                 })}
               </ul>
+              {itensCarrinho > 0 ? (
+                <div id="selecao-data-entrega" className="space-y-3 rounded-sm border-l-4 border-forest bg-forest/10 p-3">
+                  <div>
+                    <p className="text-sm font-semibold text-ink">
+                      {abaixoMinimoEntrega && modalidade === "retirada" ? "Dia da retirada" : "Dia da entrega"}
+                    </p>
+                    <p className="mt-0.5 text-xs text-ink/65">
+                      Datas já no prazo da fazenda: a partir de {LEAD_BUSINESS_DAYS} dia útil (24h). Sábado, domingo e feriado de Manaus não entram.
+                    </p>
+                  </div>
+                  <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+                    {datas.map((data) => {
+                      const ativo = dataEntrega === data;
+                      return (
+                        <button
+                          key={data}
+                          type="button"
+                          onClick={() => setDataEntrega(data)}
+                          className={
+                            ativo
+                              ? "shrink-0 bg-forest px-3 py-2 text-left text-xs text-paper"
+                              : "shrink-0 border border-ink/15 bg-white px-3 py-2 text-left text-xs text-ink"
+                          }
+                        >
+                          <span className="block font-medium capitalize">{formatLongDate(data)}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      className={periodoEntrega === "manha" ? "bg-forest px-3 py-2 text-xs text-paper" : "border border-ink/15 bg-white px-3 py-2 text-xs"}
+                      onClick={() => setPeriodoEntrega("manha")}
+                    >
+                      Manhã · 8h–12h
+                    </button>
+                    <button
+                      type="button"
+                      className={periodoEntrega === "tarde" ? "bg-forest px-3 py-2 text-xs text-paper" : "border border-ink/15 bg-white px-3 py-2 text-xs"}
+                      onClick={() => setPeriodoEntrega("tarde")}
+                    >
+                      Tarde · 13h–17h
+                    </button>
+                  </div>
+                </div>
+              ) : null}
               {cliente && !ehPessoa(cliente) ? (
-                <>
-                  <label className="block text-sm">
-                    {abaixoMinimoEntrega && modalidade === "retirada" ? "Retirada" : "Entrega"}
-                    <select value={dataEntrega} onChange={(event) => setDataEntrega(event.target.value)} className="mt-1 w-full border border-ink/15 bg-white px-3 py-3">
-                      {datas.map((data) => <option key={data} value={data}>{formatLongDate(data)}</option>)}
-                    </select>
-                  </label>
-                  <label className="block text-sm">
-                    Observação
-                    <textarea value={observacoes} onChange={(event) => setObservacoes(event.target.value)} rows={3} className="mt-1 w-full border border-ink/15 px-3 py-3" />
-                  </label>
-                </>
+                <label className="block text-sm">
+                  Observação
+                  <textarea value={observacoes} onChange={(event) => setObservacoes(event.target.value)} rows={3} className="mt-1 w-full border border-ink/15 px-3 py-3" />
+                </label>
               ) : null}
               {itensCarrinho > 0 ? (
                 <div className="space-y-2">
                   <Button
                     type="button"
                     className="w-full"
-                    disabled={enviando}
+                    disabled={enviando || !dataEntrega}
                     onClick={fecharPeloWhatsApp}
                   >
                     Feche pelo WhatsApp
                   </Button>
                   <p className="text-xs text-ink/50">
-                    A mensagem leva itens, quantidades e se é retirada ou entrega
-                    {abaixoMinimoEntrega && modalidade === "entrega" ? ` (+${reais(taxaEntregaAbaixo)})` : ""}
-                    {!abaixoMinimoEntrega && total > 0 ? " (entrega grátis)" : ""}
-                    {" "}· (92) 98404-0397
+                    {!dataEntrega
+                      ? "Escolha o dia acima antes de abrir o WhatsApp."
+                      : `A mensagem leva itens, dia (${formatLongDate(dataEntrega)}) e ${abaixoMinimoEntrega && modalidade === "retirada" ? "retirada" : "entrega"}${abaixoMinimoEntrega && modalidade === "entrega" ? ` (+${reais(taxaEntregaAbaixo)})` : !abaixoMinimoEntrega ? " grátis" : ""} · (92) 98404-0397`}
                   </p>
                 </div>
               ) : null}
@@ -1739,14 +1792,14 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
           <button
             type="button"
             className="flex w-full items-center justify-between gap-3 bg-forest px-4 py-3 text-sm text-paper disabled:opacity-50"
-            disabled={enviando}
+            disabled={enviando || !dataEntrega}
             onClick={fecharPeloWhatsApp}
           >
             <span>
               {itensCarrinho} {itensCarrinho === 1 ? "item" : "itens"}
               {total > 0 ? ` · ${reais(totalComEntrega)}` : ""}
             </span>
-            <span className="font-medium">Feche pelo WhatsApp</span>
+            <span className="font-medium">{dataEntrega ? "Feche pelo WhatsApp" : "Escolha o dia"}</span>
           </button>
           <button
             type="button"
