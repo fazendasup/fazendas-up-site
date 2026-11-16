@@ -19,7 +19,7 @@ import {
 } from "@/lib/pedidos/api";
 import { buscarCep, formatarCep } from "@/lib/pedidos/cep";
 import { nomeSemPeso, pesoDoProduto } from "@/lib/pedidos/peso";
-import { formatCnpj, formatCpf, formatDocumento, formatLongDate, isValidCnpj, isValidCpf } from "@/lib/pedidos/rules";
+import { formatCnpj, formatCpf, formatDocumento, formatLongDate, isValidCnpj, isValidCpf, LEAD_BUSINESS_DAYS } from "@/lib/pedidos/rules";
 
 function pesoDoItem(nome: string, peso?: string | null, unidade?: string | null) {
   return peso?.trim() || pesoDoProduto(nome, unidade);
@@ -802,6 +802,17 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
               {vista === "loja" && cliente && ehPessoa(cliente) ? (
                 <p className="max-w-xl text-sm text-ink/65">
                   Monte o pedido na vitrine. No checkout você escolhe entrega e a forma preferida; o pagamento libera após a fazenda aprovar.
+                </p>
+              ) : null}
+              {vista === "loja" ? (
+                <p className="mt-3 max-w-2xl border-l-4 border-forest bg-forest/10 py-3 pl-4 pr-3 text-[1.05rem] font-semibold leading-snug text-ink sm:text-[1.15rem]">
+                  Prazo de entrega:{" "}
+                  <span className="text-forest">
+                    a partir de {LEAD_BUSINESS_DAYS} dia útil (24h)
+                  </span>
+                  <span className="mt-1 block text-sm font-normal text-ink/65">
+                    Sábado, domingo e feriado de Manaus não entram na rota.
+                  </span>
                 </p>
               ) : null}
               {vista === "loja" && (!cliente || !cliente.recorrente) ? (
