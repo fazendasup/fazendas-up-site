@@ -1,5 +1,6 @@
 # Cloudflare Pages / Netlify: HTML do SPA não pode ficar horas na edge — senão o celular nunca vê o JS novo.
 # Ficheiros com hash em /assets/ podem ficar em cache longo.
+# OG image precisa de cache longo para WhatsApp/Telegram/iMessage mostrarem preview.
 
 /
   Cache-Control: no-cache, no-store, must-revalidate, max-age=0
@@ -9,3 +10,10 @@
 
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
+
+# OG cover: WhatsApp exige cache estável + Content-Type explícito para gerar preview
+/og-cover.jpg
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+  Content-Type: image/jpeg
+  X-Content-Type-Options: nosniff
+  Access-Control-Allow-Origin: *
