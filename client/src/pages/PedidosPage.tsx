@@ -89,6 +89,41 @@ function reais(valor: number) {
   return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
+/** WhatsApp da fazenda (Manaus) — mesmo número do rodapé do site. */
+const WHATSAPP_FAZENDA = "5592984040397";
+
+function montarMensagemWhatsAppPedido(input: {
+  itens: Array<{ nome: string; quantidade: number; unidade: string; peso?: string | null; preco?: number | null }>;
+  total: number;
+  nomeCliente?: string | null;
+}) {
+  const linhas = input.itens.map((item) => {
+    const peso = item.peso?.trim();
+    const extra = peso ? ` (${peso})` : "";
+    const linhaValor =
+      item.preco != null && item.preco > 0
+        ? ` — ${reais(item.preco * item.quantidade)}`
+        : "";
+    return `• ${item.quantidade} ${item.unidade} × ${item.nome}${extra}${linhaValor}`;
+  });
+  const saudacao = input.nomeCliente?.trim()
+    ? `Olá! Sou ${input.nomeCliente.trim().split(/\s+/)[0]}.`
+    : "Olá!";
+  return [
+    `${saudacao} Gostaria de fechar um pedido pela Fazendas UP:`,
+    "",
+    ...linhas,
+    "",
+    `Total estimado: ${reais(input.total)}`,
+    "",
+    "Pode me confirmar disponibilidade e entrega?",
+  ].join("\n");
+}
+
+function linkWhatsAppPedido(texto: string) {
+  return `https://wa.me/${WHATSAPP_FAZENDA}?text=${encodeURIComponent(texto)}`;
+}
+
 /** Mesma regra do backend: cartão acrescenta 5% sobre os produtos. */
 const TAXA_CARTAO = 0.05;
 
@@ -354,6 +389,28 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
       else proximo[produto.id] = Math.min(teto, qtd);
       return proximo;
     });
+  };
+
+  const fecharPeloWhatsApp = () => {
+    const itens = catalogo
+      .filter((produto) => (carrinho[produto.id] ?? 0) > 0)
+      .map((produto) => ({
+        nome: nomeSemPeso(produto.nome),
+        quantidade: carrinho[produto.id] ?? 0,
+        unidade: produto.unidade,
+        peso: pesoDoItem(produto.nome, produto.peso, produto.unidade),
+        preco: produto.preco,
+      }));
+    if (itens.length === 0) {
+      toast.error("Escolha ao menos um produto para fechar pelo WhatsApp.");
+      return;
+    }
+    const texto = montarMensagemWhatsAppPedido({
+      itens,
+      total: totalComEntrega > 0 ? totalComEntrega : total,
+      nomeCliente: cliente?.nome,
+    });
+    window.open(linkWhatsAppPedido(texto), "_blank", "noopener,noreferrer");
   };
 
   const entrar = async () => {
@@ -689,7 +746,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
   return (
     <div className="min-h-screen bg-paper text-ink">
       <SiteHeader variant="subpage" />
-      <main className={`container pt-28 ${vista === "loja" && itensCarrinho > 0 ? "pb-32 lg:pb-24" : "pb-24"}`}>
+      <main className={`container pt-28 ${vista === "loja" && itensCarrinho > 0 ? "pb-44 lg:pb-24" : "pb-24"}`}>
         {(vista === "loja" || vista === "cadastro" || vista === "equipe") ? (
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-3xl space-y-2">
@@ -1217,15 +1274,31 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                   </label>
                 </>
               ) : null}
+              {itensCarrinho > 0 ? (
+                <div className="space-y-2">
+                  <Button
+                    type="button"
+                    className="w-full"
+                    disabled={enviando}
+                    onClick={fecharPeloWhatsApp}
+                  >
+                    Feche pelo WhatsApp
+                  </Button>
+                  <p className="text-xs text-ink/50">
+                    Abre o WhatsApp da fazenda com seus itens e quantidades já preenchidos · (92) 98404-0397
+                  </p>
+                </div>
+              ) : null}
               {cliente ? (
                 <Button
                   type="button"
+                  variant={itensCarrinho > 0 ? "outline" : undefined}
                   disabled={enviando || (emAtraso && !ehPessoa(cliente)) || total <= 0}
                   onClick={() => void abrirCheckout()}
                 >
                   {ehPessoa(cliente)
                     ? total > 0
-                      ? `Continuar · ${reais(totalComEntrega)}`
+                      ? `Continuar no site · ${reais(totalComEntrega)}`
                       : "Escolha os produtos"
                     : "Enviar para aprovação"}
                 </Button>
@@ -1237,7 +1310,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                     void entrar();
                   }}
                 >
-                  <p className="text-sm text-ink/70">Entre com CPF (pessoa) ou CNPJ (empresa).</p>
+                  <p className="text-sm text-ink/70">Ou entre com CPF (pessoa) ou CNPJ (empresa) para pedir pelo site.</p>
                   {modoEquipe ? (
                     <Campo label="E-mail" value={email} onChange={setEmail} type="email" />
                   ) : (
@@ -1611,10 +1684,22 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
       </main>
 
       {vista === "loja" && itensCarrinho > 0 && !checkoutAberto && !pagamentoAberto ? (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-ink/10 bg-paper/95 p-3 backdrop-blur lg:hidden">
+        <div className="fixed inset-x-0 bottom-0 z-40 space-y-2 border-t border-ink/10 bg-paper/95 p-3 backdrop-blur lg:hidden">
           <button
             type="button"
             className="flex w-full items-center justify-between gap-3 bg-forest px-4 py-3 text-sm text-paper disabled:opacity-50"
+            disabled={enviando}
+            onClick={fecharPeloWhatsApp}
+          >
+            <span>
+              {itensCarrinho} {itensCarrinho === 1 ? "item" : "itens"}
+              {total > 0 ? ` · ${reais(totalComEntrega)}` : ""}
+            </span>
+            <span className="font-medium">Feche pelo WhatsApp</span>
+          </button>
+          <button
+            type="button"
+            className="flex w-full items-center justify-center gap-3 border border-ink/15 px-4 py-2.5 text-sm text-ink disabled:opacity-50"
             disabled={enviando || (emAtraso && Boolean(cliente) && !ehPessoa(cliente))}
             onClick={() => {
               if (!cliente) {
@@ -1624,13 +1709,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
               void abrirCheckout();
             }}
           >
-            <span>
-              {itensCarrinho} {itensCarrinho === 1 ? "item" : "itens"}
-              {total > 0 ? ` · ${reais(totalComEntrega)}` : ""}
-            </span>
-            <span className="font-medium">
-              {!cliente ? "Entrar para pedir" : ehPessoa(cliente) ? "Continuar" : "Enviar pedido"}
-            </span>
+            {!cliente ? "Ou entrar para pedir no site" : ehPessoa(cliente) ? "Continuar no site" : "Enviar pedido no site"}
           </button>
         </div>
       ) : null}
