@@ -2891,14 +2891,23 @@ function PainelEquipe({
     try {
       const margem = Number(margemPct.replace(",", "."));
       if (!Number.isFinite(margem) || margem === 0) {
-        toast.error("Informe a margem em % (ex.: 10 ou -5).");
+        toast.error("Informe a margem em % (ex.: 30).");
         return;
       }
-      if (margem < -90 || margem > 500) {
-        toast.error("Use uma margem entre -90% e 500%.");
+      // Margem sobre o preço de venda: novo = atual / (1 - margem/100). Ex.: 30% → ÷ 0,7.
+      if (margem >= 100) {
+        toast.error("A margem precisa ser menor que 100%.");
         return;
       }
-      const fator = 1 + margem / 100;
+      if (margem <= -500) {
+        toast.error("Use uma margem válida (ex.: 30 ou -10).");
+        return;
+      }
+      const denominador = 1 - margem / 100;
+      if (!(Math.abs(denominador) > 1e-9)) {
+        toast.error("A margem precisa ser menor que 100%.");
+        return;
+      }
       const alvos = produtos.filter((produto) => {
         if (!selecionadosMargem[produto.id]) return false;
         const rascunho = rascunhos[produto.id] ?? rascunhoDe(produto);
@@ -2909,9 +2918,9 @@ function PainelEquipe({
         toast.error("Selecione ao menos um produto com preço.");
         return;
       }
-      const fatorChave = Math.round(fator * 1e6) / 1e6;
+      const margemChave = Math.round(margem * 1e4) / 1e4;
       const assinatura = [
-        fatorChave,
+        `m${margemChave}`,
         ...alvos
           .map((produto) => {
             const preco = Number((rascunhos[produto.id] ?? rascunhoDe(produto)).preco.replace(",", "."));
@@ -2929,7 +2938,7 @@ function PainelEquipe({
       for (const produto of alvos) {
         const base = proximos[produto.id] ?? rascunhoDe(produto);
         const atual = Number(base.preco.replace(",", "."));
-        const novo = Math.round(atual * fator * 100) / 100;
+        const novo = Math.round((atual / denominador) * 100) / 100;
         if (!(novo > 0) || Math.abs(novo - atual) < 0.005) continue;
         proximos[produto.id] = { ...base, preco: novo.toFixed(2) };
         payloads.push({ id: produto.id, nome: produto.nome, de: atual, preco: novo });
@@ -2939,15 +2948,15 @@ function PainelEquipe({
         return;
       }
 
-      const sinal = margem > 0 ? `+${margem}` : `${margem}`;
       const amostra = payloads
         .slice(0, 3)
         .map((item) => `${nomeSemPeso(item.nome)}: ${reais(item.de)} → ${reais(item.preco)}`)
         .join("\n");
       const extras = payloads.length > 3 ? `\n… e mais ${payloads.length - 3}` : "";
+      const exemplo = `7,59 com 30% → ${(7.59 / 0.7).toFixed(2).replace(".", ",")} (preço ÷ 0,7)`;
       if (
         !window.confirm(
-          `Aplicar margem de ${sinal.replace(".", ",")}% uma única vez em ${payloads.length} produto${payloads.length === 1 ? "" : "s"}?\n\n${amostra}${extras}`,
+          `Aplicar margem real de ${String(margem).replace(".", ",")}% uma única vez em ${payloads.length} produto${payloads.length === 1 ? "" : "s"}?\n\n${amostra}${extras}\n\nFórmula: preço ÷ (1 − margem). Ex.: ${exemplo}`,
         )
       ) {
         return;
@@ -2969,10 +2978,11 @@ function PainelEquipe({
       await onAtualizar();
       if (ok > 0) {
         ultimaMargemAplicadaRef.current = assinatura;
+        const rotulo = String(margem).replace(".", ",");
         toast.success(
           ok === 1
-            ? `Margem de ${sinal.replace(".", ",")}% aplicada em 1 produto.`
-            : `Margem de ${sinal.replace(".", ",")}% aplicada em ${ok} produtos.`,
+            ? `Margem de ${rotulo}% aplicada em 1 produto.`
+            : `Margem de ${rotulo}% aplicada em ${ok} produtos.`,
         );
       }
       if (falhas.length > 0) toast.error(falhas.slice(0, 2).join(" · "));
@@ -3218,7 +3228,7 @@ function PainelEquipe({
             <div className="block text-sm">
               <p className="font-medium">Margem % nos selecionados</p>
               <span className="mt-0.5 block text-xs font-normal text-ink/50">
-                Marque os produtos abaixo, informe a % e aplique. Só os selecionados mudam de preço.
+                Margem real sobre o preço: novo = atual ÷ (1 − %). Ex.: 30% em R$ 7,59 → R$ 10,84. Só os marcados mudam.
               </span>
               <div className="mt-1 flex flex-wrap items-center gap-2">
                 <input
