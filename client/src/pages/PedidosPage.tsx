@@ -2659,6 +2659,9 @@ function PainelEquipe({
   const [ocupado, setOcupado] = useState(false);
   const [margemPct, setMargemPct] = useState("");
   const [selecionadosMargem, setSelecionadosMargem] = useState<Record<string, boolean>>({});
+  /** Evita double-click aplicar a margem duas vezes sobre o mesmo preço. */
+  const aplicandoMargemRef = useRef(false);
+  const ultimaMargemAplicadaRef = useRef<string>("");
   const [emailConvite, setEmailConvite] = useState("");
   const [linksConvite, setLinksConvite] = useState<Array<{ nome: string; email: string; link: string }>>([]);
   const [nomesClasse, setNomesClasse] = useState<Record<string, string>>({});
@@ -2882,78 +2885,103 @@ function PainelEquipe({
   const limparSelecaoMargem = () => setSelecionadosMargem({});
 
   const aplicarMargemSelecionados = async () => {
-    if (ocupado) return;
-    const margem = Number(margemPct.replace(",", "."));
-    if (!Number.isFinite(margem) || margem === 0) {
-      toast.error("Informe a margem em % (ex.: 10 ou -5).");
-      return;
-    }
-    if (margem < -90 || margem > 500) {
-      toast.error("Use uma margem entre -90% e 500%.");
-      return;
-    }
-    const fator = 1 + margem / 100;
-    const alvos = produtos.filter((produto) => {
-      if (!selecionadosMargem[produto.id]) return false;
-      const rascunho = rascunhos[produto.id] ?? rascunhoDe(produto);
-      const preco = Number(rascunho.preco.replace(",", "."));
-      return Number.isFinite(preco) && preco > 0;
-    });
-    if (alvos.length === 0) {
-      toast.error("Selecione ao menos um produto com preço.");
-      return;
-    }
-    const sinal = margem > 0 ? `+${margem}` : `${margem}`;
-    if (
-      !window.confirm(
-        `Aplicar margem de ${sinal.replace(".", ",")}% em ${alvos.length} produto${alvos.length === 1 ? "" : "s"} selecionado${alvos.length === 1 ? "" : "s"} e salvar agora?`,
-      )
-    ) {
-      return;
-    }
-    const proximos: Record<string, RascunhoProduto> = { ...rascunhos };
-    const payloads: Array<{ id: string; nome: string; preco: number }> = [];
-    for (const produto of alvos) {
-      const base = proximos[produto.id] ?? rascunhoDe(produto);
-      const atual = Number(base.preco.replace(",", "."));
-      const novo = Math.round(atual * fator * 100) / 100;
-      if (!(novo > 0)) continue;
-      proximos[produto.id] = { ...base, preco: novo.toFixed(2) };
-      payloads.push({ id: produto.id, nome: produto.nome, preco: novo });
-    }
-    if (payloads.length === 0) {
-      toast.error("Nenhum preço válido para atualizar.");
-      return;
-    }
-    setRascunhos(proximos);
+    if (ocupado || aplicandoMargemRef.current) return;
+    aplicandoMargemRef.current = true;
     setOcupado(true);
-    let ok = 0;
-    const falhas: string[] = [];
-    for (const item of payloads) {
-      try {
-        await portalApi.salvarProduto(item.id, { preco: item.preco });
-        ok += 1;
-      } catch (error) {
-        falhas.push(`${item.nome}: ${mensagem(error)}`);
-      }
-    }
     try {
+      const margem = Number(margemPct.replace(",", "."));
+      if (!Number.isFinite(margem) || margem === 0) {
+        toast.error("Informe a margem em % (ex.: 10 ou -5).");
+        return;
+      }
+      if (margem < -90 || margem > 500) {
+        toast.error("Use uma margem entre -90% e 500%.");
+        return;
+      }
+      const fator = 1 + margem / 100;
+      const alvos = produtos.filter((produto) => {
+        if (!selecionadosMargem[produto.id]) return false;
+        const rascunho = rascunhos[produto.id] ?? rascunhoDe(produto);
+        const preco = Number(rascunho.preco.replace(",", "."));
+        return Number.isFinite(preco) && preco > 0;
+      });
+      if (alvos.length === 0) {
+        toast.error("Selecione ao menos um produto com preço.");
+        return;
+      }
+      const fatorChave = Math.round(fator * 1e6) / 1e6;
+      const assinatura = [
+        fatorChave,
+        ...alvos
+          .map((produto) => {
+            const preco = Number((rascunhos[produto.id] ?? rascunhoDe(produto)).preco.replace(",", "."));
+            return `${produto.id}:${preco.toFixed(2)}`;
+          })
+          .sort(),
+      ].join("|");
+      if (assinatura === ultimaMargemAplicadaRef.current) {
+        toast.message("Essa margem já foi aplicada nesses preços. Selecione de novo se quiser aplicar outra vez.");
+        return;
+      }
+
+      const proximos: Record<string, RascunhoProduto> = { ...rascunhos };
+      const payloads: Array<{ id: string; nome: string; de: number; preco: number }> = [];
+      for (const produto of alvos) {
+        const base = proximos[produto.id] ?? rascunhoDe(produto);
+        const atual = Number(base.preco.replace(",", "."));
+        const novo = Math.round(atual * fator * 100) / 100;
+        if (!(novo > 0) || Math.abs(novo - atual) < 0.005) continue;
+        proximos[produto.id] = { ...base, preco: novo.toFixed(2) };
+        payloads.push({ id: produto.id, nome: produto.nome, de: atual, preco: novo });
+      }
+      if (payloads.length === 0) {
+        toast.error("Nenhum preço mudaria com essa margem.");
+        return;
+      }
+
+      const sinal = margem > 0 ? `+${margem}` : `${margem}`;
+      const amostra = payloads
+        .slice(0, 3)
+        .map((item) => `${nomeSemPeso(item.nome)}: ${reais(item.de)} → ${reais(item.preco)}`)
+        .join("\n");
+      const extras = payloads.length > 3 ? `\n… e mais ${payloads.length - 3}` : "";
+      if (
+        !window.confirm(
+          `Aplicar margem de ${sinal.replace(".", ",")}% uma única vez em ${payloads.length} produto${payloads.length === 1 ? "" : "s"}?\n\n${amostra}${extras}`,
+        )
+      ) {
+        return;
+      }
+
+      setRascunhos(proximos);
+      setSelecionadosMargem({});
+      setMargemPct("");
+      let ok = 0;
+      const falhas: string[] = [];
+      for (const item of payloads) {
+        try {
+          await portalApi.salvarProduto(item.id, { preco: item.preco });
+          ok += 1;
+        } catch (error) {
+          falhas.push(`${item.nome}: ${mensagem(error)}`);
+        }
+      }
       await onAtualizar();
+      if (ok > 0) {
+        ultimaMargemAplicadaRef.current = assinatura;
+        toast.success(
+          ok === 1
+            ? `Margem de ${sinal.replace(".", ",")}% aplicada em 1 produto.`
+            : `Margem de ${sinal.replace(".", ",")}% aplicada em ${ok} produtos.`,
+        );
+      }
+      if (falhas.length > 0) toast.error(falhas.slice(0, 2).join(" · "));
     } catch (error) {
       toast.error(mensagem(error));
     } finally {
+      aplicandoMargemRef.current = false;
       setOcupado(false);
     }
-    if (ok > 0) {
-      toast.success(
-        ok === 1
-          ? `Margem de ${sinal.replace(".", ",")}% aplicada em 1 produto.`
-          : `Margem de ${sinal.replace(".", ",")}% aplicada em ${ok} produtos.`,
-      );
-      setMargemPct("");
-      setSelecionadosMargem({});
-    }
-    if (falhas.length > 0) toast.error(falhas.slice(0, 2).join(" · "));
   };
 
   const cadastrosPendentes = useMemo(
