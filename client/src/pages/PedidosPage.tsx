@@ -100,7 +100,6 @@ function montarMensagemWhatsAppPedido(input: {
   modalidade: "entrega" | "retirada";
   minimoEntregaGratis: number;
   dataEntrega: string;
-  periodoEntrega: "manha" | "tarde";
   nomeCliente?: string | null;
 }) {
   const linhas = input.itens.map((item) => {
@@ -116,11 +115,10 @@ function montarMensagemWhatsAppPedido(input: {
     ? `Olá! Sou ${input.nomeCliente.trim().split(/\s+/)[0]}.`
     : "Olá!";
   const entregaGratis = input.totalProdutos >= input.minimoEntregaGratis && input.minimoEntregaGratis > 0;
-  const periodoRotulo = input.periodoEntrega === "manha" ? "manhã (8h–12h)" : "tarde (13h–17h)";
   const linhaData =
     input.modalidade === "retirada"
-      ? `Retirada: ${formatLongDate(input.dataEntrega)} · ${periodoRotulo}`
-      : `Entrega: ${formatLongDate(input.dataEntrega)} · ${periodoRotulo}`;
+      ? `Retirada: ${formatLongDate(input.dataEntrega)}`
+      : `Entrega: ${formatLongDate(input.dataEntrega)}`;
   const linhaModalidade =
     input.modalidade === "retirada"
       ? "Modalidade: retirada na fazenda (sem taxa de entrega)"
@@ -451,7 +449,6 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
       modalidade: modalidadePedido,
       minimoEntregaGratis: minimo,
       dataEntrega,
-      periodoEntrega,
       nomeCliente: cliente?.nome,
     });
     window.open(linkWhatsAppPedido(texto), "_blank", "noopener,noreferrer");
@@ -1324,50 +1321,27 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                 })}
               </ul>
               {itensCarrinho > 0 ? (
-                <div id="selecao-data-entrega" className="space-y-3 rounded-sm border-l-4 border-forest bg-forest/10 p-3">
-                  <div>
-                    <p className="text-sm font-semibold text-ink">
-                      {abaixoMinimoEntrega && modalidade === "retirada" ? "Dia da retirada" : "Dia da entrega"}
-                    </p>
-                    <p className="mt-0.5 text-xs text-ink/65">
-                      Datas já no prazo da fazenda: a partir de {LEAD_BUSINESS_DAYS} dia útil (24h). Sábado, domingo e feriado de Manaus não entram.
-                    </p>
-                  </div>
-                  <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
-                    {datas.map((data) => {
-                      const ativo = dataEntrega === data;
-                      return (
-                        <button
-                          key={data}
-                          type="button"
-                          onClick={() => setDataEntrega(data)}
-                          className={
-                            ativo
-                              ? "shrink-0 bg-forest px-3 py-2 text-left text-xs text-paper"
-                              : "shrink-0 border border-ink/15 bg-white px-3 py-2 text-left text-xs text-ink"
-                          }
-                        >
-                          <span className="block font-medium capitalize">{formatLongDate(data)}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      className={periodoEntrega === "manha" ? "bg-forest px-3 py-2 text-xs text-paper" : "border border-ink/15 bg-white px-3 py-2 text-xs"}
-                      onClick={() => setPeriodoEntrega("manha")}
+                <div id="selecao-data-entrega" className="space-y-2 rounded-sm border-l-4 border-forest bg-forest/10 p-3">
+                  <label className="block text-sm font-semibold text-ink">
+                    {abaixoMinimoEntrega && modalidade === "retirada" ? "Dia da retirada" : "Dia da entrega"}
+                    <span className="mt-0.5 block text-xs font-normal text-ink/65">
+                      Datas no prazo da fazenda: a partir de {LEAD_BUSINESS_DAYS} dia útil (24h). Sábado, domingo e feriado de Manaus não entram.
+                    </span>
+                    <select
+                      value={dataEntrega}
+                      onChange={(event) => setDataEntrega(event.target.value)}
+                      className="mt-2 w-full border border-ink/15 bg-white px-3 py-3 text-sm font-normal text-ink"
                     >
-                      Manhã · 8h–12h
-                    </button>
-                    <button
-                      type="button"
-                      className={periodoEntrega === "tarde" ? "bg-forest px-3 py-2 text-xs text-paper" : "border border-ink/15 bg-white px-3 py-2 text-xs"}
-                      onClick={() => setPeriodoEntrega("tarde")}
-                    >
-                      Tarde · 13h–17h
-                    </button>
-                  </div>
+                      <option value="" disabled>
+                        Selecione o dia
+                      </option>
+                      {datas.map((data) => (
+                        <option key={data} value={data}>
+                          {formatLongDate(data)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                 </div>
               ) : null}
               {cliente && !ehPessoa(cliente) ? (
