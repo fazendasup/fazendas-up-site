@@ -1252,7 +1252,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
                 );
               })}
             </div>
-            <aside id="enviar-pedido" className="space-y-4 rounded-sm border border-ink/10 bg-white p-5 lg:sticky lg:top-28">
+            <aside id="enviar-pedido" className="space-y-4 rounded-sm border border-ink/10 bg-white p-5">
               <h2 className="text-lg">Seu pedido</h2>
               <p className="text-2xl font-medium tabular-nums">{reais(totalComEntrega)}</p>
               {total > 0 && taxaEntregaPedido > 0 ? (
