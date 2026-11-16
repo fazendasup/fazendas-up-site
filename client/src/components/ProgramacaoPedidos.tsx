@@ -133,7 +133,7 @@ export function ProgramacaoPedidos({ produtos }: { produtos: ProdutoLoja[] }) {
       aplicar(salva);
       toast.success(
         salva.mantidas
-          ? "Programação salva. Entregas já dentro de 1 dia útil permaneceram como estavam."
+          ? "Programação salva. Entregas já dentro de 2 dias úteis permaneceram como estavam."
           : "Programação salva. Ela se repete toda semana.",
       );
     } catch (error) {
@@ -150,7 +150,7 @@ export function ProgramacaoPedidos({ produtos }: { produtos: ProdutoLoja[] }) {
       <h2 className="display-head text-3xl">Programação de pedidos</h2>
       <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink/70">
         Marque os dias da semana e os produtos de cada um. Os dias podem ter cardápios diferentes, e a mesma programação se repete na semana seguinte.
-        Sábado, domingo e feriado de Manaus não entram na rota. Cada entrega segue o mínimo de {reais(minimo)}. Uma mudança vale para as entregas que ainda estão fora da antecedência de 1 dia útil.
+        Sábado, domingo e feriado de Manaus não entram na rota. Cada entrega segue o mínimo de {reais(minimo)}. Uma mudança vale para as entregas que ainda estão fora da antecedência de 2 dias úteis.
       </p>
       <div className="mt-6 flex flex-wrap gap-2">
         {DIAS.map((dia) => {
