@@ -56,7 +56,12 @@ export type ProdutoEquipe = {
   aplicacao: string;
   naLoja: boolean;
   exclusivo: boolean;
+  /** Preço-base (ERP / Conta Azul). */
   preco: number | null;
+  /** Preço final no site (precoBase com margem aplicada). */
+  precoSite?: number | null;
+  /** Margem % só do site/portal — nunca altera ERP. */
+  margemSite?: number | null;
   imagemUrl: string | null;
   unidade: string;
   peso?: string | null;
@@ -358,6 +363,7 @@ export const portalApi = {
       naLoja?: boolean;
       exclusivo?: boolean;
       preco?: number;
+      margemSite?: number | null;
       imagemUrl?: string | null;
       descricao?: string;
       aplicacao?: string;
@@ -370,6 +376,8 @@ export const portalApi = {
       naLoja: boolean;
       exclusivo: boolean;
       preco: number | null;
+      precoSite?: number | null;
+      margemSite?: number | null;
       imagemUrl: string | null;
       descricao: string | null;
       aplicacao: string | null;

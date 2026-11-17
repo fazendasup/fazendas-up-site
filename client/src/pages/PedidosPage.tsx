@@ -2917,11 +2917,10 @@ function PainelEquipe({
     setOcupado(true);
     try {
       const margem = Number(margemPct.replace(",", "."));
-      if (!Number.isFinite(margem) || margem === 0) {
-        toast.error("Informe a margem em % (ex.: 30).");
+      if (!Number.isFinite(margem)) {
+        toast.error("Informe a margem em % (ex.: 30). Use 0 para remover.");
         return;
       }
-      // Margem sobre o preço de venda: novo = atual / (1 - margem/100). Ex.: 30% → ÷ 0,7.
       if (margem >= 100) {
         toast.error("A margem precisa ser menor que 100%.");
         return;
@@ -2931,72 +2930,52 @@ function PainelEquipe({
         return;
       }
       const denominador = 1 - margem / 100;
-      if (!(Math.abs(denominador) > 1e-9)) {
+      if (margem !== 0 && !(Math.abs(denominador) > 1e-9)) {
         toast.error("A margem precisa ser menor que 100%.");
         return;
       }
       const alvos = produtos.filter((produto) => {
         if (!selecionadosMargem[produto.id]) return false;
-        const rascunho = rascunhos[produto.id] ?? rascunhoDe(produto);
-        const preco = Number(rascunho.preco.replace(",", "."));
-        return Number.isFinite(preco) && preco > 0;
+        const preco = produto.preco;
+        return preco != null && Number.isFinite(preco) && preco > 0;
       });
       if (alvos.length === 0) {
         toast.error("Selecione ao menos um produto com preço.");
         return;
       }
-      const margemChave = Math.round(margem * 1e4) / 1e4;
-      const assinatura = [
-        `m${margemChave}`,
-        ...alvos
-          .map((produto) => {
-            const preco = Number((rascunhos[produto.id] ?? rascunhoDe(produto)).preco.replace(",", "."));
-            return `${produto.id}:${preco.toFixed(2)}`;
-          })
-          .sort(),
-      ].join("|");
-      if (assinatura === ultimaMargemAplicadaRef.current) {
-        toast.message("Essa margem já foi aplicada nesses preços. Selecione de novo se quiser aplicar outra vez.");
-        return;
-      }
 
-      const proximos: Record<string, RascunhoProduto> = { ...rascunhos };
-      const payloads: Array<{ id: string; nome: string; de: number; preco: number }> = [];
+      const removendo = margem === 0;
+      const payloads: Array<{ id: string; nome: string; base: number; site: number }> = [];
       for (const produto of alvos) {
-        const base = proximos[produto.id] ?? rascunhoDe(produto);
-        const atual = Number(base.preco.replace(",", "."));
-        const novo = Math.round((atual / denominador) * 100) / 100;
-        if (!(novo > 0) || Math.abs(novo - atual) < 0.005) continue;
-        proximos[produto.id] = { ...base, preco: novo.toFixed(2) };
-        payloads.push({ id: produto.id, nome: produto.nome, de: atual, preco: novo });
-      }
-      if (payloads.length === 0) {
-        toast.error("Nenhum preço mudaria com essa margem.");
-        return;
+        const base = produto.preco!;
+        const site = removendo ? base : Math.round((base / denominador) * 100) / 100;
+        payloads.push({ id: produto.id, nome: produto.nome, base, site });
       }
 
       const amostra = payloads
         .slice(0, 3)
-        .map((item) => `${nomeSemPeso(item.nome)}: ${reais(item.de)} → ${reais(item.preco)}`)
+        .map((item) =>
+          removendo
+            ? `${nomeSemPeso(item.nome)}: margem removida (base ${reais(item.base)})`
+            : `${nomeSemPeso(item.nome)}: base ${reais(item.base)} → site ${reais(item.site)}`,
+        )
         .join("\n");
       const extras = payloads.length > 3 ? `\n… e mais ${payloads.length - 3}` : "";
       const exemplo = `7,59 com 30% → ${(7.59 / 0.7).toFixed(2).replace(".", ",")} (preço ÷ 0,7)`;
-      if (
-        !window.confirm(
-          `Aplicar margem real de ${String(margem).replace(".", ",")}% uma única vez em ${payloads.length} produto${payloads.length === 1 ? "" : "s"}?\n\n${amostra}${extras}\n\nFórmula: preço ÷ (1 − margem). Ex.: ${exemplo}`,
-        )
-      ) {
+      const textoConfirm = removendo
+        ? `Remover margem de ${payloads.length} produto${payloads.length === 1 ? "" : "s"}?\n\n${amostra}${extras}\n\nO preço do site voltará ao preço-base (ERP).`
+        : `Aplicar margem de ${String(margem).replace(".", ",")}% no site em ${payloads.length} produto${payloads.length === 1 ? "" : "s"}?\n\n${amostra}${extras}\n\nFórmula: preço-base ÷ (1 − margem). Ex.: ${exemplo}\n\nIsso NÃO altera o preço no ERP / Conta Azul.`;
+      if (!window.confirm(textoConfirm)) {
         return;
       }
 
-      setRascunhos(proximos);
       setSelecionadosMargem({});
       setMargemPct("");
       let ok = 0;
       const falhas: string[] = [];
       for (const item of payloads) {
         try {
-          await portalApi.salvarProduto(item.id, { preco: item.preco });
+          await portalApi.salvarProduto(item.id, { margemSite: removendo ? null : margem });
           ok += 1;
         } catch (error) {
           falhas.push(`${item.nome}: ${mensagem(error)}`);
@@ -3004,12 +2983,16 @@ function PainelEquipe({
       }
       await onAtualizar();
       if (ok > 0) {
-        ultimaMargemAplicadaRef.current = assinatura;
+        ultimaMargemAplicadaRef.current = `m${margem}|${Date.now()}`;
         const rotulo = String(margem).replace(".", ",");
         toast.success(
-          ok === 1
-            ? `Margem de ${rotulo}% aplicada em 1 produto.`
-            : `Margem de ${rotulo}% aplicada em ${ok} produtos.`,
+          removendo
+            ? ok === 1
+              ? "Margem removida de 1 produto."
+              : `Margem removida de ${ok} produtos.`
+            : ok === 1
+              ? `Margem de ${rotulo}% aplicada no site em 1 produto.`
+              : `Margem de ${rotulo}% aplicada no site em ${ok} produtos.`,
         );
       }
       if (falhas.length > 0) toast.error(falhas.slice(0, 2).join(" · "));
@@ -3253,9 +3236,9 @@ function PainelEquipe({
 
           <div className="flex flex-col gap-3 rounded-sm border border-ink/10 bg-paper/70 p-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
             <div className="block text-sm">
-              <p className="font-medium">Margem % nos selecionados</p>
+              <p className="font-medium">Margem % do site (não altera ERP)</p>
               <span className="mt-0.5 block text-xs font-normal text-ink/50">
-                Margem real sobre o preço: novo = atual ÷ (1 − %). Ex.: 30% em R$ 7,59 → R$ 10,84. Só os marcados mudam.
+                Preço site = base ÷ (1 − %). Ex.: 30% em R$ 7,59 → R$ 10,84. Preço-base (ERP/Conta Azul) fica intacto. Use 0 para remover.
               </span>
               <div className="mt-1 flex flex-wrap items-center gap-2">
                 <input
@@ -3273,7 +3256,7 @@ function PainelEquipe({
                   disabled={ocupado || !margemPct.trim() || idsSelecionadosMargem.length === 0}
                   onClick={() => void aplicarMargemSelecionados()}
                 >
-                  {ocupado ? "Aplicando…" : `Aplicar margem (${idsSelecionadosMargem.length})`}
+                  {ocupado ? "Aplicando…" : `Aplicar margem site (${idsSelecionadosMargem.length})`}
                 </Button>
                 <button type="button" className="text-sm text-forest" disabled={ocupado || filtrados.length === 0} onClick={selecionarTodosFiltradosMargem}>
                   Selecionar lista
@@ -3607,8 +3590,14 @@ function ProdutoEquipeCard({
           </label>
         ) : null}
         <label className="text-sm">
-          Preço de tabela
+          Preço-base (ERP)
           <input value={rascunho.preco} onChange={(event) => onChange({ preco: event.target.value })} className="mt-1 w-full border border-ink/15 px-2 py-2" />
+          {produto.margemSite != null && produto.margemSite !== 0 ? (
+            <span className="mt-0.5 block text-xs text-forest">
+              Margem {String(produto.margemSite).replace(".", ",")}% → site{" "}
+              {produto.precoSite != null ? reais(produto.precoSite) : "—"}
+            </span>
+          ) : null}
         </label>
         <label className="text-sm">
           Estoque
