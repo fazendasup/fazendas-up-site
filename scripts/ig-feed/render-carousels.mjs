@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 /**
- * Render Fazendas Up internship posts for Instagram feed (4:5 / 1080×1350).
- * One slide per vacancy — all three go in the same carousel post.
+ * Instagram feed 4:5 (1080×1350) — 1 página por vaga, 3 slides no mesmo carrossel.
+ *
+ * Tipografia pensada para o celular: no feed a arte é encolhida (~390px de largura),
+ * então títulos ~56px e corpo ~38–40px para continuar legíveis na tela.
  */
 import { chromium } from "playwright";
 import { mkdir, writeFile, readFile, rm } from "node:fs/promises";
@@ -16,7 +18,7 @@ const PUBLIC = path.join(ROOT, "client/public/instagram-estagios");
 const SRC = path.join(OUT, "src");
 const W = 1080;
 const H = 1350;
-const SCALE = 2;
+const SCALE = 3;
 const FONT_DIR = "/usr/share/fonts/truetype/macos";
 
 const JOBS = [
@@ -25,26 +27,14 @@ const JOBS = [
     order: "01",
     role: "ADMIN",
     title: "Estágio em Administração",
-    subtitle:
-      "Apoie a gestão em Manaus: pedidos e clientes, notas e documentos, financeiro operacional e melhoria de processos.",
+    subtitle: "Pedidos, clientes, documentos e financeiro operacional em Manaus.",
     cover: "admin-cover.jpg",
     subject: "Estágio Administração — Seu Nome",
-    sobre: [
-      "Apoio às unidades operacional, comercial e administrativa",
-      "Rotina B2B de agroindústria em Manaus",
-      "Organização de documentos, notas e registros",
-      "Até 6h/dia (30h/semana), compatível com a faculdade",
-    ],
-    atividades: [
-      "Cadastro e acompanhamento de pedidos e clientes",
-      "Organizar NF-e, contratos e documentos",
-      "Conciliação financeira e contas a pagar/receber",
-      "Mapear processos e apoiar compras",
-    ],
-    requisitos: [
-      "Cursando Administração, Processos Gerenciais, Gestão ou correlatos",
-      "Preferencialmente a partir do 4º período · presencial em Manaus",
-      "Excel, organização e interesse em operações/financeiro",
+    pontos: [
+      "Apoio operacional, comercial e administrativo (B2B)",
+      "Pedidos, NF-e, contratos e conciliação financeira",
+      "Cursando Admin / Processos / Gestão (pref. 4º+)",
+      "Presencial em Manaus · até 6h/dia (30h/semana)",
     ],
     beneficios: ["Bolsa R$ 800", "VT", "Refeição", "Seguro", "Aprendizado prático"],
   },
@@ -53,56 +43,32 @@ const JOBS = [
     order: "02",
     role: "CULTIVO",
     title: "Estágio em Cultivo e Hidroponia",
-    subtitle:
-      "Atue na fazenda vertical em Manaus: hortaliças, baby leaf e microverdes em sistema hidropônico.",
+    subtitle: "Fazenda vertical: hortaliças, baby leaf e microverdes em Manaus.",
     cover: "cultivo-cover.jpg",
     subject: "Estágio Cultivo/Hidroponia — Seu Nome",
-    sobre: [
-      "Cultivo e estrutura hidropônica em Manaus/AM",
-      "Operação B2B: restaurantes, mercados e food service",
-      "Ambiente controlado: torres, LED, recirculação e clima",
-      "Até 6h/dia (30h/semana), compatível com a faculdade",
+    pontos: [
+      "Manejo hidropônico: torres, LED, clima e irrigação",
+      "Monitorar EC, pH, fertirrigação e produtividade",
+      "Cursando Agronomia / Eng. Agrícola / Biossistemas (pref. 4º+)",
+      "Presencial em Manaus · até 6h/dia (30h/semana)",
     ],
-    atividades: [
-      "Manejo de alfaces, baby leaf, microverdes e ervas",
-      "Monitorar solução nutritiva, EC, pH e fertirrigação",
-      "Acompanhar clima, irrigação e desempenho produtivo",
-      "Registros de ciclo e apoio a POPs/FIT",
-    ],
-    requisitos: [
-      "Cursando Agronomia, Eng. Agrícola, Biossistemas ou correlatos",
-      "Preferencialmente a partir do 4º período · presencial em Manaus",
-      "Interesse em hidroponia e perfil hands-on",
-    ],
-    beneficios: ["Bolsa R$ 800", "VT", "Refeição", "Seguro de acidentes", "Aprendizado prático"],
+    beneficios: ["Bolsa R$ 800", "VT", "Refeição", "Seguro", "Aprendizado prático"],
   },
   {
     id: "qualidade",
     order: "03",
     role: "QUALIDADE",
     title: "Estágio em Processamento e Qualidade",
-    subtitle:
-      "Pós-colheita e qualidade: processamento de hortaliças, BPF e segurança alimentar.",
+    subtitle: "Pós-colheita, BPF e segurança alimentar na Fazendas Up.",
     cover: "qualidade-cover.jpg",
     subject: "Estágio Processamento/Qualidade — Seu Nome",
-    sobre: [
-      "Processamento, qualidade e segurança de alimentos",
-      "Da fazenda vertical ao produto entregue",
-      "Padrão visual, higiene, vida útil e rastreabilidade",
-      "Até 6h/dia (30h/semana), compatível com a faculdade",
+    pontos: [
+      "Processamento de hortaliças, higiene e rastreabilidade",
+      "BPF, POP, inspeção e indicadores de qualidade",
+      "Cursando Eng. Alimentos / CTA / Nutrição (pref. 4º+)",
+      "Presencial em Manaus · até 6h/dia (30h/semana)",
     ],
-    atividades: [
-      "Rotinas de pós-colheita e processamento",
-      "Aplicação de BPF, POP e controles de higiene",
-      "Inspeção de matéria-prima e produto acabado",
-      "Checklists, não conformidades e indicadores",
-    ],
-    requisitos: [
-      "Cursando Eng. de Alimentos, CTA, Nutrição (qualidade) ou correlatos",
-      "Preferencialmente a partir do 4º período · presencial em Manaus",
-      "Interesse em BPF, qualidade e atenção a detalhes",
-    ],
-    beneficios: ["Bolsa R$ 800", "VT", "Refeição", "Seguro de acidentes", "Aprendizado prático"],
+    beneficios: ["Bolsa R$ 800", "VT", "Refeição", "Seguro", "Aprendizado prático"],
   },
 ];
 
@@ -124,124 +90,107 @@ function chips(items) {
   return items.map((t) => `<span class="chip">${esc(t)}</span>`).join("");
 }
 
-function baseCss() {
-  return `
+function slidePage(job, coverDataUri, index, total) {
+  const titleSize = job.title.length > 32 ? 52 : 58;
+  return `<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
 @font-face{font-family:'Inter';src:url('file://${FONT_DIR}/Inter-Regular.ttf') format('truetype');font-weight:400}
 @font-face{font-family:'Inter';src:url('file://${FONT_DIR}/Inter-Medium.ttf') format('truetype');font-weight:500}
 @font-face{font-family:'Inter';src:url('file://${FONT_DIR}/Inter-SemiBold.ttf') format('truetype');font-weight:600}
 @font-face{font-family:'Inter';src:url('file://${FONT_DIR}/Inter-Bold.ttf') format('truetype');font-weight:700}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:${W}px;height:${H}px;overflow:hidden;background:#0d241e}
-body{font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-.slide{width:${W}px;height:${H}px;position:relative;overflow:hidden;background:#f6f4ef}
-:root{
-  --green:#1ab37f;
-  --green-soft:#d8f5e9;
-  --ink:#102018;
-  --muted:#4d5c56;
-  --footer:#0d241e;
-}
-.brand{font-weight:700;font-size:22px;letter-spacing:0.04em;color:#fff}
-.brand span{font-weight:500;opacity:.9}
-.badge{
+body{font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
+.slide{width:${W}px;height:${H}px;display:flex;flex-direction:column;background:#f7f5f0;overflow:hidden}
+:root{--green:#1ab37f;--green-soft:#cff3e4;--ink:#0c1a14;--muted:#354840;--footer:#0d241e}
+.hero{position:relative;flex:0 0 380px;overflow:hidden;background:#12332a}
+.hero img{width:100%;height:100%;object-fit:cover;object-position:center 40%;display:block}
+.hero::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,24,18,.55) 0%,rgba(6,24,18,.08) 40%,rgba(6,24,18,.78) 100%)}
+.hero-top,.hero-bottom{position:absolute;left:36px;right:36px;z-index:2}
+.hero-top{top:28px;display:flex;justify-content:space-between;align-items:center}
+.hero-bottom{bottom:24px;display:flex;gap:12px;align-items:center}
+.brand{font-weight:800;font-size:26px;letter-spacing:.04em;color:#fff}
+.brand span{font-weight:500;opacity:.92}
+.badge,.role-pill{
   display:inline-flex;align-items:center;justify-content:center;
-  background:var(--green);color:#062419;font-weight:700;font-size:16px;
-  padding:8px 16px;border-radius:999px;letter-spacing:0.04em;
+  background:var(--green);color:#062419;font-weight:800;
+  padding:14px 22px;border-radius:999px;letter-spacing:.04em;font-size:22px;
 }
-.role-pill{
-  display:inline-flex;align-items:center;justify-content:center;
-  background:var(--green);color:#062419;font-weight:800;font-size:16px;
-  padding:10px 16px;border-radius:999px;letter-spacing:0.06em;
+.role-pill{letter-spacing:.06em}
+.body{flex:1 1 auto;display:flex;flex-direction:column;padding:28px 36px 22px;gap:22px;min-height:0}
+.kicker{font-size:20px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin-bottom:10px}
+h1{font-size:${titleSize}px;line-height:1.02;font-weight:800;color:var(--ink);letter-spacing:-.03em;margin-bottom:12px}
+.lead{font-size:34px;line-height:1.26;color:var(--muted);font-weight:500}
+ul{list-style:none;display:flex;flex-direction:column;gap:18px;margin-top:8px}
+li{display:flex;gap:16px;align-items:flex-start;font-size:36px;line-height:1.2;color:var(--ink);font-weight:600}
+.dot{width:16px;height:16px;border-radius:50%;background:var(--green);margin-top:12px;flex:0 0 auto}
+.section-label{font-size:22px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin-bottom:14px}
+.chips{display:flex;flex-wrap:wrap;gap:12px}
+.chip{background:var(--green-soft);color:#0a5a40;font-weight:800;font-size:28px;padding:16px 20px;border-radius:999px}
+.apply{
+  flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;
+  background:#e5f6ed;border-radius:20px;padding:26px 28px;min-height:130px;
+  font-size:30px;line-height:1.3;color:var(--muted);font-weight:500;
 }
-h1{font-size:34px;line-height:1.08;font-weight:800;color:var(--ink);letter-spacing:-0.02em}
-h2{font-size:15px;font-weight:800;color:var(--green);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px}
-.lead{font-size:17px;line-height:1.3;color:var(--muted);font-weight:500}
-ul{list-style:none;display:flex;flex-direction:column;gap:5px}
-li{display:flex;gap:9px;align-items:flex-start;font-size:15.5px;line-height:1.28;color:var(--ink);font-weight:500}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--green);margin-top:6px;flex:0 0 auto}
-.chips{display:flex;flex-wrap:wrap;gap:7px}
-.chip{
-  background:var(--green-soft);color:#0b5c42;font-weight:700;font-size:14px;
-  padding:7px 12px;border-radius:999px;
-}
-.cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-.footer{
-  position:absolute;left:0;right:0;bottom:0;height:118px;
-  background:var(--footer);color:#fff;display:flex;align-items:center;justify-content:space-between;
-  padding:0 36px;
-}
-.footer .cta{font-size:26px;font-weight:800;line-height:1}
-.footer .mail{color:var(--green);font-size:16px;font-weight:700;margin-top:4px}
-.footer .meta{font-size:13px;opacity:.85;margin-top:6px;font-weight:500}
-`;
-}
-
-function slidePage(job, coverDataUri, index, total) {
-  const titleSize = job.title.length > 30 ? 30 : 34;
-  return `<!doctype html><html><head><meta charset="utf-8"><style>${baseCss()}
-.hero{position:relative;height:310px;overflow:hidden;background:#12332a}
-.hero img{width:100%;height:100%;object-fit:cover;object-position:center 42%;display:block}
-.hero::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,28,22,.55) 0%,rgba(8,28,22,.12) 45%,rgba(8,28,22,.7) 100%)}
-.hero-top{position:absolute;left:36px;right:36px;top:28px;z-index:2;display:flex;justify-content:space-between;align-items:flex-start}
-.hero-bottom{position:absolute;left:36px;bottom:22px;z-index:2;display:flex;gap:10px;align-items:center}
-.body{padding:20px 36px 126px}
-.head{margin-bottom:12px}
-.slide-n{font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--green);margin-bottom:6px}
-.block{margin-top:11px}
-.apply{margin-top:11px;font-size:14.5px;line-height:1.35;color:var(--muted);font-weight:500}
-.apply b{color:var(--ink);font-weight:700}
+.apply b{color:var(--ink);font-weight:800}
 .apply .email{color:var(--green);font-weight:800}
-</style></head><body><div class="slide">
+.footer{
+  flex:0 0 136px;background:var(--footer);color:#fff;
+  display:flex;align-items:center;justify-content:space-between;padding:0 36px;
+}
+.footer .cta{font-size:32px;font-weight:800;line-height:1}
+.footer .mail{color:var(--green);font-size:24px;font-weight:800;margin-top:8px}
+.footer .meta{font-size:18px;opacity:.9;margin-top:8px;font-weight:500}
+</style></head>
+<body>
+<div class="slide">
   <div class="hero">
     <img src="${coverDataUri}" alt="" />
     <div class="hero-top">
       <div class="brand">FAZENDAS UP <span>· Manaus / AM</span></div>
-      <div class="brand" style="font-size:18px;opacity:.85">${index}/${total}</div>
+      <div class="brand" style="font-size:24px;opacity:.9">${index}/${total}</div>
     </div>
     <div class="hero-bottom">
       <div class="badge">VAGA DE ESTÁGIO</div>
       <div class="role-pill">${esc(job.role)}</div>
     </div>
   </div>
+
   <div class="body">
-    <div class="head">
-      <div class="slide-n">Carrossel · vaga ${index} de ${total}</div>
-      <h1 style="font-size:${titleSize}px;margin-bottom:8px">${esc(job.title)}</h1>
+    <div>
+      <div class="kicker">Carrossel · vaga ${index} de ${total}</div>
+      <h1>${esc(job.title)}</h1>
       <p class="lead">${esc(job.subtitle)}</p>
     </div>
-    <div class="cols">
-      <div class="block">
-        <h2>Sobre a vaga</h2>
-        <ul>${bullets(job.sobre)}</ul>
-      </div>
-      <div class="block">
-        <h2>Atividades</h2>
-        <ul>${bullets(job.atividades)}</ul>
-      </div>
+
+    <div>
+      <div class="section-label">O que você vai fazer</div>
+      <ul>${bullets(job.pontos)}</ul>
     </div>
-    <div class="block">
-      <h2>Requisitos</h2>
-      <ul>${bullets(job.requisitos)}</ul>
-    </div>
-    <div class="block">
-      <h2>O que oferecemos</h2>
+
+    <div>
+      <div class="section-label">O que oferecemos</div>
       <div class="chips">${chips(job.beneficios)}</div>
     </div>
+
     <div class="apply">
-      <b>Como se candidatar:</b> currículo + curso/período para
-      <span class="email">comercial@visioneer.com.br</span>
-      · assunto: ${esc(job.subject)}
+      <b>Candidate-se:</b> currículo + curso/período para
+      <span class="email">comercial@visioneer.com.br</span><br/>
+      Assunto: <b>${esc(job.subject)}</b>
     </div>
   </div>
+
   <div class="footer">
     <div>
-      <div class="cta">Candidate-se</div>
+      <div class="cta">Fazendas Up · Manaus</div>
       <div class="mail">comercial@visioneer.com.br</div>
       <div class="meta">www.fazendasup.com.br · WhatsApp (92) 98404-0397</div>
     </div>
     <div class="role-pill">${esc(job.role)}</div>
   </div>
-</div></body></html>`;
+</div>
+</body></html>`;
 }
 
 function galleryHtml() {
@@ -260,7 +209,7 @@ function galleryHtml() {
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Fazendas Up — Carrossel Instagram Estágio</title>
   <style>
-    :root { --green:#1ab37f; --ink:#102018; --bg:#f6f4ef; }
+    :root { --green:#1ab37f; --ink:#102018; --bg:#f4f1ea; }
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);padding:20px 16px 48px;line-height:1.4}
     h1{font-size:1.35rem;margin:0 0 6px}
@@ -305,17 +254,16 @@ async function renderSlide(page, html, outPath) {
       ),
     );
   });
-  await page.waitForTimeout(100);
+  await page.waitForTimeout(120);
   await page.screenshot({
     path: outPath,
     type: "jpeg",
-    quality: 92,
+    quality: 95,
     clip: { x: 0, y: 0, width: W, height: H },
   });
 }
 
 async function main() {
-  // Clean old multi-slide folders
   for (const id of ["admin", "cultivo", "qualidade"]) {
     await rm(path.join(OUT, id), { recursive: true, force: true });
     await rm(path.join(PUBLIC, id), { recursive: true, force: true });
@@ -325,7 +273,7 @@ async function main() {
 
   const browser = await chromium.launch({
     headless: true,
-    args: ["--no-sandbox", "--disable-dev-shm-usage"],
+    args: ["--no-sandbox", "--disable-dev-shm-usage", "--font-render-hinting=none"],
   });
   const page = await browser.newPage({
     viewport: { width: W, height: H },
@@ -338,11 +286,9 @@ async function main() {
     const coverDataUri = await toDataUri(path.join(SRC, job.cover));
     const html = slidePage(job, coverDataUri, i + 1, total);
     const name = `${job.order}-${job.id}`;
-    const jpg2x = path.join(OUT, `${name}@2x.jpg`);
-    await renderSlide(page, html, jpg2x);
+    await renderSlide(page, html, path.join(OUT, `${name}@2x.jpg`));
     console.log("ok", name);
   }
-
   await browser.close();
 
   const py = `
@@ -353,14 +299,13 @@ public = Path(${JSON.stringify(PUBLIC)})
 public.mkdir(parents=True, exist_ok=True)
 for p in sorted(root.glob('*@2x.jpg')):
     im = Image.open(p).convert('RGB')
-    assert im.size == (2160, 2700), (p, im.size)
     out = p.with_name(p.name.replace('@2x.jpg', '.jpg'))
-    im.resize((1080, 1350), Image.Resampling.LANCZOS).save(out, quality=95, subsampling=0, optimize=True)
-    # also copy to public
-    dest = public / out.name
-    Image.open(out).save(dest, quality=95, subsampling=0, optimize=True)
+    im.resize((1080, 1350), Image.Resampling.LANCZOS).save(
+        out, quality=97, subsampling=0, optimize=True
+    )
+    Image.open(out).save(public / out.name, quality=97, subsampling=0, optimize=True)
     p.unlink()
-    print('downscale', out.name)
+    print('downscale', out.name, Image.open(out).size)
 `;
   const r = spawnSync("python3", ["-c", py], { encoding: "utf8" });
   if (r.status !== 0) {
@@ -374,19 +319,15 @@ for p in sorted(root.glob('*@2x.jpg')):
     path.join(OUT, "README.md"),
     `# Carrossel Instagram — Vagas de Estágio
 
-**Um único post** no feed, com **3 slides** (uma página por vaga), em **1080 × 1350** (4:5).
+**Um único post** no feed, **3 slides** (uma página por vaga), **1080 × 1350**.
 
-## Ordem do carrossel
+1. \`01-admin.jpg\`
+2. \`02-cultivo.jpg\`
+3. \`03-qualidade.jpg\`
 
-1. \`01-admin.jpg\` — Estágio em Administração  
-2. \`02-cultivo.jpg\` — Estágio em Cultivo e Hidroponia  
-3. \`03-qualidade.jpg\` — Estágio em Processamento e Qualidade  
+Tipografia grande para leitura no celular. Detalhes extras podem ir na legenda do post.
 
-## Baixar pelo celular
-
-Após o deploy do preview: \`/instagram-estagios/\` no site Pages.
-
-## Regenerar
+Baixar: \`/instagram-estagios/\` no preview Pages.
 
 \`\`\`bash
 node scripts/ig-feed/render-carousels.mjs
@@ -394,8 +335,7 @@ node scripts/ig-feed/render-carousels.mjs
 `,
     "utf8",
   );
-
-  console.log("Done — 3 slides for one carousel post");
+  console.log("Done");
 }
 
 main().catch((err) => {
