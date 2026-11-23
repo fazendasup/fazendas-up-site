@@ -1,30 +1,19 @@
-# Carrosséis Instagram — Vagas de Estágio
+# Carrossel Instagram — Vagas de Estágio
 
-Artes no formato **feed Instagram 4:5** (`1080 × 1350` px), JPEG alta qualidade.
+**Um único post** no feed, com **3 slides** (uma página por vaga), em **1080 × 1350** (4:5).
 
-As artes originais estavam em `1080 × 1920` (Stories / 9:16). No feed o Instagram corta para no máximo 4:5 — por isso saíam cortadas e com aparência de baixa qualidade.
+## Ordem do carrossel
 
-## Como publicar
+1. `01-admin.jpg` — Estágio em Administração  
+2. `02-cultivo.jpg` — Estágio em Cultivo e Hidroponia  
+3. `03-qualidade.jpg` — Estágio em Processamento e Qualidade  
 
-Poste cada vaga como **carrossel** (4 imagens, nesta ordem):
+## Baixar pelo celular
 
-| Pasta | Vaga |
-|-------|------|
-| `admin/` | Estágio em Administração |
-| `cultivo/` | Estágio em Cultivo e Hidroponia |
-| `qualidade/` | Estágio em Processamento e Qualidade |
-
-Ordem dos slides:
-
-1. `01-capa.jpg` — foto + título  
-2. `02-sobre-atividades.jpg` — sobre a vaga + atividades  
-3. `03-requisitos-beneficios.jpg` — requisitos + benefícios  
-4. `04-candidatura.jpg` — como se candidatar + contatos  
+Após o deploy do preview: `/instagram-estagios/` no site Pages.
 
 ## Regenerar
 
 ```bash
 node scripts/ig-feed/render-carousels.mjs
 ```
-
-Requer Playwright + Chromium e as capas em `src/*-cover.jpg`.
