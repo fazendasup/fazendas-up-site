@@ -181,7 +181,7 @@ li{display:flex;gap:8px;align-items:flex-start;font-size:14px;line-height:1.25;c
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{background:var(--green-soft);color:#0a5a40;font-weight:800;font-size:13px;padding:7px 11px;border-radius:999px}
 .apply{
-  flex:0 0 auto;background:#e8f7ef;border-radius:12px;padding:10px 12px;
+  flex:0 0 auto;margin-top:auto;background:#e8f7ef;border-radius:12px;padding:10px 12px;
   font-size:14px;line-height:1.3;color:var(--muted);font-weight:500;
 }
 .apply b{color:var(--ink);font-weight:800}
