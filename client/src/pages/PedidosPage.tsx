@@ -2388,7 +2388,7 @@ function PedidosCliente({
       if (!url) toast.message("Cobrança criada. O link ainda está sendo liberado — use Buscar link em instantes.");
     } catch (error) {
       toast.error(mensagem(error) || "Não foi possível alterar o pagamento.");
-      await onAtualizar().catch(() => undefined);
+      await Promise.resolve(onAtualizar()).catch(() => undefined);
     } finally {
       ocupadoRef.current = false;
       setOcupadoId("");
