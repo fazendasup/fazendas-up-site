@@ -1,6 +1,6 @@
 # Carrossel Instagram — Vagas de Estágio
 
-Um post, 3 slides (1080×1350), texto completo das artes originais.
+Feed **4:5 (1080×1350)**. Um post, 3 slides, texto completo, tipografia auto-ajustada para preencher o quadro.
 
 1. `01-admin.jpg`
 2. `02-cultivo.jpg`
