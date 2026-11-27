@@ -818,8 +818,8 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
               ) : null}
               {vista === "loja" && (!cliente || !cliente.recorrente) ? (
                 <p className="mt-3 max-w-2xl border-l-4 border-forest bg-forest/5 py-3 pl-4 pr-3 text-[0.95rem] font-medium leading-snug text-forest sm:text-[1.05rem]">
-                  Feche uma recorrência para sua cozinha e tenha acesso a{" "}
-                  <span className="font-semibold text-ink">valores especiais</span>.
+                  Feche uma recorrência para sua cozinha e tenha{" "}
+                  <span className="font-semibold text-ink">desconto de até 30%</span> nos valores.
                   {cliente && !ehPessoa(cliente) ? (
                     <>
                       {" "}
