@@ -362,7 +362,7 @@ export const portalApi = {
     body: {
       naLoja?: boolean;
       exclusivo?: boolean;
-      preco?: number;
+      /** Margem % só do site — nunca envie preço-base do ERP por aqui. */
       margemSite?: number | null;
       imagemUrl?: string | null;
       descricao?: string;

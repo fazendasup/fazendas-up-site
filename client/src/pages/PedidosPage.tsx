@@ -754,7 +754,7 @@ export default function PedidosPage({ acessoEquipe = false }: { acessoEquipe?: b
     patch: {
       naLoja?: boolean;
       exclusivo?: boolean;
-      preco?: number;
+      margemSite?: number | null;
       imagemUrl?: string | null;
       descricao?: string;
       aplicacao?: string;
@@ -2621,16 +2621,14 @@ function estoqueIgual(a: string, b: number | null) {
 }
 
 function rascunhoSujo(produto: ProdutoEquipe, rascunho: RascunhoProduto) {
-  const precoNum = Number(rascunho.preco.replace(",", "."));
-  const precoBase = produto.preco ?? NaN;
+  // Preço-base (ERP) é só leitura — alterações de preço no site usam margem %.
   return (
     normalizarGrupo(rascunho.grupo) !== normalizarGrupo(produto.grupo) ||
     rascunho.descricao !== produto.descricao ||
     rascunho.aplicacao !== produto.aplicacao ||
     rascunho.naLoja !== produto.naLoja ||
     rascunho.exclusivo !== produto.exclusivo ||
-    !estoqueIgual(rascunho.estoque, produto.estoque) ||
-    !(Number.isFinite(precoNum) && Number.isFinite(precoBase) && Math.abs(precoNum - precoBase) < 0.005)
+    !estoqueIgual(rascunho.estoque, produto.estoque)
   );
 }
 
@@ -2771,9 +2769,8 @@ function PainelEquipe({
         toast.error(`“${produto.nome}”: informe uma classe válida.`);
         return;
       }
-      const preco = Number(rascunho.preco.replace(",", "."));
-      if (!Number.isFinite(preco) || preco <= 0) {
-        toast.error(`“${produto.nome}”: informe um preço maior que zero.`);
+      if (produto.preco == null || !(produto.preco > 0)) {
+        toast.error(`“${produto.nome}”: sem preço-base no ERP. Sincronize o catálogo Conta Azul.`);
         return;
       }
       const estoque = rascunho.estoque.trim() === "" ? null : Number(rascunho.estoque.replace(",", "."));
@@ -2786,7 +2783,6 @@ function PainelEquipe({
         nome: produto.nome,
         body: {
           grupo,
-          preco,
           estoque,
           descricao: rascunho.descricao,
           aplicacao: rascunho.aplicacao,
@@ -3591,13 +3587,20 @@ function ProdutoEquipeCard({
         ) : null}
         <label className="text-sm">
           Preço-base (ERP)
-          <input value={rascunho.preco} onChange={(event) => onChange({ preco: event.target.value })} className="mt-1 w-full border border-ink/15 px-2 py-2" />
+          <input
+            value={rascunho.preco}
+            readOnly
+            title="Preço do ERP — só altera via Conta Azul. Use margem % do site."
+            className="mt-1 w-full border border-ink/15 bg-ink/[0.03] px-2 py-2 text-ink/70"
+          />
           {produto.margemSite != null && produto.margemSite !== 0 ? (
             <span className="mt-0.5 block text-xs text-forest">
               Margem {String(produto.margemSite).replace(".", ",")}% → site{" "}
               {produto.precoSite != null ? reais(produto.precoSite) : "—"}
             </span>
-          ) : null}
+          ) : (
+            <span className="mt-0.5 block text-xs text-ink/45">Só leitura. Para +30% no site, use a ferramenta de margem.</span>
+          )}
         </label>
         <label className="text-sm">
           Estoque
